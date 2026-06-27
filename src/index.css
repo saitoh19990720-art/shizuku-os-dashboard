@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  /* 淡い水色グラデの地（透明感・静かな完成度） */
+  background:
+    radial-gradient(120% 80% at 50% 0%, #eef4ff 0%, #f7f8fc 55%, #f7f8fc 100%);
+  min-height: 100vh;
+  color: #1e2633;
+  font-family: "Noto Sans JP", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
