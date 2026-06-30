@@ -26,3 +26,14 @@ export interface LinkItem {
   label: string; // 例: Figma / GitHub / Claudeメモ
   url: string; // URL またはメモ本文
 }
+
+// Quality Gate の判定（採用 / 保留 / 捨てる）
+export type Verdict = "adopt" | "hold" | "drop";
+
+// Quality Gate（AIの案・制作物を採用してよいか判定するカードの状態）
+export interface QualityGate {
+  name: string; // 案・制作物の名前
+  checks: Record<string, boolean>; // 各チェック項目の ON/OFF
+  verdict: Verdict | null; // 採用 / 保留 / 捨てる
+  next: string; // 次の一手
+}
