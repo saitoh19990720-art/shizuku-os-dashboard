@@ -45,9 +45,12 @@
 ## v0.3 — Obsidian 向け Markdown 出力
 
 - **公開日**：2026-07-01
-- **変更点**：Quality Gate 履歴を Obsidian 用 Markdown（frontmatter `tags: [ShizukuOS, QualityGate]` 付き）でクリップボードへコピーできる「Obsidian用にコピー」ボタンを追加
+- **変更点**：
+  - 履歴を**まとめて** Obsidian 用 Markdown（frontmatter `tags: [ShizukuOS, QualityGate]` 付き）でコピーする「Obsidian用にコピー」ボタン
+  - 履歴**1件ごと**の「MD」ボタンで、チェック状態（`- [x]` / `- [ ]`）まで含む詳細Markdownをコピー（`# Quality Gate Log｜案名`＋4観点＋次の一手）
+  - コピー成功/失敗のフィードバック（失敗時はprompt表示）
 - **意味**：判断ログが Obsidian（記憶の母艦）へ流れる導線ができた（§8）
-- **やっていないこと**：n8n連携・自動転記・外部送信（コピーはローカルのクリップボードのみ）
+- **やっていないこと**：Obsidian API連携・ファイル自動保存・n8n連携・外部送信（コピーはローカルのクリップボードのみ）
 
 ### 次に改善すること（最大3つ）
 1. 夜ログ・リンクの空状態メッセージ
