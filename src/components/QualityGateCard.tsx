@@ -1,6 +1,6 @@
 import Card from "./Card";
-import type { QualityGate, Verdict } from "../types";
-import { useLocalStorage } from "../hooks/useLocalStorage";
+import type { QualityGate, QualityGateRecord, Verdict } from "../types";
+import { makeId, useLocalStorage } from "../hooks/useLocalStorage";
 
 // 採用判定の4観点（部下 / 消費者 / 勝算 / 安全）。各3項目。
 const GROUPS: { title: string; items: { key: string; label: string }[] }[] = [
@@ -45,13 +45,29 @@ const VERDICTS: { value: Verdict; label: string }[] = [
   { value: "drop", label: "捨てる" },
 ];
 
+const VERDICT_LABEL: Record<Verdict, string> = { adopt: "採用", hold: "保留", drop: "捨てる" };
+// 履歴の判定バッジ色（採用＝氷色 / 保留＝水色 / 捨てる＝灰）
+const VERDICT_TAG: Record<Verdict, string> = {
+  adopt: "bg-crystal-200 text-accent-600",
+  hold: "bg-main-200 text-accent-600",
+  drop: "bg-neutral2-100 text-neutral2-300",
+};
+
 const EMPTY: QualityGate = { name: "", checks: {}, verdict: null, next: "" };
 
-// AIが出した案・制作物を「採用していいか」判定するカード。
+// 保存日時の文字列（new Date はボタン押下時のみ＝ユーザー操作で確定）
+function stamp(): string {
+  const d = new Date();
+  const p = (n: number) => `${n}`.padStart(2, "0");
+  return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+// AIが出した案・制作物を「採用していいか」判定し、履歴として残すカード。
 export default function QualityGateCard() {
-  const [gate, setGate] = useLocalStorage<QualityGate>(
-    "shizuku.qualityGate",
-    EMPTY,
+  const [gate, setGate] = useLocalStorage<QualityGate>("shizuku.qualityGate", EMPTY);
+  const [history, setHistory] = useLocalStorage<QualityGateRecord[]>(
+    "shizuku.qualityGateHistory",
+    [],
   );
 
   const total = GROUPS.reduce((n, g) => n + g.items.length, 0);
@@ -62,6 +78,31 @@ export default function QualityGateCard() {
 
   const setVerdict = (value: Verdict) =>
     setGate({ ...gate, verdict: gate.verdict === value ? null : value });
+
+  // 現在の判定を履歴に保存し、入力欄は次の案のためにリセット。
+  const saveToHistory = () => {
+    if (!gate.name.trim()) {
+      alert("案・制作物の名前を入力してください。入力内容は消えていません。");
+      return;
+    }
+    if (!gate.verdict) {
+      alert("採用 / 保留 / 捨てる のいずれかを選んでください。");
+      return;
+    }
+    const record: QualityGateRecord = {
+      id: makeId(),
+      name: gate.name.trim(),
+      checks: gate.checks,
+      verdict: gate.verdict,
+      next: gate.next.trim(),
+      savedAt: stamp(),
+    };
+    setHistory([record, ...history]);
+    setGate(EMPTY); // 次の案へ
+  };
+
+  const removeRecord = (id: string) =>
+    setHistory(history.filter((r) => r.id !== id));
 
   return (
     <Card eyebrow="Quality Gate" title="採用していい？を判定">
@@ -133,6 +174,49 @@ export default function QualityGateCard() {
           className="w-full resize-none rounded-xl border border-main-200 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-accent-300"
         />
       </label>
+
+      <button
+        onClick={saveToHistory}
+        className="mt-3 min-h-[44px] w-full rounded-xl bg-accent-500 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-600"
+      >
+        履歴に保存
+      </button>
+
+      {/* Quality Gate 履歴（v0.2） */}
+      <div className="mt-6 border-t border-neutral2-200 pt-4">
+        <p className="mb-2 text-xs font-medium text-accent-500">判定履歴</p>
+        {history.length === 0 ? (
+          <p className="rounded-xl border border-dashed border-main-300 bg-main-50 px-3 py-3 text-xs leading-relaxed text-neutral2-300">
+            まだ判定履歴がありません。
+            <br />
+            案を判定して「履歴に保存」を押すと、過去の採用・保留・捨てるが残ります。
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {history.map((r) => (
+              <li key={r.id} className="rounded-2xl bg-main-50 px-3 py-2.5 text-sm">
+                <div className="mb-1 flex items-start justify-between gap-2">
+                  <span className="font-medium text-ink">{r.name}</span>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${VERDICT_TAG[r.verdict]}`}>
+                      {VERDICT_LABEL[r.verdict]}
+                    </span>
+                    <button
+                      onClick={() => removeRecord(r.id)}
+                      aria-label="履歴を削除"
+                      className="text-neutral2-300 transition-colors hover:text-accent-500"
+                    >
+                      ×
+                    </button>
+                  </div>
+                </div>
+                {r.next && <p className="text-xs text-ink">→ {r.next}</p>}
+                <p className="mt-1 text-[11px] text-neutral2-300">{r.savedAt}</p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </Card>
   );
 }

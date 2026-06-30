@@ -37,3 +37,13 @@ export interface QualityGate {
   verdict: Verdict | null; // 採用 / 保留 / 捨てる
   next: string; // 次の一手
 }
+
+// Quality Gate の判定履歴（過去に保存した判定スナップショット1件）
+export interface QualityGateRecord {
+  id: string;
+  name: string; // 案・制作物の名前
+  checks: Record<string, boolean>; // 保存時のチェック状態
+  verdict: Verdict; // 履歴は判定確定済みのみ保存
+  next: string; // 次の一手
+  savedAt: string; // 保存日時（表示用）
+}
