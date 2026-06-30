@@ -85,6 +85,26 @@ function toObsidianMarkdown(history: QualityGateRecord[]): string {
   return lines.join("\n");
 }
 
+// 履歴1件を、チェック状態まで含む詳細 Markdown に変換（Obsidian貼り付け用）。
+function toRecordMarkdown(r: QualityGateRecord): string {
+  const lines = [
+    `# Quality Gate Log｜${r.name}`,
+    "",
+    `- 保存日時：${r.savedAt}`,
+    `- 判定：${VERDICT_LABEL[r.verdict]}`,
+    "",
+  ];
+  for (const g of GROUPS) {
+    lines.push(`## ${g.title}`);
+    for (const item of g.items) {
+      lines.push(`- [${r.checks[item.key] ? "x" : " "}] ${item.label}`);
+    }
+    lines.push("");
+  }
+  lines.push("## 次の一手", r.next || "（未記入）");
+  return lines.join("\n");
+}
+
 // AIが出した案・制作物を「採用していいか」判定し、履歴として残すカード。
 export default function QualityGateCard() {
   const [gate, setGate] = useLocalStorage<QualityGate>("shizuku.qualityGate", EMPTY);
@@ -93,6 +113,7 @@ export default function QualityGateCard() {
     [],
   );
   const [copied, setCopied] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const total = GROUPS.reduce((n, g) => n + g.items.length, 0);
   const passed = Object.values(gate.checks).filter(Boolean).length;
@@ -138,6 +159,21 @@ export default function QualityGateCard() {
     } catch {
       // クリップボードが使えない環境向けフォールバック
       window.prompt("このテキストを選択してコピーし、Obsidianに貼ってください：", md);
+    }
+  };
+
+  // 履歴1件を詳細Markdown（チェック状態つき）でコピー。
+  const copyRecord = async (r: QualityGateRecord) => {
+    const md = toRecordMarkdown(r);
+    try {
+      await navigator.clipboard.writeText(md);
+      setCopiedId(r.id);
+      setTimeout(() => setCopiedId(null), 1600);
+    } catch {
+      window.prompt(
+        "コピーできませんでした。このテキストを手動でコピーしてObsidianに貼ってください：",
+        md,
+      );
     }
   };
 
@@ -248,6 +284,12 @@ export default function QualityGateCard() {
                     <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${VERDICT_TAG[r.verdict]}`}>
                       {VERDICT_LABEL[r.verdict]}
                     </span>
+                    <button
+                      onClick={() => copyRecord(r)}
+                      className="rounded-md border border-main-300 px-2 py-1 text-[11px] text-accent-600 transition-colors hover:bg-main-100"
+                    >
+                      {copiedId === r.id ? "済" : "MD"}
+                    </button>
                     <button
                       onClick={() => removeRecord(r.id)}
                       aria-label="履歴を削除"
