@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Card from "./Card";
 import type { QualityGate, QualityGateRecord, Verdict } from "../types";
 import { makeId, useLocalStorage } from "../hooks/useLocalStorage";
@@ -62,6 +63,28 @@ function stamp(): string {
   return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
+// 履歴を Obsidian 向け Markdown（frontmatter付き・CLAUDE.md §8）に変換。
+function toObsidianMarkdown(history: QualityGateRecord[]): string {
+  const d = new Date();
+  const created = `${d.getFullYear()}-${`${d.getMonth() + 1}`.padStart(2, "0")}-${`${d.getDate()}`.padStart(2, "0")}`;
+  const lines = [
+    "---",
+    "tags:",
+    "  - ShizukuOS",
+    "  - QualityGate",
+    `created: ${created}`,
+    "---",
+    "",
+    "# Quality Gate 判定ログ",
+    "",
+  ];
+  for (const r of history) {
+    lines.push(`- **${r.name}** — ${VERDICT_LABEL[r.verdict]}（${r.savedAt}）`);
+    if (r.next) lines.push(`  - 次の一手: ${r.next}`);
+  }
+  return lines.join("\n");
+}
+
 // AIが出した案・制作物を「採用していいか」判定し、履歴として残すカード。
 export default function QualityGateCard() {
   const [gate, setGate] = useLocalStorage<QualityGate>("shizuku.qualityGate", EMPTY);
@@ -69,6 +92,7 @@ export default function QualityGateCard() {
     "shizuku.qualityGateHistory",
     [],
   );
+  const [copied, setCopied] = useState(false);
 
   const total = GROUPS.reduce((n, g) => n + g.items.length, 0);
   const passed = Object.values(gate.checks).filter(Boolean).length;
@@ -103,6 +127,19 @@ export default function QualityGateCard() {
 
   const removeRecord = (id: string) =>
     setHistory(history.filter((r) => r.id !== id));
+
+  // 履歴を Obsidian用 Markdown でクリップボードへコピー（外部送信なし）。
+  const copyMarkdown = async () => {
+    const md = toObsidianMarkdown(history);
+    try {
+      await navigator.clipboard.writeText(md);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch {
+      // クリップボードが使えない環境向けフォールバック
+      window.prompt("このテキストを選択してコピーし、Obsidianに貼ってください：", md);
+    }
+  };
 
   return (
     <Card eyebrow="Quality Gate" title="採用していい？を判定">
@@ -182,9 +219,19 @@ export default function QualityGateCard() {
         履歴に保存
       </button>
 
-      {/* Quality Gate 履歴（v0.2） */}
+      {/* Quality Gate 履歴（v0.2）＋ Obsidian出力（v0.3） */}
       <div className="mt-6 border-t border-neutral2-200 pt-4">
-        <p className="mb-2 text-xs font-medium text-accent-500">判定履歴</p>
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <p className="text-xs font-medium text-accent-500">判定履歴</p>
+          {history.length > 0 && (
+            <button
+              onClick={copyMarkdown}
+              className="min-h-[36px] rounded-lg border border-main-300 px-3 text-xs text-accent-600 transition-colors hover:bg-main-100"
+            >
+              {copied ? "コピーしました" : "Obsidian用にコピー"}
+            </button>
+          )}
+        </div>
         {history.length === 0 ? (
           <p className="rounded-xl border border-dashed border-main-300 bg-main-50 px-3 py-3 text-xs leading-relaxed text-neutral2-300">
             まだ判定履歴がありません。
