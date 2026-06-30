@@ -109,7 +109,7 @@ export default function QualityGateCard() {
             <button
               key={v.value}
               onClick={() => setVerdict(v.value)}
-              className={`rounded-xl border py-2 text-sm font-medium transition-colors ${
+              className={`min-h-[44px] rounded-xl border py-2 text-sm font-medium transition-colors ${
                 active
                   ? "border-transparent bg-accent-500 text-white"
                   : "border-main-200 bg-white text-ink hover:border-accent-300"

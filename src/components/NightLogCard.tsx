@@ -55,7 +55,7 @@ export default function NightLogCard() {
         ))}
         <button
           onClick={save}
-          className="mt-1 rounded-xl bg-accent-500 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-600"
+          className="mt-1 min-h-[44px] rounded-xl bg-accent-500 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-600"
         >
           ログを記録
         </button>

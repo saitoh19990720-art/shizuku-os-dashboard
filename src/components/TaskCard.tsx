@@ -98,7 +98,7 @@ export default function TaskCard() {
         </div>
         <button
           onClick={addTask}
-          className="rounded-xl bg-accent-500 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-600"
+          className="min-h-[44px] rounded-xl bg-accent-500 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-600"
         >
           候補を追加
         </button>
