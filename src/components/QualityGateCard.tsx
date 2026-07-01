@@ -114,6 +114,7 @@ export default function QualityGateCard() {
   );
   const [copied, setCopied] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [filter, setFilter] = useState<"all" | Verdict>("all");
 
   const total = GROUPS.reduce((n, g) => n + g.items.length, 0);
   const passed = Object.values(gate.checks).filter(Boolean).length;
@@ -176,6 +177,16 @@ export default function QualityGateCard() {
       );
     }
   };
+
+  // 判定での絞り込み（ページ更新時は「すべて」に戻る＝localStorageに保存しない）
+  const FILTERS: { value: "all" | Verdict; label: string }[] = [
+    { value: "all", label: "すべて" },
+    { value: "adopt", label: "採用" },
+    { value: "hold", label: "保留" },
+    { value: "drop", label: "捨てる" },
+  ];
+  const shown =
+    filter === "all" ? history : history.filter((r) => r.verdict === filter);
 
   return (
     <Card eyebrow="Quality Gate" title="採用していい？を判定">
@@ -268,15 +279,36 @@ export default function QualityGateCard() {
             </button>
           )}
         </div>
+        {history.length > 0 && (
+          <div className="mb-3 flex flex-wrap gap-1.5">
+            {FILTERS.map((f) => (
+              <button
+                key={f.value}
+                onClick={() => setFilter(f.value)}
+                className={`min-h-[36px] rounded-lg border px-3 text-xs transition-colors ${
+                  filter === f.value
+                    ? "border-transparent bg-accent-500 text-white"
+                    : "border-main-300 bg-white text-accent-600 hover:bg-main-100"
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        )}
         {history.length === 0 ? (
           <p className="rounded-xl border border-dashed border-main-300 bg-main-50 px-3 py-3 text-xs leading-relaxed text-neutral2-300">
             まだ判定履歴がありません。
             <br />
             案を判定して「履歴に保存」を押すと、過去の採用・保留・捨てるが残ります。
           </p>
+        ) : shown.length === 0 ? (
+          <p className="rounded-xl border border-dashed border-main-300 bg-main-50 px-3 py-3 text-xs text-neutral2-300">
+            この判定の履歴はまだありません。
+          </p>
         ) : (
           <ul className="flex flex-col gap-2">
-            {history.map((r) => (
+            {shown.map((r) => (
               <li key={r.id} className="rounded-2xl bg-main-50 px-3 py-2.5 text-sm">
                 <div className="mb-1 flex items-start justify-between gap-2">
                   <span className="font-medium text-ink">{r.name}</span>
