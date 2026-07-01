@@ -92,6 +92,7 @@ npm run preview
 ---
 
 ## 変更履歴
+- **v0.5**：夜タスクログ・制作中リンクに空状態メッセージを追加（迷わず戻れる強化）。
 - **v0.4**：Quality Gate 履歴を判定（採用/保留/捨てる）で絞り込む機能を追加。
 - **v0.3**：Quality Gate 履歴を Obsidian 向け Markdown（frontmatter付き）でコピーする機能を追加。
 - **v0.2**：Quality Gate に判定履歴（保存・一覧・削除、localStorage）を追加。

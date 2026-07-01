@@ -71,6 +71,14 @@ export default function LinksCard() {
         ))}
       </ul>
 
+      {links.length === 0 && (
+        <p className="rounded-xl border border-dashed border-main-300 bg-main-50 px-3 py-3 text-xs leading-relaxed text-neutral2-300">
+          まだ制作リンクがありません。
+          <br />
+          Figma・GitHub・ClaudeメモのURLを追加すると、次回ここから再開できます。
+        </p>
+      )}
+
       <div className="mt-4 flex gap-2">
         <input
           value={newLabel}

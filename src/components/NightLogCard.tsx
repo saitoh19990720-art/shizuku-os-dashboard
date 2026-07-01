@@ -61,7 +61,13 @@ export default function NightLogCard() {
         </button>
       </div>
 
-      {logs.length > 0 && (
+      {logs.length === 0 ? (
+        <p className="mt-4 rounded-xl border border-dashed border-main-300 bg-main-50 px-3 py-3 text-xs leading-relaxed text-neutral2-300">
+          まだ夜ログがありません。
+          <br />
+          1日の終わりに「やった／学び／次やる」を残すと、明日ここから再開できます。
+        </p>
+      ) : (
         <ul className="mt-4 flex flex-col gap-2">
           {logs.map((log) => (
             <li key={log.id} className="rounded-2xl bg-crystal-300 px-3 py-2.5 text-sm">
