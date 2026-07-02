@@ -1,13 +1,17 @@
 // アプリ全体で使うデータ型の定義。
 
-// 優先度バッジ（A=最優先 / B=今日中 / C=後で）
+// 優先度（A=高 / B=中 / C=低。表示は 高/中/低）
 export type Priority = "A" | "B" | "C";
+
+// 状態（今日やる / 明日やる / 保留）＝Figma準拠
+export type TaskStatus = "today" | "tomorrow" | "hold";
 
 // 今日の制作候補タスク
 export interface Task {
   id: string;
   title: string;
   priority: Priority;
+  status: TaskStatus;
   done: boolean;
 }
 
