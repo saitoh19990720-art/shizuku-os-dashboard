@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Landing from "./components/Landing";
 import TaskCard from "./components/TaskCard";
 import RoleRouterCard from "./components/RoleRouterCard";
+import PromptBuilderCard from "./components/PromptBuilderCard";
 import NightLogCard from "./components/NightLogCard";
 import LinksCard from "./components/LinksCard";
 import QualityGateCard from "./components/QualityGateCard";
@@ -45,6 +46,7 @@ function Dashboard() {
 
       <TaskCard />
       <RoleRouterCard />
+      <PromptBuilderCard />
       <NightLogCard />
       <LinksCard />
       <QualityGateCard />
