@@ -113,6 +113,9 @@ npm run preview
 - [x] README がポートフォリオ用に読める
 - [x] GitHub 公開済み＋Vercel 公開済み
 
+## Feedback Loop（公開後）
+作って終わりにせず、公開後の反応を「改善／次タスク／Obsidian」に戻す前提。→ `docs/FEEDBACK_LOOP.md`
+
 ---
 
 ## 変更履歴
