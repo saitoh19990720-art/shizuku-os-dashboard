@@ -1,9 +1,17 @@
-# Shizuku OS Dashboard v0.1
+# Shizuku OS Dashboard
 
 **AIの速さを、人間の判断で仕事品質へ戻す制作OS。**
 制作候補・夜タスクログ・制作リンク・Quality Gate を1画面にまとめる、しずく専用の個人ダッシュボード。スマホ幅（360px前後）に合わせた、水色×白×薄グレーの静かなUI。
 
 🔗 公開URL：https://shizuku-os-dashboard.vercel.app/
+
+## スクリーンショット
+> 公開URLを開いて撮影し、`docs/images/` に置いて下の行のコメント（`<!-- -->`）を外すと表示されます。
+<!-- ![Shizuku OS — Dashboard（4カード）](docs/images/screenshot-dashboard.png) -->
+<!-- ![Shizuku OS — Landing（紹介ページ）](docs/images/screenshot-landing.png) -->
+<!-- ![Shizuku OS — Quality Gate](docs/images/screenshot-quality-gate.png) -->
+
+推奨：PC幅で1枚・スマホ幅で1枚・Quality Gate部分アップで1枚。
 
 ---
 
