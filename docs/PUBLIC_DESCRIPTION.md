@@ -12,7 +12,7 @@ AIの速さを、人間の判断で仕事品質に戻す制作OS。
 制作候補・夜ログ・制作リンク・Quality Gateを1画面に統合した個人用ダッシュボード。AIで増えがちな案を「採用／保留／捨てる」で判断できる。React/TS/Tailwind、設計から公開まで一人で担当。
 
 ## 300字説明（GitHub / note 冒頭用）
-Shizuku OS Dashboard は、AIの速さを人間の判断で仕事品質へ戻すための個人用ダッシュボードです。AIで案・文章・UI・コードは大量に出せるようになりましたが、本当に重いのは「どれを採用するか・なぜ使えるか・安全か・次にどう進めるか」。このツールは、今日の制作候補／夜タスク3行ログ／制作中リンク／Quality Gate（採用・保留・捨てる）を1画面にまとめ、判断と再開を支えます。判定は履歴として残せ、Obsidian用Markdownで書き出し、採用/保留/捨てるで絞り込めます。データはlocalStorageのみで外部送信はありません。Figmaで設計し、React・TypeScript・Tailwind CSS・Viteで実装、Vercelで公開。思想（PRODUCT_VISION）→ルール（CLAUDE.md）→実装の順で進め、設計から公開まで一人で担当しました。
+Shizuku OS Dashboard は、AIの速さを人間の判断で仕事品質へ戻すための個人用ダッシュボードです。AIで案・文章・UI・コードは大量に出せるようになりましたが、本当に重いのは「どれを採用するか・なぜ使えるか・安全か・次にどう進めるか」。このツールは、AI Role Router（どのAIに投げるか）／Prompt Builder（プロンプト生成）／今日の制作候補／夜タスク3行ログ／制作中リンク／Quality Gate（採用・保留・捨てる）を1画面にまとめ、判断と再開を支えます。判定は履歴として残せ、Obsidian用Markdownで書き出し、採用/保留/捨てるで絞り込めます。データはlocalStorageのみで外部送信はありません。Figmaで設計し、React・TypeScript・Tailwind CSS・Viteで実装、Vercelで公開。思想（PRODUCT_VISION）→ルール（CLAUDE.md）→実装の順で進め、設計から公開まで一人で担当しました。
 
 ---
 
@@ -26,6 +26,7 @@ AIで作る速さは上がったが、「採用判断・再開・品質管理」
 - **Quality Gate**：AI案を部下視点／消費者視点／勝算／安全の4観点で見て採用・保留・捨てるに分ける
 - **localStorageのみ**で軽く保存（外部送信なし）
 - **量産SaaS感を避けた**静かなUI（冷色＋明朝・余白広め・44px以上のタップ領域）
+- **AIを編成する体験**：AI Role Router（どのAI）＋Prompt Builder（どう頼む）＋Quality Gate（採用判断）で、「AIを使う」だけでなく「編成して作る」を形にした
 
 ## 技術スタック
 React / TypeScript / Tailwind CSS / Vite / localStorage / Vercel

@@ -20,6 +20,8 @@ AIで案・文章・UI・コードは大量に出せるようになった。
 - Landing Page（作品紹介）
 - Dashboard（実物・1画面）
 - 今日の制作候補（優先度A/B/C・チェック）
+- AI Role Router（タスク→推奨AI/ツール）
+- Prompt Builder（目的・制約・出力形式→プロンプト生成・コピー）
 - 夜タスク3行ログ（やった／学び／次やる）
 - 制作中リンク（Figma・GitHub・メモ・参考URL）
 - Quality Gate（採用／保留／捨てる・4観点チェック）
