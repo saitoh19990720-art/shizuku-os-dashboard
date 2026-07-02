@@ -116,6 +116,9 @@ npm run preview
 ## Feedback Loop（公開後）
 作って終わりにせず、公開後の反応を「改善／次タスク／Obsidian」に戻す前提。→ `docs/FEEDBACK_LOOP.md`
 
+## Roadmap
+v0.1〜0.11で機能はそろい済み。次（v0.12）は「カード折りたたみ・週次振り返り」で使いやすさを整える。外部API/n8n本接続は将来（承認後）。→ `docs/ROADMAP.md`
+
 ---
 
 ## 変更履歴
