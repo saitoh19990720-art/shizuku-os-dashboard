@@ -7,6 +7,7 @@ import NightLogCard from "./components/NightLogCard";
 import LinksCard from "./components/LinksCard";
 import QualityGateCard from "./components/QualityGateCard";
 import BrandPanelCard from "./components/BrandPanelCard";
+import DataBridgeCard from "./components/DataBridgeCard";
 
 // 依存を増やさない軽量ハッシュルーティング。
 // `#/dashboard` のとき Dashboard、それ以外は Landing を表示する。
@@ -52,6 +53,7 @@ function Dashboard() {
       <LinksCard />
       <QualityGateCard />
       <BrandPanelCard />
+      <DataBridgeCard />
 
       <footer className="mt-2 px-1 text-center text-[11px] text-neutral2-300">
         入力はこの端末に自動保存されます（localStorage）。

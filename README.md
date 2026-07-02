@@ -27,6 +27,7 @@ Shizuku OS は、その「判断」と「再開」を支えるための小型OS�
 - **AI Role Router**：タスク種別ごとに「どのAIに投げるか」を示す早見（Opus 4.8主・Fable 5は最難関だけ）。
 - **Prompt Builder（＋Vault）**：目的・制約・出力形式・やらないこと からプロンプトを生成。名前をつけて保存し、対象AI・お気に入りで絞り込んで再コピーできる。
 - **Brand Panel**：冷色トークン・フォント・世界観キーワードを表示（デザインの一貫性を可視化）。
+- **n8n Bridge（JSON入出力）**：全データをJSONでコピー/ダウンロード/読み込み。バックアップ＆将来のn8n受け渡し口（外部送信なし）。
 - **Landing（紹介ページ）**：作品として「何か・なぜ作ったか」を伝える1ページ。
 
 ---
@@ -72,6 +73,10 @@ npm run build
 npm run preview
 ```
 
+## デプロイ（Vercel・公開済み）
+- Framework Preset：**Vite** ／ Build Command：`npm run build` ／ Output Directory：`dist` ／ Environment Variables：**なし**
+- 公開URL：https://shizuku-os-dashboard.vercel.app/
+
 ---
 
 ## 現在やっていないこと（v0.1）
@@ -92,9 +97,18 @@ npm run preview
 - APIキー・秘密情報は**使っていない**
 - 外部サービス連携は**未実装**
 
+## GitHub公開前チェック（このプロジェクトの状態）
+- [x] APIキー・秘密情報なし（`src` 全文検索で確認済み）
+- [x] localStorage のみ・外部API接続なし
+- [x] `.gitignore` で node_modules / dist / .env / .vercel を除外
+- [x] `npm run build` が通る
+- [x] README がポートフォリオ用に読める
+- [x] GitHub 公開済み＋Vercel 公開済み
+
 ---
 
 ## 変更履歴
+- **v0.11**：n8n Bridge（全データの JSON エクスポート/インポート・バックアップ）を追加。
 - **v0.10**：Prompt Builder に保存・再利用（Vault）を統合（名前/対象AI/お気に入り/絞り込み/コピー）。
 - **v0.9**：Brand Panel（配色・フォント・世界観キーワード）カードを追加。
 - **v0.8**：アクセシビリティ仕上げ（フォーカス可視化・reduced-motion対応・削除ボタンのタップ領域拡大）。
