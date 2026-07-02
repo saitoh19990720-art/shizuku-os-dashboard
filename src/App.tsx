@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Landing from "./components/Landing";
 import TaskCard from "./components/TaskCard";
+import RoleRouterCard from "./components/RoleRouterCard";
 import NightLogCard from "./components/NightLogCard";
 import LinksCard from "./components/LinksCard";
 import QualityGateCard from "./components/QualityGateCard";
@@ -43,6 +44,7 @@ function Dashboard() {
       </header>
 
       <TaskCard />
+      <RoleRouterCard />
       <NightLogCard />
       <LinksCard />
       <QualityGateCard />
