@@ -1,7 +1,8 @@
-import { useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
+import { useLocalStorage } from "../hooks/useLocalStorage";
 
 // 全カード共通の見た目（角丸・薄い影・透明感のある白面）。
-// 見出しをタップで開閉できる（defaultOpen=false で初期折りたたみ）。
+// 見出しをタップで開閉でき、開閉状態は localStorage に保存（次回も同じ状態で戻れる）。
 interface CardProps {
   eyebrow?: string;
   title: string;
@@ -10,7 +11,7 @@ interface CardProps {
 }
 
 export default function Card({ eyebrow, title, defaultOpen = true, children }: CardProps) {
-  const [open, setOpen] = useState(defaultOpen);
+  const [open, setOpen] = useLocalStorage<boolean>(`shizuku.cardOpen.${title}`, defaultOpen);
   return (
     <section className="rounded-card border border-white/70 bg-white/75 p-5 shadow-soft backdrop-blur-sm">
       <button

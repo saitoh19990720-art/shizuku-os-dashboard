@@ -11,6 +11,7 @@ const KEYS = [
   "shizuku.qualityGateHistory",
   "shizuku.promptBuilder",
   "shizuku.promptVault",
+  "shizuku.weeklyReviews",
 ];
 
 function buildExport(): string {
