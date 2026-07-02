@@ -13,7 +13,7 @@ const KEYWORDS = ["水色", "白", "氷", "ガラス", "透明感", "静けさ",
 
 export default function BrandPanelCard() {
   return (
-    <Card eyebrow="Brand Panel" title="世界観トークン">
+    <Card eyebrow="Brand Panel" title="世界観トークン" defaultOpen={false}>
       {/* 配色 */}
       <p className="mb-2 text-xs font-medium text-accent-500">配色</p>
       <div className="flex flex-col gap-2.5">

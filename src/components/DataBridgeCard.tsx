@@ -88,7 +88,7 @@ export default function DataBridgeCard() {
   };
 
   return (
-    <Card eyebrow="n8n Bridge" title="データ入出力（JSON）">
+    <Card eyebrow="n8n Bridge" title="データ入出力（JSON）" defaultOpen={false}>
       <p className="mb-3 text-xs text-neutral2-300">
         全カードの保存内容をJSONで出し入れ。バックアップ＆将来のn8n連携の受け渡し口（外部送信はしません）。
       </p>
