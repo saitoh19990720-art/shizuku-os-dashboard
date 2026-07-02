@@ -6,6 +6,7 @@ import PromptBuilderCard from "./components/PromptBuilderCard";
 import NightLogCard from "./components/NightLogCard";
 import LinksCard from "./components/LinksCard";
 import QualityGateCard from "./components/QualityGateCard";
+import WeeklyReviewCard from "./components/WeeklyReviewCard";
 import BrandPanelCard from "./components/BrandPanelCard";
 import DataBridgeCard from "./components/DataBridgeCard";
 
@@ -52,6 +53,7 @@ function Dashboard() {
       <NightLogCard />
       <LinksCard />
       <QualityGateCard />
+      <WeeklyReviewCard />
       <BrandPanelCard />
       <DataBridgeCard />
 
