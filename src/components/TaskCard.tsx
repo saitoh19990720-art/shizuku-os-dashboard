@@ -64,7 +64,7 @@ export default function TaskCard() {
             <button
               onClick={() => remove(task.id)}
               aria-label="削除"
-              className="shrink-0 text-neutral2-300 transition-colors hover:text-accent-500"
+              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-neutral2-300 transition-colors hover:bg-main-100 hover:text-accent-500"
             >
               ×
             </button>

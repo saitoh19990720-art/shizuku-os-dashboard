@@ -55,7 +55,7 @@ export default function LinksCard() {
                 <button
                   onClick={() => remove(link.id)}
                   aria-label="削除"
-                  className="text-neutral2-300 transition-colors hover:text-accent-500"
+                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-neutral2-300 transition-colors hover:bg-main-100 hover:text-accent-500"
                 >
                   ×
                 </button>

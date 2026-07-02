@@ -325,7 +325,7 @@ export default function QualityGateCard() {
                     <button
                       onClick={() => removeRecord(r.id)}
                       aria-label="履歴を削除"
-                      className="text-neutral2-300 transition-colors hover:text-accent-500"
+                      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-neutral2-300 transition-colors hover:bg-white/70 hover:text-accent-500"
                     >
                       ×
                     </button>
