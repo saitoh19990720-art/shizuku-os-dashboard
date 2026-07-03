@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import Landing from "./components/Landing";
+import ConditionCard from "./components/ConditionCard";
 import TaskCard from "./components/TaskCard";
 import RoleRouterCard from "./components/RoleRouterCard";
 import PromptBuilderCard from "./components/PromptBuilderCard";
@@ -47,6 +48,7 @@ function Dashboard() {
         </p>
       </header>
 
+      <ConditionCard />
       <TaskCard />
       <RoleRouterCard />
       <PromptBuilderCard />
