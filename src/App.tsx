@@ -10,6 +10,7 @@ import QualityGateCard from "./components/QualityGateCard";
 import WeeklyReviewCard from "./components/WeeklyReviewCard";
 import BrandPanelCard from "./components/BrandPanelCard";
 import DataBridgeCard from "./components/DataBridgeCard";
+import RetireCard from "./components/RetireCard";
 
 // 依存を増やさない軽量ハッシュルーティング。
 // `#/dashboard` のとき Dashboard、それ以外は Landing を表示する。
@@ -58,6 +59,7 @@ function Dashboard() {
       <WeeklyReviewCard />
       <BrandPanelCard />
       <DataBridgeCard />
+      <RetireCard />
 
       <footer className="mt-2 px-1 text-center text-[11px] text-neutral2-300">
         入力はこの端末に自動保存されます（localStorage）。

@@ -12,6 +12,7 @@ const KEYS = [
   "shizuku.promptBuilder",
   "shizuku.promptVault",
   "shizuku.weeklyReviews",
+  "shizuku.retire",
 ];
 
 function buildExport(): string {
