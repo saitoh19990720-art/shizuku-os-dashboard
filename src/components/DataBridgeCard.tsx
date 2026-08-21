@@ -70,7 +70,8 @@ const VALIDATORS: Record<string, (value: unknown) => boolean> = {
   "shizuku.nightLogs": rows(
     (l) => isStr(l.id) && optStr(l.date) && optStr(l.did) && optStr(l.learned) && optStr(l.next),
   ),
-  "shizuku.links": rows((l) => isStr(l.id) && optStr(l.label) && optStr(l.url)),
+  // url は必須。LinksCard が isUrl(link.url) で .trim() を直接呼ぶため、欠けていると描画時に落ちる。
+  "shizuku.links": rows((l) => isStr(l.id) && optStr(l.label) && isStr(l.url)),
   "shizuku.qualityGate": (v) =>
     isObject(v) &&
     optStr(v.name) &&
@@ -221,8 +222,17 @@ export default function DataBridgeCard() {
 
     // 途中で失敗しても中途半端な状態を残さないよう、書き込む前に今の値を控えておく。
     // （未保存だったキーは null。戻すときはキーごと消す）
+    // 控えが取れないと失敗時に元へ戻せないので、その場合は1件も書かずに中止する。
     const backup = new Map<string, string | null>();
-    for (const k of present) backup.set(k, localStorage.getItem(k));
+    try {
+      for (const k of present) backup.set(k, localStorage.getItem(k));
+    } catch {
+      setError(
+        "読み込みを中止しました。現在の保存内容を読み取れないため、失敗したときに元へ戻せません（まだ1件も書き換えていません）。" +
+          "ブラウザのプライベートモードや保存のブロック設定を解除してから、もう一度お試しください。",
+      );
+      return;
+    }
 
     const written: string[] = [];
     let failedKey: string | null = null;

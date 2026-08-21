@@ -18,7 +18,8 @@ export default function StorageAlert() {
       <p className="text-ink">
         書いた内容は画面には残っていますが、<strong className="font-medium text-ink">ページを閉じると消えます</strong>。
         ブラウザのプライベートモード、保存容量の上限、保存のブロック設定が原因のことがあります。
-        大事な内容は「データ入出力（JSON）」からコピーまたはダウンロードして控えてください。
+        <strong className="font-medium text-ink">ページを閉じる前に、残したい入力内容をその場で選択してコピーし、メモ帳などに貼って控えてください。</strong>
+        「データ入出力（JSON）」は保存済みの内容を書き出す仕組みなので、保存できていない今の入力は取り出せません。
       </p>
     </div>
   );
