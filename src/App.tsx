@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Landing from "./components/Landing";
 import ConditionCard from "./components/ConditionCard";
+import NextActionCard from "./components/NextActionCard";
 import TaskCard from "./components/TaskCard";
 import RoleRouterCard from "./components/RoleRouterCard";
 import PromptBuilderCard from "./components/PromptBuilderCard";
@@ -11,6 +12,7 @@ import WeeklyReviewCard from "./components/WeeklyReviewCard";
 import BrandPanelCard from "./components/BrandPanelCard";
 import DataBridgeCard from "./components/DataBridgeCard";
 import RetireCard from "./components/RetireCard";
+import StorageAlert from "./components/StorageAlert";
 
 // 依存を増やさない軽量ハッシュルーティング。
 // `#/dashboard` のとき Dashboard、それ以外は Landing を表示する。
@@ -29,7 +31,7 @@ function useHashRoute() {
   return hash;
 }
 
-// Shizuku OS Dashboard 本体（4カードの1画面）。
+// Shizuku OS Dashboard 本体（12カードを1画面へ縦に積む）。
 function Dashboard() {
   return (
     <main className="mx-auto flex w-full max-w-[400px] flex-col gap-4 px-4 py-8">
@@ -49,7 +51,10 @@ function Dashboard() {
         </p>
       </header>
 
+      <StorageAlert />
+
       <ConditionCard />
+      <NextActionCard />
       <TaskCard />
       <RoleRouterCard />
       <PromptBuilderCard />

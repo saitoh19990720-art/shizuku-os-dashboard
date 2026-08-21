@@ -17,11 +17,22 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* キーボード操作時のフォーカスを常に見えるように（accessibility.md） */
+/* キーボード操作時のフォーカスを常に見えるように（accessibility.md）。
+   入力欄の outline-none ユーティリティに負けないよう !important で最優先化。
+   :focus-visible なのでキーボード操作時だけ出て、マウス時は出ない。 */
 :focus-visible {
-  outline: 2px solid #5a84c9;
+  outline: 2px solid #5a84c9 !important;
   outline-offset: 2px;
   border-radius: 6px;
+}
+
+/* モバイルのダブルタップ遅延(約300ms)を消す */
+button,
+a,
+input,
+textarea,
+[role='switch'] {
+  touch-action: manipulation;
 }
 
 /* 動きを減らす設定の人には transition / スクロール挙動を無効化 */

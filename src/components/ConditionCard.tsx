@@ -46,6 +46,8 @@ export default function ConditionCard() {
           <button
             key={e.v}
             onClick={() => set("energy", c.energy === e.v ? "" : e.v)}
+            aria-pressed={c.energy === e.v}
+            aria-label={`今日の体力：${e.label}`}
             className={`min-h-[40px] flex-1 rounded-xl border text-sm font-medium transition-colors ${
               c.energy === e.v
                 ? "border-transparent bg-accent-500 text-white"
@@ -64,6 +66,8 @@ export default function ConditionCard() {
           <button
             key={n}
             onClick={() => set("pain", n)}
+            aria-pressed={c.pain === n}
+            aria-label={`痛みレベル ${n}`}
             className={`min-h-[40px] flex-1 rounded-xl border text-sm transition-colors ${
               c.pain === n
                 ? "border-transparent bg-accent-400 text-white"
@@ -82,6 +86,8 @@ export default function ConditionCard() {
           <button
             key={m}
             onClick={() => set("mode", c.mode === m ? "" : m)}
+            aria-pressed={c.mode === m}
+            aria-label={`今日の制作モード：${m}`}
             className={`min-h-[40px] rounded-xl border px-4 text-sm transition-colors ${
               c.mode === m
                 ? "border-transparent bg-accent-500 text-white"

@@ -234,6 +234,8 @@ export default function QualityGateCard() {
             <button
               key={v.value}
               onClick={() => setVerdict(v.value)}
+              aria-pressed={active}
+              aria-label={`判定：${v.label}`}
               className={`min-h-[44px] rounded-xl border py-2 text-sm font-medium transition-colors ${
                 active
                   ? "border-transparent bg-accent-500 text-white"
@@ -285,6 +287,8 @@ export default function QualityGateCard() {
               <button
                 key={f.value}
                 onClick={() => setFilter(f.value)}
+                aria-pressed={filter === f.value}
+                aria-label={`判定で絞り込み：${f.label}`}
                 className={`min-h-[36px] rounded-lg border px-3 text-xs transition-colors ${
                   filter === f.value
                     ? "border-transparent bg-accent-500 text-white"
@@ -324,7 +328,7 @@ export default function QualityGateCard() {
                     </button>
                     <button
                       onClick={() => removeRecord(r.id)}
-                      aria-label="履歴を削除"
+                      aria-label={`${r.name || "名称未設定"} の判定履歴を削除`}
                       className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-neutral2-300 transition-colors hover:bg-white/70 hover:text-accent-500"
                     >
                       ×

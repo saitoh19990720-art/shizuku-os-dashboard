@@ -64,7 +64,7 @@ React / TypeScript / Tailwind CSS / Vite / localStorage / Vercel
 | ファイル名 | 撮る場所 |
 |---|---|
 | `shizuku-os-lp.png` | `/`（Landing 全体） |
-| `shizuku-os-dashboard.png` | `#/dashboard`（4カード） |
+| `shizuku-os-dashboard.png` | `#/dashboard`（12カード全体） |
 | `shizuku-os-quality-gate.png` | Quality Gate 部分アップ |
 | `shizuku-os-mobile.png` | スマホ幅表示（任意） |
 

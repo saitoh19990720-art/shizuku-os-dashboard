@@ -3,6 +3,10 @@
 > Xにそのまま貼れる下書き。投稿は本人が押す（承認後）。盛らない・煽らない・制作ログとして出す。
 > 最終更新：2026-07-01
 
+> **注：この下書きは v0.1（4カード）時点のもの。現在の実装は v0.18・12カードで、公開URLへは未反映。**
+> そのまま投稿すると古いカード数を伝えることになるので、出す前に README の「主な機能」で数と内容を合わせる。
+
+
 公開URL：https://shizuku-os-dashboard.vercel.app/
 
 ---
@@ -45,7 +49,7 @@ AIで案やUIやコードは大量に出せるけど、本当に重いのは「�
 
 公開URL：https://shizuku-os-dashboard.vercel.app/
 ```
-> 添付：`shizuku-os-lp.png`（または Dashboard 4カードのスクショ）
+> 添付：`shizuku-os-lp.png`（または Dashboard 全体のスクショ）
 
 ## ⑤ 投稿時に添えるURL欄
 ```

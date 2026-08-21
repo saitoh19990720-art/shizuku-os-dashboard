@@ -167,6 +167,8 @@ export default function PromptBuilderCard() {
               </select>
               <button
                 onClick={() => setFavOnly((v) => !v)}
+                aria-pressed={favOnly}
+                aria-label="お気に入りだけ表示"
                 className={`min-h-[28px] rounded-lg border px-2 text-[11px] transition-colors ${
                   favOnly ? "border-transparent bg-accent-500 text-white" : "border-main-300 bg-white text-accent-600"
                 }`}
@@ -194,7 +196,8 @@ export default function PromptBuilderCard() {
                   <div className="flex min-w-0 items-center gap-2">
                     <button
                       onClick={() => toggleFav(s.id)}
-                      aria-label="お気に入り"
+                      aria-pressed={s.favorite}
+                      aria-label={`${s.name} をお気に入りにする`}
                       className={`shrink-0 text-sm ${s.favorite ? "text-accent-500" : "text-neutral2-300"}`}
                     >
                       ★
@@ -211,7 +214,7 @@ export default function PromptBuilderCard() {
                     </button>
                     <button
                       onClick={() => removeSaved(s.id)}
-                      aria-label="削除"
+                      aria-label={`${s.name} を削除`}
                       className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-neutral2-300 transition-colors hover:bg-white/70 hover:text-accent-500"
                     >
                       ×

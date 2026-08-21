@@ -128,7 +128,7 @@ export default function WeeklyReviewCard() {
                     </button>
                     <button
                       onClick={() => remove(r.id)}
-                      aria-label="削除"
+                      aria-label={`${r.week || "週未記入"} のレビューを削除`}
                       className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-neutral2-300 transition-colors hover:bg-white/70 hover:text-accent-500"
                     >
                       ×
