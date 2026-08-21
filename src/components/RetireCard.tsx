@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Card from "./Card";
-import { useLocalStorage } from "../hooks/useLocalStorage";
+import { safeSetItem, useLocalStorage, useStorageOk } from "../hooks/useLocalStorage";
 
 // Retire OK：途中で止めても「次に戻れる形」で残すための締めカード（Figma: retire-ok-card 準拠）。
 // 沼らず区切るための道具（§0.1 止め時）。データはlocalStorage。
@@ -12,13 +12,20 @@ interface Retire {
   next: string;
 }
 
+const KEY = "shizuku.retire";
 const EMPTY: Retire = { did: "", stage: "", reasons: [], returnTo: "", next: "" };
 const STAGES = ["メモだけ", "ラフだけ", "Figmaカードだけ", "実装プロンプトまで", "コード途中まで"];
 const REASONS = ["体力切れ", "頭痛", "眠い", "飽きた", "判断疲れ", "今日はここまでで十分"];
 
 export default function RetireCard() {
-  const [r, setR] = useLocalStorage<Retire>("shizuku.retire", EMPTY);
+  const [r, setR] = useLocalStorage<Retire>(KEY, EMPTY);
   const [saved, setSaved] = useState(false);
+  // この端末に保存できているか（失敗していれば false。詳しい案内は画面上部の StorageAlert が出す）
+  const storageOk = useStorageOk(KEY);
+
+  // 押した時点でもう一度書き込み、その結果でだけ「保存しました」を出す。
+  // 失敗したら成功文言は出さず、StorageAlert 側に警告が出る。
+  const onSave = () => setSaved(safeSetItem(KEY, r));
   const set = <K extends keyof Retire>(key: K, value: Retire[K]) => {
     setR({ ...r, [key]: value });
     setSaved(false);
@@ -30,6 +37,7 @@ export default function RetireCard() {
     <button
       key={label}
       onClick={onClick}
+      aria-pressed={active}
       className={`flex min-h-[40px] w-full items-center gap-2.5 rounded-xl border px-3 text-left text-sm transition-colors ${
         active ? "border-transparent bg-main-100 text-ink" : "border-main-200 bg-white text-ink hover:border-accent-300"
       }`}
@@ -89,13 +97,15 @@ export default function RetireCard() {
       </label>
 
       <button
-        onClick={() => setSaved(true)}
+        onClick={onSave}
         className="min-h-[48px] w-full rounded-xl bg-accent-500 text-sm font-medium text-white transition-colors hover:bg-accent-600"
       >
-        {saved ? "保存しました 🌙 おつかれさま" : "保存して終了する"}
+        {saved && storageOk ? "保存しました 🌙 おつかれさま" : "保存して終了する"}
       </button>
       <p className="mt-2 text-center text-[11px] text-neutral2-300">
-        入力はこの端末に保存済み。次回この続きから戻れます。
+        {storageOk
+          ? "入力はこの端末に保存済み。次回この続きから戻れます。"
+          : "この端末に保存できていません。画面上部の案内を確認してください。"}
       </p>
     </Card>
   );

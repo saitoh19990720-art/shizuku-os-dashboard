@@ -1,7 +1,8 @@
 # PRODUCT_VISION.md｜Shizuku OS / Shizuku Studio
 
 > これは**実装指示書ではない**。Shizuku OS の思想・方向性・壊してはいけない価値を残す**北極星メモ**。
-> 実装ルールは `CLAUDE.md`、見た目は `STYLE_GUIDE.md`、実装順は `ROADMAP.md`、起動方法は `README.md`。
+> 実装順は `ROADMAP.md`、起動方法は `README.md`。
+> 実装ルールと見た目のルールはこのリポジトリには置いていない（ワークスペース側の `.claude/rules/` が正本。実装した色・フォントは `tailwind.config.js`）。
 > 最終更新：2026-07-01
 
 ---
@@ -76,11 +77,15 @@ AIに全部任せて終わりにしない。
 
 | ファイル | 役割 |
 |---|---|
-| `PRODUCT_VISION.md` | **思想**（このファイル・北極星） |
-| `CLAUDE.md` | Claude Code の作業ルール |
-| `STYLE_GUIDE.md` | 見た目のルール（配色・フォント・余白） |
-| `ROADMAP.md` | 実装の順番 |
-| `README.md` | 起動方法 |
+| `docs/PRODUCT_VISION.md` | **思想**（このファイル・北極星） |
+| `docs/ROADMAP.md` | 実装の順番 |
+| `docs/FEEDBACK_LOOP.md` | 公開後の反応を次へ戻す手順 |
+| `README.md` | 起動方法・機能・構成 |
+| `tailwind.config.js` | 実装された配色・フォントのトークン |
+
+> `CLAUDE.md` / `STYLE_GUIDE.md` は**このリポジトリには無い**。
+> AIの作業ルールとデザインの正本はワークスペース側の `.claude/rules/`
+> （`design-system.md` / `accessibility.md` / `ui-patterns.md`）にある。
 
 ---
 

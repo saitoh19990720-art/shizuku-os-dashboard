@@ -62,6 +62,8 @@ export default function TaskCard() {
       <ul className="flex flex-col gap-2">
         {tasks.map((task) => {
           const st = (task.status ?? "today") as TaskStatus;
+          // チェックボックスとタスク名を結びつける（読み上げで「何を完了にするか」が分かる）
+          const titleId = `task-title-${task.id}`;
           return (
             <li key={task.id} className="rounded-2xl bg-main-50 px-3 py-2.5">
               <div className="flex items-center gap-3">
@@ -69,14 +71,15 @@ export default function TaskCard() {
                   type="checkbox"
                   checked={task.done}
                   onChange={() => toggle(task.id)}
+                  aria-labelledby={titleId}
                   className="h-4 w-4 shrink-0 accent-accent-500"
                 />
-                <span className={`grow text-sm ${task.done ? "text-neutral2-300 line-through" : "text-ink"}`}>
+                <span id={titleId} className={`grow text-sm ${task.done ? "text-neutral2-300 line-through" : "text-ink"}`}>
                   {task.title}
                 </span>
                 <button
                   onClick={() => remove(task.id)}
-                  aria-label="削除"
+                  aria-label={`${task.title} を削除`}
                   className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-neutral2-300 transition-colors hover:bg-main-100 hover:text-accent-500"
                 >
                   ×
@@ -85,7 +88,7 @@ export default function TaskCard() {
               <div className="mt-1.5 flex items-center gap-2 pl-7">
                 <button
                   onClick={() => cycleStatus(task.id)}
-                  aria-label="状態を変える"
+                  aria-label={`${task.title} の状態：${STATUS_LABEL[st]}（押すと次の状態へ）`}
                   className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors ${STATUS_STYLE[st]}`}
                 >
                   {STATUS_LABEL[st]}

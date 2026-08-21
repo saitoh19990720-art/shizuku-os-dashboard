@@ -75,7 +75,7 @@ export default function NightLogCard() {
                 <span className="text-[11px] font-semibold text-accent-600">{log.date}</span>
                 <button
                   onClick={() => remove(log.id)}
-                  aria-label="削除"
+                  aria-label={`${log.date} のログを削除`}
                   className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-neutral2-300 transition-colors hover:bg-white/70 hover:text-accent-500"
                 >
                   ×

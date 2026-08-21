@@ -2,6 +2,7 @@
 // 「何の作品か・なぜ作ったか」を伝え、Dashboard へ導線をつなぐ。
 // ルーティングはハッシュ方式（#/dashboard）。CTAは通常の <a href="#/dashboard">。
 
+// Landing で紹介するのは「核の4カード」。Dashboard 本体は全12カード（v0.18）。
 const CORE = [
   { ic: "🩵", title: "今日の制作候補", desc: "今日いちばん進める1つを決め、見失わない。優先度バッジ付き。" },
   { ic: "🌙", title: "夜タスク3行ログ", desc: "やった／学び／次やる。1日を3行で沈殿させる。" },
@@ -76,7 +77,8 @@ export default function Landing() {
       {/* Core */}
       <section className="border-y border-neutral2-200 bg-white/60 py-12">
         <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-accent-500">Core</p>
-        <h2 className="mb-4 font-mincho text-xl font-semibold text-ink">4つのカード</h2>
+        <h2 className="mb-2 font-mincho text-xl font-semibold text-ink">核になる4カード</h2>
+        <p className="mb-4 text-sm text-neutral2-300">Dashboard は全12カード。ここでは中心の4つだけ紹介します。</p>
         <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
           {CORE.map((c) => (
             <div
