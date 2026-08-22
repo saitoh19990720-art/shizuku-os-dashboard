@@ -85,7 +85,7 @@ export default function LinksCard() {
           onChange={(e) => setNewLabel(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && add()}
           placeholder="ラベル名（例: 参考サイト）"
-          className="grow rounded-xl border border-main-200 bg-white px-3 py-2 text-sm outline-none focus:border-accent-300"
+          className="min-w-0 grow rounded-xl border border-main-200 bg-white px-3 py-2 text-sm outline-none focus:border-accent-300"
         />
         <button
           onClick={add}
