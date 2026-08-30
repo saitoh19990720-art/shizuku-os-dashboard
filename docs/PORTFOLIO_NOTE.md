@@ -3,6 +3,10 @@
 > ポートフォリオ／応募で「この作品をどう説明するか」のメモ。
 > 公開URLやスクショと一緒に使う。最終更新：2026-07-01
 
+> **読むときの注意（2026-08-30 追記）**
+> **タイトルの「v0.1」と §4・§7・§8 は当時の記録。** 公開中は **v0.18・12カード**（公開URLへ反映済み）。
+> 応募・ポートフォリオに出す前に、機能の数と内容は必ず `README.md`「主な機能」で合わせる。
+
 ---
 
 ## 1. 作品名
@@ -60,13 +64,17 @@ React / TypeScript / Tailwind CSS / Vite / localStorage / Vercel
 - 公開URL：https://shizuku-os-dashboard.vercel.app/
 - GitHub：https://github.com/saitoh19990720-art/shizuku-os-dashboard
 
-## スクショ（しずくが撮って docs/ に置く）
-| ファイル名 | 撮る場所 |
-|---|---|
-| `shizuku-os-lp.png` | `/`（Landing 全体） |
-| `shizuku-os-dashboard.png` | `#/dashboard`（12カード全体） |
-| `shizuku-os-quality-gate.png` | Quality Gate 部分アップ |
-| `shizuku-os-mobile.png` | スマホ幅表示（任意） |
+## スクショ（`docs/images/` にある実物）
+
+> 2026-08-30 修正：ここに書かれていた4つのファイル名（`shizuku-os-lp.png` など）は**実在しなかった**ため、実際のファイル名へ差し替えた。
+
+| ファイル名 | 撮った場所 | 状態 |
+|---|---|---|
+| `screenshot-landing.png` | `/`（Landing） | README に掲載中 |
+| `screenshot-dashboard.png` | `#/dashboard` | README に掲載中。**v0.17（11カード）時点＝要撮り直し** |
+| `screenshot-quality-gate.png` | Quality Gate 部分 | README に掲載中 |
+| `screenshot-dashboard-desktop.png` | デスクトップ幅 | 監査用（未コミット） |
+| `screenshot-dashboard-mobile.png` | 360px 幅 | 監査用（未コミット） |
 
 ## 応募での一言（コピペ用）
 > Shizuku OS Dashboard｜AIの速さを人間の判断で仕事品質へ戻す制作OS。制作候補・夜ログ・リンク・Quality Gate を1画面に統合し、AI案を「採用/保留/捨てる」で判定できる個人ツール。React/TS/Tailwind/Vite、設計から公開まで一人で担当。
