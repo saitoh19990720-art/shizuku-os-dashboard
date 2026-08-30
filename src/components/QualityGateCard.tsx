@@ -51,7 +51,7 @@ const VERDICT_LABEL: Record<Verdict, string> = { adopt: "採用", hold: "保留"
 const VERDICT_TAG: Record<Verdict, string> = {
   adopt: "bg-crystal-200 text-accent-600",
   hold: "bg-main-200 text-accent-600",
-  drop: "bg-neutral2-100 text-neutral2-300",
+  drop: "bg-neutral2-100 text-neutral2-500",
 };
 
 const EMPTY: QualityGate = { name: "", checks: {}, verdict: null, next: "" };
@@ -301,13 +301,13 @@ export default function QualityGateCard() {
           </div>
         )}
         {history.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-main-300 bg-main-50 px-3 py-3 text-xs leading-relaxed text-neutral2-300">
+          <p className="rounded-xl border border-dashed border-main-300 bg-main-50 px-3 py-3 text-xs leading-relaxed text-neutral2-500">
             まだ判定履歴がありません。
             <br />
             案を判定して「履歴に保存」を押すと、過去の採用・保留・捨てるが残ります。
           </p>
         ) : shown.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-main-300 bg-main-50 px-3 py-3 text-xs text-neutral2-300">
+          <p className="rounded-xl border border-dashed border-main-300 bg-main-50 px-3 py-3 text-xs text-neutral2-500">
             この判定の履歴はまだありません。
           </p>
         ) : (
@@ -329,14 +329,14 @@ export default function QualityGateCard() {
                     <button
                       onClick={() => removeRecord(r.id)}
                       aria-label={`${r.name || "名称未設定"} の判定履歴を削除`}
-                      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-neutral2-300 transition-colors hover:bg-white/70 hover:text-accent-500"
+                      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-neutral2-500 transition-colors hover:bg-white/70 hover:text-accent-500"
                     >
                       ×
                     </button>
                   </div>
                 </div>
                 {r.next && <p className="text-xs text-ink">→ {r.next}</p>}
-                <p className="mt-1 text-[11px] text-neutral2-300">{r.savedAt}</p>
+                <p className="mt-1 text-[11px] text-neutral2-500">{r.savedAt}</p>
               </li>
             ))}
           </ul>

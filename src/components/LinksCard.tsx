@@ -55,7 +55,7 @@ export default function LinksCard() {
                 <button
                   onClick={() => remove(link.id)}
                   aria-label={`${link.label || "リンク"} を削除`}
-                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-neutral2-300 transition-colors hover:bg-main-100 hover:text-accent-500"
+                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-neutral2-500 transition-colors hover:bg-main-100 hover:text-accent-500"
                 >
                   ×
                 </button>
@@ -72,7 +72,7 @@ export default function LinksCard() {
       </ul>
 
       {links.length === 0 && (
-        <p className="rounded-xl border border-dashed border-main-300 bg-main-50 px-3 py-3 text-xs leading-relaxed text-neutral2-300">
+        <p className="rounded-xl border border-dashed border-main-300 bg-main-50 px-3 py-3 text-xs leading-relaxed text-neutral2-500">
           まだ制作リンクがありません。
           <br />
           Figma・GitHub・ClaudeメモのURLを追加すると、次回ここから再開できます。

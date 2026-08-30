@@ -30,7 +30,7 @@ export default function Landing() {
         <p className="mt-4 font-ui text-base font-medium text-accent-600">
           制作候補・夜ログ・制作リンク・Quality Gate を、1画面に。
         </p>
-        <p className="mt-3 max-w-[540px] text-sm text-neutral2-300">
+        <p className="mt-3 max-w-[540px] text-sm text-neutral2-500">
           AI案をそのまま通さず、「採用していいか」まで支える個人用ダッシュボード。迷わず戻れて、雑な案を通さない。
         </p>
         <div className="mt-7 flex flex-wrap gap-3">
@@ -69,7 +69,7 @@ export default function Landing() {
         <h2 className="mb-3 font-mincho text-xl font-semibold text-ink">
           制作・記録・再開・判断を、1つの流れに。
         </h2>
-        <p className="text-sm text-neutral2-300">
+        <p className="text-sm text-neutral2-500">
           毎日の制作を「始める」だけでなく「戻ってこられる」ように設計した、静かな仕事机。
         </p>
       </section>
@@ -78,7 +78,7 @@ export default function Landing() {
       <section className="border-y border-neutral2-200 bg-white/60 py-12">
         <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-accent-500">Core</p>
         <h2 className="mb-2 font-mincho text-xl font-semibold text-ink">核になる4カード</h2>
-        <p className="mb-4 text-sm text-neutral2-300">Dashboard は全12カード。ここでは中心の4つだけ紹介します。</p>
+        <p className="mb-4 text-sm text-neutral2-500">Dashboard は全12カード。ここでは中心の4つだけ紹介します。</p>
         <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
           {CORE.map((c) => (
             <div
@@ -89,7 +89,7 @@ export default function Landing() {
                 <span className="mr-1.5">{c.ic}</span>
                 {c.title}
               </h3>
-              <p className="text-sm text-neutral2-300">{c.desc}</p>
+              <p className="text-sm text-neutral2-500">{c.desc}</p>
             </div>
           ))}
         </div>
@@ -100,7 +100,7 @@ export default function Landing() {
         <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-accent-500">Quality Gate</p>
         <h2 className="mb-4 font-mincho text-xl font-semibold text-ink">AI案を、そのまま通さない。</h2>
         <div className="rounded-card border border-main-200 bg-gradient-to-b from-crystal-300 to-main-100 p-6">
-          <p className="text-sm text-neutral2-300">
+          <p className="text-sm text-neutral2-500">
             4つの視点でAIの案・制作物・改善提案を見て、雑なまま前に進めない。
           </p>
           <div className="mt-3.5 flex flex-wrap gap-2">
@@ -116,9 +116,9 @@ export default function Landing() {
           <div className="mt-4 flex flex-wrap gap-2">
             <span className="rounded-xl bg-crystal-200 px-4 py-2 text-[13px] text-accent-600">採用</span>
             <span className="rounded-xl bg-main-200 px-4 py-2 text-[13px] text-accent-600">保留</span>
-            <span className="rounded-xl bg-neutral2-100 px-4 py-2 text-[13px] text-neutral2-300">捨てる</span>
+            <span className="rounded-xl bg-neutral2-100 px-4 py-2 text-[13px] text-neutral2-500">捨てる</span>
           </div>
-          <p className="mt-4 text-sm text-neutral2-300">
+          <p className="mt-4 text-sm text-neutral2-500">
             合言葉：雑案を増やすな。<strong className="text-ink">最終判断は人間。</strong>
           </p>
         </div>
@@ -137,7 +137,7 @@ export default function Landing() {
       {/* CTA */}
       <section className="py-14 text-center">
         <h2 className="mb-3 font-mincho text-xl font-semibold text-ink">動くものを、見てください。</h2>
-        <p className="mb-6 text-sm text-neutral2-300">
+        <p className="mb-6 text-sm text-neutral2-500">
           ローカル保存（localStorage）・外部送信なしのシンプルな1画面アプリです。
         </p>
         <div className="flex flex-wrap justify-center gap-3">
@@ -158,7 +158,7 @@ export default function Landing() {
         </div>
       </section>
 
-      <footer className="pb-12 pt-4 text-center font-ui text-[11px] text-neutral2-300">
+      <footer className="pb-12 pt-4 text-center font-ui text-[11px] text-neutral2-500">
         © Shizuku Studio — Shizuku OS
       </footer>
     </div>

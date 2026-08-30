@@ -12,7 +12,7 @@ export default function NextActionCard() {
 
   return (
     <Card eyebrow="Next Action" title="今日の次アクション">
-      <p className="mb-3 text-xs text-neutral2-300">迷ったら、今日はこれ1つだけ。</p>
+      <p className="mb-3 text-xs text-neutral2-500">迷ったら、今日はこれ1つだけ。</p>
       <div className="flex items-center gap-3">
         <input
           type="checkbox"
@@ -26,7 +26,7 @@ export default function NextActionCard() {
           onChange={(e) => setNa({ ...na, text: e.target.value })}
           placeholder="今日やる1つを書く…（例：Figmaで1カード整える）"
           className={`grow rounded-xl border border-main-200 bg-white px-3 py-2.5 text-[15px] outline-none focus:border-accent-300 ${
-            na.done ? "text-neutral2-300 line-through" : "text-ink"
+            na.done ? "text-neutral2-500 line-through" : "text-ink"
           }`}
         />
       </div>

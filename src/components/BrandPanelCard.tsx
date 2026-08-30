@@ -19,7 +19,7 @@ export default function BrandPanelCard() {
       <div className="flex flex-col gap-2.5">
         {PALETTE.map((g) => (
           <div key={g.name}>
-            <p className="mb-1 text-[11px] text-neutral2-300">{g.name}</p>
+            <p className="mb-1 text-[11px] text-neutral2-500">{g.name}</p>
             <div className="flex gap-1.5">
               {g.colors.map((c) => (
                 <div key={c} className="flex-1">
@@ -27,7 +27,7 @@ export default function BrandPanelCard() {
                     className="h-8 rounded-lg border border-neutral2-200"
                     style={{ backgroundColor: c }}
                   />
-                  <p className="mt-0.5 text-center text-[9px] text-neutral2-300">{c}</p>
+                  <p className="mt-0.5 text-center text-[9px] text-neutral2-500">{c}</p>
                 </div>
               ))}
             </div>
@@ -35,7 +35,7 @@ export default function BrandPanelCard() {
         ))}
         <div className="flex items-center gap-2 pt-0.5">
           <div className="h-6 w-6 shrink-0 rounded-lg" style={{ backgroundColor: "#1E2633" }} />
-          <span className="text-[11px] text-neutral2-300">Ink #1E2633（文字色）</span>
+          <span className="text-[11px] text-neutral2-500">Ink #1E2633（文字色）</span>
         </div>
       </div>
 

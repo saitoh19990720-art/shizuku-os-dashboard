@@ -7,7 +7,11 @@
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
     "strict": true,
-    "composite": true
+    "composite": true,
+    // tsc -b の出力をプロジェクト直下に置かない。
+    // 直下に出すと vite.config.js が生まれ、Vite が .ts より .js を優先して読むため、
+    // vite.config.ts を直しても古い .js が使われる事故が起きる。
+    "outDir": "./node_modules/.tmp/tsconfig-node"
   },
   "include": ["vite.config.ts"]
 }

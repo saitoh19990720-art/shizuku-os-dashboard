@@ -276,7 +276,7 @@ export default function DataBridgeCard() {
 
   return (
     <Card eyebrow="n8n Bridge" title="データ入出力（JSON）" defaultOpen={false}>
-      <p className="mb-3 text-xs text-neutral2-300">
+      <p className="mb-3 text-xs text-neutral2-500">
         全カードの保存内容をJSONで出し入れ。バックアップ＆将来のn8n連携の受け渡し口（外部送信はしません）。
       </p>
 
@@ -331,7 +331,7 @@ export default function DataBridgeCard() {
             {error}
           </p>
         )}
-        <p className="mt-1 text-[11px] text-neutral2-300">
+        <p className="mt-1 text-[11px] text-neutral2-500">
           ※上書き前に確認が出ます。心配なら先に「.json ダウンロード」でバックアップを。
         </p>
       </div>

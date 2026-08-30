@@ -4,8 +4,8 @@ import Card from "./Card";
 // 中身は .claude/rules/model-usage.md と一致（高性能の無駄遣い防止）。
 const ROUTES: { task: string; tool: string }[] = [
   { task: "複雑な設計・難所・長時間の自律作業", tool: "Fable 5" },
-  { task: "設計・レビュー・通常の実装", tool: "Opus 4.8" },
-  { task: "速さ/コスト優先の実装・軽い修正", tool: "Sonnet 4.6" },
+  { task: "設計・レビュー・通常の実装", tool: "Opus 5" },
+  { task: "速さ/コスト優先の実装・軽い修正", tool: "Sonnet 5" },
   { task: "検索・一次情報・裏取り", tool: "Perplexity" },
   { task: "UI設計・世界観", tool: "Figma" },
   { task: "コード実装", tool: "Claude Code" },
@@ -18,8 +18,8 @@ const ROUTES: { task: string; tool: string }[] = [
 export default function RoleRouterCard() {
   return (
     <Card eyebrow="AI Role Router" title="どのAIに投げる？" defaultOpen={false}>
-      <p className="mb-3 text-xs text-neutral2-300">
-        迷ったら Opus 4.8。Fable 5 は最難関だけ（料金が高い）。
+      <p className="mb-3 text-xs text-neutral2-500">
+        迷ったら Opus 5。Fable 5 は最難関だけ（料金が高い）。
       </p>
       <ul className="flex flex-col gap-1.5">
         {ROUTES.map((r) => (

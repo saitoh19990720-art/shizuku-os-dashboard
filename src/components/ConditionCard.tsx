@@ -35,7 +35,7 @@ export default function ConditionCard() {
 
   return (
     <Card eyebrow="Condition" title="今日のコンディション">
-      <p className="mb-3 text-xs text-neutral2-300">
+      <p className="mb-3 text-xs text-neutral2-500">
         体調を無視しない。今日できる分だけ、静かに進める。（この端末だけに保存・外に出しません）
       </p>
 
