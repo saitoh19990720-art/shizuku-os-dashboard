@@ -121,7 +121,7 @@ export default function PromptBuilderCard() {
           <textarea value={prompt} readOnly rows={5}
             className="w-full resize-none rounded-xl border border-main-200 bg-main-50 px-3 py-2 text-xs text-ink outline-none" />
         ) : (
-          <p className="rounded-xl border border-dashed border-main-300 bg-main-50 px-3 py-3 text-xs leading-relaxed text-neutral2-300">
+          <p className="rounded-xl border border-dashed border-main-300 bg-main-50 px-3 py-3 text-xs leading-relaxed text-neutral2-500">
             上の欄を埋めると、ここにコピーできるプロンプトが出ます。
           </p>
         )}
@@ -179,13 +179,13 @@ export default function PromptBuilderCard() {
           )}
         </div>
         {saved.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-main-300 bg-main-50 px-3 py-3 text-xs leading-relaxed text-neutral2-300">
+          <p className="rounded-xl border border-dashed border-main-300 bg-main-50 px-3 py-3 text-xs leading-relaxed text-neutral2-500">
             まだ保存したプロンプトがありません。
             <br />
             上で組んだプロンプトに名前をつけて「保存」すると、ここに貯まります。
           </p>
         ) : shown.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-main-300 bg-main-50 px-3 py-3 text-xs text-neutral2-300">
+          <p className="rounded-xl border border-dashed border-main-300 bg-main-50 px-3 py-3 text-xs text-neutral2-500">
             条件に合う保存プロンプトがありません。
           </p>
         ) : (
@@ -198,7 +198,7 @@ export default function PromptBuilderCard() {
                       onClick={() => toggleFav(s.id)}
                       aria-pressed={s.favorite}
                       aria-label={`${s.name} をお気に入りにする`}
-                      className={`shrink-0 text-sm ${s.favorite ? "text-accent-500" : "text-neutral2-300"}`}
+                      className={`shrink-0 text-sm ${s.favorite ? "text-accent-500" : "text-neutral2-500"}`}
                     >
                       ★
                     </button>
@@ -215,13 +215,13 @@ export default function PromptBuilderCard() {
                     <button
                       onClick={() => removeSaved(s.id)}
                       aria-label={`${s.name} を削除`}
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-neutral2-300 transition-colors hover:bg-white/70 hover:text-accent-500"
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-neutral2-500 transition-colors hover:bg-white/70 hover:text-accent-500"
                     >
                       ×
                     </button>
                   </div>
                 </div>
-                <p className="mt-1 text-[10px] text-neutral2-300">{s.savedAt}</p>
+                <p className="mt-1 text-[10px] text-neutral2-500">{s.savedAt}</p>
               </li>
             ))}
           </ul>

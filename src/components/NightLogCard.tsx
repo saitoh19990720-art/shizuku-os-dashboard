@@ -62,7 +62,7 @@ export default function NightLogCard() {
       </div>
 
       {logs.length === 0 ? (
-        <p className="mt-4 rounded-xl border border-dashed border-main-300 bg-main-50 px-3 py-3 text-xs leading-relaxed text-neutral2-300">
+        <p className="mt-4 rounded-xl border border-dashed border-main-300 bg-main-50 px-3 py-3 text-xs leading-relaxed text-neutral2-500">
           まだ夜ログがありません。
           <br />
           1日の終わりに「やった／学び／次やる」を残すと、明日ここから再開できます。
@@ -76,7 +76,7 @@ export default function NightLogCard() {
                 <button
                   onClick={() => remove(log.id)}
                   aria-label={`${log.date} のログを削除`}
-                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-neutral2-300 transition-colors hover:bg-white/70 hover:text-accent-500"
+                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-neutral2-500 transition-colors hover:bg-white/70 hover:text-accent-500"
                 >
                   ×
                 </button>

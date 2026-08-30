@@ -53,7 +53,7 @@ export default function RetireCard() {
 
   return (
     <Card eyebrow="Retire OK" title="今日はここまででOK" defaultOpen={false}>
-      <p className="mb-4 text-xs text-neutral2-300">途中で止めても、次に戻れる形で残す。</p>
+      <p className="mb-4 text-xs text-neutral2-500">途中で止めても、次に戻れる形で残す。</p>
 
       <label className="mb-4 block">
         <span className="mb-1.5 block text-xs font-medium text-accent-500">今日やったこと</span>
@@ -102,7 +102,7 @@ export default function RetireCard() {
       >
         {saved && storageOk ? "保存しました 🌙 おつかれさま" : "保存して終了する"}
       </button>
-      <p className="mt-2 text-center text-[11px] text-neutral2-300">
+      <p className="mt-2 text-center text-[11px] text-neutral2-500">
         {storageOk
           ? "入力はこの端末に保存済み。次回この続きから戻れます。"
           : "この端末に保存できていません。画面上部の案内を確認してください。"}

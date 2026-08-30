@@ -83,7 +83,7 @@ export default function WeeklyReviewCard() {
 
   return (
     <Card eyebrow="Weekly Review" title="週次の振り返り" defaultOpen={false}>
-      <p className="mb-3 text-xs text-neutral2-300">3〜5分で軽く。完璧な分析じゃなく、制作感覚を残す。</p>
+      <p className="mb-3 text-xs text-neutral2-500">3〜5分で軽く。完璧な分析じゃなく、制作感覚を残す。</p>
       <div className="flex flex-col gap-2.5">
         {FIELDS.map((f) => (
           <label key={f.key} className="flex flex-col gap-1">
@@ -108,7 +108,7 @@ export default function WeeklyReviewCard() {
       <div className="mt-5 border-t border-neutral2-200 pt-4">
         <p className="mb-2 text-xs font-medium text-accent-500">これまでの振り返り</p>
         {reviews.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-main-300 bg-main-50 px-3 py-3 text-xs leading-relaxed text-neutral2-300">
+          <p className="rounded-xl border border-dashed border-main-300 bg-main-50 px-3 py-3 text-xs leading-relaxed text-neutral2-500">
             まだ週次レビューがありません。
             <br />
             週の終わりに「やった／学び／次」を数行だけ残すと、ここに貯まります。
@@ -129,7 +129,7 @@ export default function WeeklyReviewCard() {
                     <button
                       onClick={() => remove(r.id)}
                       aria-label={`${r.week || "週未記入"} のレビューを削除`}
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-neutral2-300 transition-colors hover:bg-white/70 hover:text-accent-500"
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-neutral2-500 transition-colors hover:bg-white/70 hover:text-accent-500"
                     >
                       ×
                     </button>
@@ -137,7 +137,7 @@ export default function WeeklyReviewCard() {
                 </div>
                 {r.did && <p className="text-xs text-ink">🌙 {r.did}</p>}
                 {r.focus && <p className="text-xs text-accent-600">→ 来週：{r.focus}</p>}
-                <p className="mt-1 text-[10px] text-neutral2-300">{r.savedAt}</p>
+                <p className="mt-1 text-[10px] text-neutral2-500">{r.savedAt}</p>
               </li>
             ))}
           </ul>

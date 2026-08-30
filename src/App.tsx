@@ -46,7 +46,7 @@ function Dashboard() {
           Shizuku OS
         </p>
         <h1 className="font-mincho text-2xl font-semibold text-ink">しずくの仕事机</h1>
-        <p className="mt-1 text-xs text-neutral2-300">
+        <p className="mt-1 text-xs text-neutral2-500">
           制作・夜ログ・リンク・採用判定を、静かに一画面で。
         </p>
       </header>
@@ -66,7 +66,7 @@ function Dashboard() {
       <DataBridgeCard />
       <RetireCard />
 
-      <footer className="mt-2 px-1 text-center text-[11px] text-neutral2-300">
+      <footer className="mt-2 px-1 text-center text-[11px] text-neutral2-500">
         入力はこの端末に自動保存されます（localStorage）。
       </footer>
     </main>

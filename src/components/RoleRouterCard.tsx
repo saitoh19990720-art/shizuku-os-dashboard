@@ -18,7 +18,7 @@ const ROUTES: { task: string; tool: string }[] = [
 export default function RoleRouterCard() {
   return (
     <Card eyebrow="AI Role Router" title="どのAIに投げる？" defaultOpen={false}>
-      <p className="mb-3 text-xs text-neutral2-300">
+      <p className="mb-3 text-xs text-neutral2-500">
         迷ったら Opus 5。Fable 5 は最難関だけ（料金が高い）。
       </p>
       <ul className="flex flex-col gap-1.5">

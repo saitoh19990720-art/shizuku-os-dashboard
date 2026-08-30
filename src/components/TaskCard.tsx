@@ -16,7 +16,7 @@ const STATUS_LABEL: Record<TaskStatus, string> = { today: "今日", tomorrow: "�
 const STATUS_STYLE: Record<TaskStatus, string> = {
   today: "bg-crystal-200 text-accent-600",
   tomorrow: "bg-main-200 text-accent-600",
-  hold: "bg-neutral2-100 text-neutral2-300",
+  hold: "bg-neutral2-100 text-neutral2-500",
 };
 const STATUS_ORDER: TaskStatus[] = ["today", "tomorrow", "hold"];
 
@@ -74,13 +74,13 @@ export default function TaskCard() {
                   aria-labelledby={titleId}
                   className="h-4 w-4 shrink-0 accent-accent-500"
                 />
-                <span id={titleId} className={`grow text-sm ${task.done ? "text-neutral2-300 line-through" : "text-ink"}`}>
+                <span id={titleId} className={`grow text-sm ${task.done ? "text-neutral2-500 line-through" : "text-ink"}`}>
                   {task.title}
                 </span>
                 <button
                   onClick={() => remove(task.id)}
                   aria-label={`${task.title} を削除`}
-                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-neutral2-300 transition-colors hover:bg-main-100 hover:text-accent-500"
+                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-neutral2-500 transition-colors hover:bg-main-100 hover:text-accent-500"
                 >
                   ×
                 </button>
@@ -101,7 +101,7 @@ export default function TaskCard() {
           );
         })}
         {tasks.length === 0 && (
-          <li className="py-3 text-center text-sm text-neutral2-300">
+          <li className="py-3 text-center text-sm text-neutral2-500">
             候補がありません。下から追加できます。
           </li>
         )}
@@ -117,7 +117,7 @@ export default function TaskCard() {
         />
         <div className="flex gap-2">
           <label className="flex grow flex-col gap-1">
-            <span className="text-[11px] text-neutral2-300">優先度</span>
+            <span className="text-[11px] text-neutral2-500">優先度</span>
             <select
               value={priority}
               onChange={(e) => setPriority(e.target.value as Priority)}
@@ -129,7 +129,7 @@ export default function TaskCard() {
             </select>
           </label>
           <label className="flex grow flex-col gap-1">
-            <span className="text-[11px] text-neutral2-300">状態</span>
+            <span className="text-[11px] text-neutral2-500">状態</span>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as TaskStatus)}
