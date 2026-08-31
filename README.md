@@ -10,9 +10,9 @@
 
 ## スクリーンショット
 ![Shizuku OS — Landing（紹介ページ）](docs/images/screenshot-landing.png)
-![Shizuku OS — Dashboard（カード一覧）](docs/images/screenshot-dashboard.png)
+![Shizuku OS — Dashboard（カード一覧）](docs/images/screenshot-dashboard-desktop.png)
 
-> スクリーンショットは 2026-08-30 に差し替え済み。12カード全体（ページ全体）を撮影しています。
+> スクリーンショットは 2026-08-31 に差し替え済み。デスクトップ幅（1440px）で表示し、ファーストビューと主要カードが読める範囲を切り出しています（実装は全12カード）。
 ![Shizuku OS — Quality Gate](docs/images/screenshot-quality-gate.png)
 
 ---
