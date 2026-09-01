@@ -157,4 +157,4 @@ React 18 / TypeScript（strict）/ Tailwind CSS / Vite / localStorage / Vercel
 > モバイル撮影は、localStorage が空の状態で行い、**今日のコンディションは畳んだ状態**で撮っている（健康情報に見える文言を作品画像に写さないため）。画像内に個人データはない。
 
 ## 応募での一言（コピペ用）
-> Shizuku OS Dashboard｜AIの速さを人間の判断で仕事品質へ戻す制作OS。コンディション・次アクション・制作候補・夜ログ・リンク・Quality Gate など12カードを1画面に統合し、AI案を「採用/保留/捨てる」で判定できる個人ツール。React/TypeScript/Tailwind/Vite、外部依存はreactのみ。320px対応・WCAG AAコントラスト・localStorage/JSON入出力の安全策まで含め、設計から公開まで一人で担当（実装はClaude Code、レビューはCodex、採否と公開判断は自分）。
+> Shizuku OS Dashboard｜AIの速さを人間の判断で仕事品質へ戻す制作OS。コンディション・次アクション・制作候補・夜ログ・リンク・Quality Gate など12カードを1画面に統合し、AI案を「採用/保留/捨てる」で判定できる個人ツール。React/TypeScript/Tailwind/Vite、外部依存は react と react-dom のみ。320px対応・WCAG AAコントラスト・localStorage/JSON入出力の安全策まで含め、設計から公開まで一人で担当（実装はClaude Code、レビューはCodex、採否と公開判断は自分）。
