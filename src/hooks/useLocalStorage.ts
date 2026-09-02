@@ -1,4 +1,5 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
+import { ensureMigrated, readLogicalRaw, resolveWriteKey } from "../lib/projectStorage";
 
 // 「この端末に保存できなかったキー」を覚えておく小さな置き場。
 // 保存に失敗しても画面は止めないが、黙って捨てない（利用者に知らせる）。
@@ -42,7 +43,7 @@ export function useStorageFailures(): string[] {
 // localStorage への書き込み。成功したら true、失敗したら false を返し、失敗は記録する。
 export function safeSetItem(key: string, value: unknown): boolean {
   try {
-    localStorage.setItem(key, JSON.stringify(value));
+    localStorage.setItem(resolveWriteKey(key), JSON.stringify(value));
     resolveStorageFailure(key);
     return true;
   } catch {
@@ -62,8 +63,9 @@ export function useStorageOk(key: string): boolean {
 // raw が null のときはキーごと消す（元々未保存だった状態に戻す）。
 export function safeSetRawItem(key: string, raw: string | null): boolean {
   try {
-    if (raw === null) localStorage.removeItem(key);
-    else localStorage.setItem(key, raw);
+    const target = resolveWriteKey(key);
+    if (raw === null) localStorage.removeItem(target);
+    else localStorage.setItem(target, raw);
     resolveStorageFailure(key);
     return true;
   } catch {
@@ -75,9 +77,12 @@ export function safeSetRawItem(key: string, raw: string | null): boolean {
 // localStorage と同期する useState。
 // key ごとに値を保存し、ページ更新後も内容が残る。
 export function useLocalStorage<T>(key: string, initialValue: T) {
+  // 印があれば何もしない。無いときだけ v1 → v2 のコピーを試す（失敗しても旧キーを読む）。
+  ensureMigrated();
+
   const [value, setValue] = useState<T>(() => {
     try {
-      const saved = localStorage.getItem(key);
+      const saved = readLogicalRaw(key);
       return saved !== null ? (JSON.parse(saved) as T) : initialValue;
     } catch {
       // 壊れたデータが入っていても初期値で復帰する
