@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Card from "./Card";
 import { safeSetItem, safeSetRawItem } from "../hooks/useLocalStorage";
+import { ensureMigrated, readLogicalRaw } from "../lib/projectStorage";
 
 // n8n Bridge / JSON Export：全データをJSONで出し入れ（バックアップ＋将来のn8n受け渡し口）。
 // 外部接続はしない・localStorage内のデータだけ・秘密情報は扱わない。
@@ -123,11 +124,12 @@ const VALIDATORS: Record<string, (value: unknown) => boolean> = {
   "shizuku.nextAction": (v) => isObject(v) && optStr(v.text) && optBool(v.done),
 };
 
-function buildExport(): string {
+export function buildExport(): string {
+  ensureMigrated();
   const data: Record<string, unknown> = {};
   for (const k of KEYS) {
     try {
-      const raw = localStorage.getItem(k);
+      const raw = readLogicalRaw(k);
       data[k] = raw ? JSON.parse(raw) : null;
     } catch {
       data[k] = null;
@@ -171,6 +173,7 @@ export default function DataBridgeCard() {
 
   const doImport = () => {
     setError("");
+    ensureMigrated();
     if (!imp.trim()) return;
 
     let parsed: unknown;
@@ -225,7 +228,7 @@ export default function DataBridgeCard() {
     // 控えが取れないと失敗時に元へ戻せないので、その場合は1件も書かずに中止する。
     const backup = new Map<string, string | null>();
     try {
-      for (const k of present) backup.set(k, localStorage.getItem(k));
+      for (const k of present) backup.set(k, readLogicalRaw(k));
     } catch {
       setError(
         "読み込みを中止しました。現在の保存内容を読み取れないため、失敗したときに元へ戻せません（まだ1件も書き換えていません）。" +
