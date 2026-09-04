@@ -2,6 +2,7 @@
 // ここが壊れると記録が消えるので、「失敗したら旧キーへ戻る」ことを中心に固定する。
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  ACTIVE_PROJECT_KEY,
   DEFAULT_PROJECT_ID,
   MIGRATION_MARKER_KEY,
   getActiveProjectId,
@@ -98,17 +99,22 @@ describe("途中書き込み失敗", () => {
 });
 
 describe("途中中断からの復旧", () => {
-  it("印が無く古いv2が残っていても、やり直すと正しい内容で揃う", () => {
+  // 「前回の移行が途中で切れた残骸」と「移行後に印だけ失われた」は、残っている情報だけでは
+  // 区別できない。区別できない以上、既存のv2は上書きしない側に倒す。
+  // 残骸だった場合に残るのは古い写しだけで、正しい内容は凍結された旧キーに残っている。
+  it("印が無く古いv2が残っていたら、その値を残したまま足りないキーだけ補う", () => {
     localStorage.setItem(TASKS, TASKS_V1);
     localStorage.setItem(LINKS, LINKS_V1);
     // 前回の中断で、片方だけ古い内容が残っている状態
-    localStorage.setItem(scopedKey(TASKS), '[{"id":"old","text":"中断"}]');
+    const leftover = '[{"id":"old","text":"中断"}]';
+    localStorage.setItem(scopedKey(TASKS), leftover);
 
     const result = migrateToProjectStorage();
 
-    expect(result.status).toBe("migrated");
-    expect(localStorage.getItem(scopedKey(TASKS))).toBe(TASKS_V1); // 上書きして揃う
-    expect(localStorage.getItem(scopedKey(LINKS))).toBe(LINKS_V1);
+    expect(result.status).toBe("recovered");
+    expect(localStorage.getItem(scopedKey(TASKS))).toBe(leftover); // 上書きしない
+    expect(localStorage.getItem(scopedKey(LINKS))).toBe(LINKS_V1); // 足りない分だけ補う
+    expect(localStorage.getItem(TASKS)).toBe(TASKS_V1); // 旧キーは無傷で残る
     expect(isMigrated()).toBe(true);
   });
 });
@@ -159,15 +165,13 @@ describe("破損v2", () => {
     expect(readLogicalRaw(TASKS)).toBe(TASKS_V1);
   });
 
-  it("移行の印が壊れていたら、未移行として旧キーを読む", () => {
+  it("印が壊れている間は未移行として扱う（復旧を走らせるまでの状態）", () => {
     localStorage.setItem(TASKS, TASKS_V1);
     migrateToProjectStorage();
-    safeSetItem(TASKS, [{ id: "2", text: "直す" }]);
 
     localStorage.setItem(MIGRATION_MARKER_KEY, "{壊れた印");
 
     expect(isMigrated()).toBe(false);
-    expect(readLogicalRaw(TASKS)).toBe(TASKS_V1);
   });
 });
 
@@ -344,5 +348,113 @@ describe("DataBridge 回帰（export → import の実動経路）", () => {
 
     expect(parsed.ok).toBe(false);
     expect(localStorage.getItem(scopedKey(TASKS))).toBe(VALID_TASKS); // 元のまま
+  });
+});
+
+// 移行が終わった後で印だけが失われる／壊れることがある（別タブでの掃除・拡張機能・容量調整など）。
+// このとき旧キーは移行時点で凍結されているため、v1 を v2 へ上書きすると
+// 「移行後に書いた内容」だけが消える。ここを固定する。
+describe("印の欠落・破損からの復旧（既存v2を守る）", () => {
+  it("印が消えても、移行後に編集した内容を古い旧キーで上書きしない", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    safeSetItem(TASKS, [{ id: "2", text: "移行後に書いた" }]);
+    const edited = localStorage.getItem(scopedKey(TASKS));
+
+    localStorage.removeItem(MIGRATION_MARKER_KEY);
+    const result = migrateToProjectStorage();
+
+    expect(result.status).toBe("recovered");
+    expect(localStorage.getItem(scopedKey(TASKS))).toBe(edited);
+    expect(readLogicalRaw(TASKS)).toBe(edited);
+    expect(isMigrated()).toBe(true);
+  });
+
+  it("印が壊れていても、移行後に編集した内容を古い旧キーで上書きしない", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    safeSetItem(TASKS, [{ id: "2", text: "移行後に書いた" }]);
+    const edited = localStorage.getItem(scopedKey(TASKS));
+
+    localStorage.setItem(MIGRATION_MARKER_KEY, "{壊れた印");
+    const result = migrateToProjectStorage();
+
+    expect(result.status).toBe("recovered");
+    expect(localStorage.getItem(scopedKey(TASKS))).toBe(edited);
+    expect(readLogicalRaw(TASKS)).toBe(edited);
+  });
+
+  it("復旧のときは、v2がまだ無いキーだけを旧キーから補う", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    safeSetItem(TASKS, [{ id: "2", text: "移行後に書いた" }]);
+    const edited = localStorage.getItem(scopedKey(TASKS));
+    localStorage.setItem(LINKS, LINKS_V1); // v2側にはまだ無いキー
+
+    localStorage.removeItem(MIGRATION_MARKER_KEY);
+    migrateToProjectStorage();
+
+    expect(localStorage.getItem(scopedKey(TASKS))).toBe(edited); // 触らない
+    expect(localStorage.getItem(scopedKey(LINKS))).toBe(LINKS_V1); // 補う
+  });
+
+  it("復旧のときも旧キーは削除も上書きもされない", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    safeSetItem(TASKS, [{ id: "2", text: "移行後に書いた" }]);
+
+    localStorage.removeItem(MIGRATION_MARKER_KEY);
+    migrateToProjectStorage();
+
+    expect(localStorage.getItem(TASKS)).toBe(TASKS_V1);
+  });
+
+  it("壊れた旧キーがあっても、既存の内容を守って印を作り直す", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    safeSetItem(TASKS, [{ id: "2", text: "移行後に書いた" }]);
+    const edited = localStorage.getItem(scopedKey(TASKS));
+    localStorage.setItem(LINKS, "{壊れた旧キー");
+
+    localStorage.removeItem(MIGRATION_MARKER_KEY);
+    const result = migrateToProjectStorage();
+
+    expect(result.status).toBe("recovered");
+    expect(result.skipped).toEqual([LINKS]);
+    expect(localStorage.getItem(scopedKey(TASKS))).toBe(edited);
+    expect(localStorage.getItem(scopedKey(LINKS))).toBeNull(); // 壊れた値は写さない
+    expect(isMigrated()).toBe(true);
+  });
+});
+
+describe("移行を受けていないプロジェクト", () => {
+  it("旧キーの内容を読まない（他プロジェクトのデータが混ざらない）", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage(); // 移行を受けたのは default
+
+    expect(readLogicalRaw(TASKS, "another")).toBeNull();
+  });
+});
+
+describe("印の後始末", () => {
+  it("使用中プロジェクトの記録に失敗したら、印も残さない", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    const realSetItem = Storage.prototype.setItem;
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(function (
+      this: Storage,
+      k: string,
+      v: string,
+    ) {
+      if (k === ACTIVE_PROJECT_KEY) throw new DOMException("QuotaExceededError");
+      realSetItem.call(this, k, v);
+    });
+
+    const result = migrateToProjectStorage();
+    vi.restoreAllMocks();
+
+    expect(result.status).toBe("failed");
+    expect(localStorage.getItem(MIGRATION_MARKER_KEY)).toBeNull();
+    expect(isMigrated()).toBe(false);
+    expect(localStorage.getItem(TASKS)).toBe(TASKS_V1); // 旧キーは無傷
   });
 });
