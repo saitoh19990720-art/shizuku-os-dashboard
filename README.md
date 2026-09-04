@@ -69,6 +69,7 @@ Shizuku OS は、その「判断」と「再開」を支えるための小型OS�
 - **Vite**（開発サーバー・ビルド）
 - **Tailwind CSS**（配色・レイアウト。トークンは `tailwind.config.js`）
 - **localStorage**（保存。外部DB・サーバーなし）
+- **ESLint** + **Vitest**（開発時のみ。公開物には含まれない）
 
 ---
 
@@ -87,6 +88,23 @@ npm run dev   # 開発サーバーを起動（http://localhost:5173）
 npm run build
 npm run preview
 ```
+
+## 品質チェック（出す前に流す3本）
+
+```bash
+npm run typecheck   # 型の食い違いを見る（tsc --noEmit）
+npm run lint        # 書き間違い・React の規約違反を見る（ESLint）
+npm test            # 保存まわりの自動テスト（Vitest + jsdom）
+```
+
+`npm run lint` は**整形（インデント・引用符）は見ない**。
+見るのは「動かす前に気づける間違い」だけ——未使用の変数、`useEffect` の依存漏れ、`any` の放置など。
+既存コードの書き方を後から一括で書き換えないための線引き。
+
+> 現在 `DataBridgeCard.tsx` に **warning が3件**残っている（error は0件）。
+> 部品と関数を同じファイルから出しているため、開発中の自動リロードが効きにくいという指摘。
+> テストから呼べるようにするため意図的にそうしている。**直すなら別ファイルへ切り出す作業**になるので、
+> 今は「分かったうえで残している」状態。
 
 ## デプロイ（Vercel・公開済み）
 - Framework Preset：**Vite** ／ Build Command：`npm run build` ／ Output Directory：`dist` ／ Environment Variables：**なし**
@@ -117,6 +135,7 @@ npm run preview
 - [x] localStorage のみ・外部API接続なし
 - [x] `.gitignore` で node_modules / dist / .env / .vercel を除外
 - [x] `npm run build` が通る
+- [x] `npm run typecheck` / `npm run lint`（error 0件）/ `npm test`（31件）が通る
 - [x] README がポートフォリオ用に読める
 - [x] GitHub 公開済み＋Vercel 公開済み
 
