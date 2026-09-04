@@ -10,10 +10,12 @@ import {
   setActiveProject,
   migrateToProjectStorage,
   readLogicalRaw,
+  tryGetActiveProjectId,
+  tryReadLogicalRaw,
   resolveWriteKey,
   scopedKey,
 } from "../lib/projectStorage";
-import { safeSetItem } from "./useLocalStorage";
+import { loadInitialState, safeSetItem } from "./useLocalStorage";
 import { applyImport, buildExport, parseImport } from "../components/DataBridgeCard";
 
 const TASKS = "shizuku.tasks";
@@ -557,5 +559,121 @@ describe("復旧時に選択中プロジェクトを保持する", () => {
     migrateToProjectStorage();
 
     expect(localStorage.getItem(ACTIVE_PROJECT_KEY)).toBe(DEFAULT_PROJECT_ID);
+  });
+});
+
+// 「使用中プロジェクトが読めなかった」を「未設定」と同じ扱いにすると、
+// どのプロジェクトを見ているか分からないまま既定側の内容を読み書きしてしまう。
+describe("使用中プロジェクトの読み取り失敗", () => {
+  it("non-default選択中に読み取りが失敗しても、defaultの内容を返さない", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    setActiveProject("B");
+    safeSetItem(TASKS, [{ id: "b", text: "Bの記録" }]);
+
+    const realGetItem = Storage.prototype.getItem;
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(function (
+      this: Storage,
+      k: string,
+    ) {
+      if (k === ACTIVE_PROJECT_KEY) throw new DOMException("SecurityError");
+      return realGetItem.call(this, k);
+    });
+
+    const read = tryReadLogicalRaw(TASKS);
+    vi.restoreAllMocks();
+
+    expect(read.ok).toBe(false); // 分からないので「読めなかった」を返す
+  });
+
+  it("読み取りが失敗している間は、保存もしない（別プロジェクトを潰さない）", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    setActiveProject("B");
+    safeSetItem(TASKS, [{ id: "b", text: "Bの記録" }]);
+    const bValue = localStorage.getItem(scopedKey(TASKS, "B"));
+
+    const realGetItem = Storage.prototype.getItem;
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(function (
+      this: Storage,
+      k: string,
+    ) {
+      if (k === ACTIVE_PROJECT_KEY) throw new DOMException("SecurityError");
+      return realGetItem.call(this, k);
+    });
+
+    const ok = safeSetItem(TASKS, [{ id: "x", text: "初期値" }]);
+    vi.restoreAllMocks();
+
+    expect(ok).toBe(false);
+    expect(localStorage.getItem(scopedKey(TASKS, "B"))).toBe(bValue); // Bは無傷
+    expect(localStorage.getItem(scopedKey(TASKS, DEFAULT_PROJECT_ID))).toBe(TASKS_V1); // defaultも無傷
+  });
+});
+
+describe("使用中プロジェクトの判定（3つの状態を区別する）", () => {
+  it("正常に読めるときは、その値を返す", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    setActiveProject("B");
+
+    expect(tryGetActiveProjectId()).toEqual({ ok: true, projectId: "B" });
+  });
+
+  it("未設定のときは、移行を受けたプロジェクトを返す", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    localStorage.removeItem(ACTIVE_PROJECT_KEY);
+
+    expect(tryGetActiveProjectId()).toEqual({ ok: true, projectId: DEFAULT_PROJECT_ID });
+  });
+
+  it("読み取りが例外のときは、値を返さず「読めなかった」を返す", () => {
+    const realGetItem = Storage.prototype.getItem;
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(function (
+      this: Storage,
+      k: string,
+    ) {
+      if (k === ACTIVE_PROJECT_KEY) throw new DOMException("SecurityError");
+      return realGetItem.call(this, k);
+    });
+
+    const active = tryGetActiveProjectId();
+    vi.restoreAllMocks();
+
+    expect(active).toEqual({ ok: false });
+  });
+
+  it("読み取りに失敗したら初期化を保存しない印（loaded:false）を返し、復旧後も書かない", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    setActiveProject("B");
+    safeSetItem(TASKS, [{ id: "b", text: "Bの記録" }]);
+    const bValue = localStorage.getItem(scopedKey(TASKS, "B"));
+
+    const realGetItem = Storage.prototype.getItem;
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(function (
+      this: Storage,
+      k: string,
+    ) {
+      if (k === ACTIVE_PROJECT_KEY) throw new DOMException("SecurityError");
+      return realGetItem.call(this, k);
+    });
+
+    const state = loadInitialState(TASKS, [{ id: "x", text: "初期値" }]);
+    vi.restoreAllMocks(); // ここでストレージが復旧する
+
+    expect(state.loaded).toBe(false); // フックはこの印を見て保存を見送る
+    expect(localStorage.getItem(scopedKey(TASKS, "B"))).toBe(bValue);
+  });
+
+  it("正常に読めたときは loaded:true になり、これまで通り保存される", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+
+    const state = loadInitialState<unknown>(TASKS, []);
+
+    expect(state.loaded).toBe(true);
+    expect(state.value).toEqual([{ id: "1", text: "書く" }]);
   });
 });

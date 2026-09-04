@@ -1,5 +1,6 @@
-import { useEffect, useState, useSyncExternalStore } from "react";
-import { ensureMigrated, readLogicalRaw, resolveWriteKey } from "../lib/projectStorage";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import type { SetStateAction } from "react";
+import { ensureMigrated, tryReadLogicalRaw, tryResolveWriteKey } from "../lib/projectStorage";
 
 // 「この端末に保存できなかったキー」を覚えておく小さな置き場。
 // 保存に失敗しても画面は止めないが、黙って捨てない（利用者に知らせる）。
@@ -42,8 +43,15 @@ export function useStorageFailures(): string[] {
 
 // localStorage への書き込み。成功したら true、失敗したら false を返し、失敗は記録する。
 export function safeSetItem(key: string, value: unknown): boolean {
+  // どのプロジェクトへ書くのか判定できないときは書かない。
+  // 既定側へ倒して書くと、選択中プロジェクトの内容を潰してしまう。
+  const target = tryResolveWriteKey(key);
+  if (!target.ok) {
+    reportStorageFailure(key);
+    return false;
+  }
   try {
-    localStorage.setItem(resolveWriteKey(key), JSON.stringify(value));
+    localStorage.setItem(target.key, JSON.stringify(value));
     resolveStorageFailure(key);
     return true;
   } catch {
@@ -62,15 +70,39 @@ export function useStorageOk(key: string): boolean {
 // 文字列のまま書き戻す（インポート失敗時に元の値へ戻すため）。
 // raw が null のときはキーごと消す（元々未保存だった状態に戻す）。
 export function safeSetRawItem(key: string, raw: string | null): boolean {
+  const resolved = tryResolveWriteKey(key);
+  if (!resolved.ok) {
+    reportStorageFailure(key);
+    return false;
+  }
   try {
-    const target = resolveWriteKey(key);
-    if (raw === null) localStorage.removeItem(target);
-    else localStorage.setItem(target, raw);
+    if (raw === null) localStorage.removeItem(resolved.key);
+    else localStorage.setItem(resolved.key, raw);
     resolveStorageFailure(key);
     return true;
   } catch {
     reportStorageFailure(key);
     return false;
+  }
+}
+
+// 保存済みの内容を読み出す。
+// loaded:false は「読み取れなかった＝内容が分からない」で、未保存とは別物。
+// 分からないまま初期値を書き戻すと、復旧後に本来の内容を潰すため、保存を見送る合図に使う。
+export function loadInitialState<T>(
+  key: string,
+  initialValue: T,
+): { value: T; loaded: boolean } {
+  const read = tryReadLogicalRaw(key);
+  if (!read.ok) return { value: initialValue, loaded: false };
+  try {
+    return {
+      value: read.raw !== null ? (JSON.parse(read.raw) as T) : initialValue,
+      loaded: true,
+    };
+  } catch {
+    // 壊れたデータが入っていても初期値で復帰する
+    return { value: initialValue, loaded: true };
   }
 }
 
@@ -80,21 +112,28 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
   // 印があれば何もしない。無いときだけ v1 → v2 のコピーを試す（失敗しても旧キーを読む）。
   ensureMigrated();
 
-  const [value, setValue] = useState<T>(() => {
-    try {
-      const saved = readLogicalRaw(key);
-      return saved !== null ? (JSON.parse(saved) as T) : initialValue;
-    } catch {
-      // 壊れたデータが入っていても初期値で復帰する
-      return initialValue;
-    }
-  });
+  const [state, setState] = useState<{ value: T; loaded: boolean }>(() =>
+    loadInitialState(key, initialValue),
+  );
+
+  const setValue = useCallback((next: SetStateAction<T>) => {
+    setState((prev) => ({
+      loaded: prev.loaded,
+      value: typeof next === "function" ? (next as (prev: T) => T)(prev.value) : next,
+    }));
+  }, []);
 
   useEffect(() => {
-    safeSetItem(key, value);
-  }, [key, value]);
+    // 読み出せていない間は保存しない。ストレージが復旧しても、
+    // 画面に出ている初期値を本来の保存先へ書き戻さないため。
+    if (!state.loaded) {
+      reportStorageFailure(key);
+      return;
+    }
+    safeSetItem(key, state.value);
+  }, [key, state]);
 
-  return [value, setValue] as const;
+  return [state.value, setValue] as const;
 }
 
 // 簡易な一意IDを作る（ライブラリを増やさないため自前）。

@@ -105,9 +105,47 @@ export function isMigrated(): boolean {
  * 切替キー →（無ければ）移行時に記録した値 →（無ければ）既定ID の順で決める。
  */
 export function getActiveProjectId(): string {
-  const explicit = getItem(ACTIVE_PROJECT_KEY);
-  if (explicit !== null && explicit !== "") return explicit;
-  return readMarker()?.projectId ?? DEFAULT_PROJECT_ID;
+  const active = tryGetActiveProjectId();
+  return active.ok ? active.projectId : DEFAULT_PROJECT_ID;
+}
+
+/**
+ * 使用中プロジェクトの判定結果。
+ * `ok: false` は「読み取れなかった」で、「未設定」とは別物。
+ * ここを取り違えると、別のプロジェクトを見ているのに既定側を読み書きしてしまう。
+ */
+export type ActiveProjectRead = { ok: true; projectId: string } | { ok: false };
+
+/** getActiveProjectId と同じ判断をしつつ、読み取れなかった場合を区別して返す。 */
+export function tryGetActiveProjectId(): ActiveProjectRead {
+  let explicit: string | null;
+  try {
+    explicit = localStorage.getItem(ACTIVE_PROJECT_KEY);
+  } catch {
+    // どのプロジェクトを見ているのか分からない状態。
+    // ここで既定値へ倒すと、別プロジェクトの内容を読み、その値を書き戻してしまう。
+    return { ok: false };
+  }
+  if (explicit !== null && explicit !== "") return { ok: true, projectId: explicit };
+  return { ok: true, projectId: readMarker()?.projectId ?? DEFAULT_PROJECT_ID };
+}
+
+/** 書き込み先の判定結果。`ok: false` は「使用中プロジェクトが分からない」＝書いてはいけない。 */
+export type WriteKeyRead = { ok: true; key: string } | { ok: false };
+
+/** resolveWriteKey と同じ判断をしつつ、判定できなかった場合を区別して返す。 */
+export function tryResolveWriteKey(key: string, projectId?: string): WriteKeyRead {
+  if (!isMigratableKey(key)) return { ok: true, key };
+  try {
+    if (readMarker() === null) return { ok: true, key };
+  } catch {
+    return { ok: false };
+  }
+  if (projectId !== undefined) return { ok: true, key: scopedKey(key, projectId) };
+
+  const active = tryGetActiveProjectId();
+  if (!active.ok) return { ok: false };
+  return { ok: true, key: scopedKey(key, active.projectId) };
 }
 
 /**
@@ -142,7 +180,7 @@ export function resolveWriteKey(key: string, projectId: string = getActiveProjec
  *   - v2 が存在しない
  *   - v2 が壊れていて、旧キーは読める
  */
-export function readLogicalRaw(key: string, projectId: string = getActiveProjectId()): string | null {
+export function readLogicalRaw(key: string, projectId?: string): string | null {
   const read = tryReadLogicalRaw(key, projectId);
   return read.ok ? read.raw : null;
 }
@@ -155,21 +193,26 @@ export function readLogicalRaw(key: string, projectId: string = getActiveProject
 export type LogicalRead = { ok: true; raw: string | null } | { ok: false };
 
 /** readLogicalRaw と同じ判断をしつつ、読み取れなかった場合を区別して返す。 */
-export function tryReadLogicalRaw(
-  key: string,
-  projectId: string = getActiveProjectId(),
-): LogicalRead {
+export function tryReadLogicalRaw(key: string, projectId?: string): LogicalRead {
   try {
     const marker = readMarker();
     if (!isMigratableKey(key) || marker === null) {
       return { ok: true, raw: localStorage.getItem(key) };
     }
 
-    const v2raw = localStorage.getItem(scopedKey(key, projectId));
+    let target = projectId;
+    if (target === undefined) {
+      const active = tryGetActiveProjectId();
+      // どのプロジェクトを見ているか分からないまま既定側を読まない
+      if (!active.ok) return { ok: false };
+      target = active.projectId;
+    }
+
+    const v2raw = localStorage.getItem(scopedKey(key, target));
 
     // 旧キーへ戻れるのは、移行を受けたプロジェクトだけ。
     // それ以外で旧キーを読むと、別プロジェクトの内容が混ざって保存されてしまう。
-    if (projectId !== marker.projectId) return { ok: true, raw: v2raw };
+    if (target !== marker.projectId) return { ok: true, raw: v2raw };
 
     const v1raw = localStorage.getItem(key);
 
