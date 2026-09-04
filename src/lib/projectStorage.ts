@@ -8,7 +8,8 @@
 //   4. コピー後に v2 を読み直して照合する
 //   5. 照合できたときだけ「移行済みの印」を作る
 //   6. 書き込み失敗・中断・破損のときは v2 を採用せず旧キーへ戻る
-//   7. 印が無い／v2 が壊れているときも旧キーを読む
+//   7. 印が無い／壊れている（malformed）／v2 が壊れているときは旧キーを読む
+//   8. 印が一時的に読めない（throw）ときは旧キーへ戻らず、読み書きを止める
 //
 // 対象は DataBridge の10キーだけ。
 // shizuku.condition（体調＝機微情報）と shizuku.cardOpen.*（開閉状態）は対象外。
@@ -80,19 +81,39 @@ function getItem(key: string): string | null {
   }
 }
 
-/** 移行済みの印を読む。壊れていれば null（＝未移行として扱う）。 */
-export function readMarker(): { version: number; projectId: string } | null {
-  const raw = getItem(MIGRATION_MARKER_KEY);
-  if (raw === null) return null;
+/**
+ * 印の判定結果。
+ * `ok: false` は「読めなかった」で、「無い／壊れている」とは別物。
+ * ここを取り違えると、移行済みなのに旧キーへ読み書きしてしまい、復旧後にその変更が消える。
+ */
+export type MarkerRead =
+  | { ok: true; marker: { version: number; projectId: string } | null }
+  | { ok: false };
+
+/** 印を読む。無い／壊れているときは marker:null。読めないときは ok:false。 */
+export function tryReadMarker(): MarkerRead {
+  let raw: string | null;
+  try {
+    raw = localStorage.getItem(MIGRATION_MARKER_KEY);
+  } catch {
+    return { ok: false };
+  }
+  if (raw === null) return { ok: true, marker: null };
   try {
     const parsed: unknown = JSON.parse(raw);
-    if (typeof parsed !== "object" || parsed === null) return null;
+    if (typeof parsed !== "object" || parsed === null) return { ok: true, marker: null };
     const o = parsed as Record<string, unknown>;
-    if (o.version !== 2 || typeof o.projectId !== "string") return null;
-    return { version: 2, projectId: o.projectId };
+    if (o.version !== 2 || typeof o.projectId !== "string") return { ok: true, marker: null };
+    return { ok: true, marker: { version: 2, projectId: o.projectId } };
   } catch {
-    return null;
+    return { ok: true, marker: null };
   }
+}
+
+/** 移行済みの印を読む。無い／壊れている／読めないときは null。データ読み書きには tryReadMarker を使う。 */
+export function readMarker(): { version: number; projectId: string } | null {
+  const read = tryReadMarker();
+  return read.ok ? read.marker : null;
 }
 
 /** 移行が完了しているか。 */
@@ -127,7 +148,9 @@ export function tryGetActiveProjectId(): ActiveProjectRead {
     return { ok: false };
   }
   if (explicit !== null && explicit !== "") return { ok: true, projectId: explicit };
-  return { ok: true, projectId: readMarker()?.projectId ?? DEFAULT_PROJECT_ID };
+  const markerRead = tryReadMarker();
+  if (!markerRead.ok) return { ok: false };
+  return { ok: true, projectId: markerRead.marker?.projectId ?? DEFAULT_PROJECT_ID };
 }
 
 /** 書き込み先の判定結果。`ok: false` は「使用中プロジェクトが分からない」＝書いてはいけない。 */
@@ -136,11 +159,9 @@ export type WriteKeyRead = { ok: true; key: string } | { ok: false };
 /** resolveWriteKey と同じ判断をしつつ、判定できなかった場合を区別して返す。 */
 export function tryResolveWriteKey(key: string, projectId?: string): WriteKeyRead {
   if (!isMigratableKey(key)) return { ok: true, key };
-  try {
-    if (readMarker() === null) return { ok: true, key };
-  } catch {
-    return { ok: false };
-  }
+  const markerRead = tryReadMarker();
+  if (!markerRead.ok) return { ok: false };
+  if (markerRead.marker === null) return { ok: true, key };
   if (projectId !== undefined) return { ok: true, key: scopedKey(key, projectId) };
 
   const active = tryGetActiveProjectId();
@@ -148,19 +169,38 @@ export function tryResolveWriteKey(key: string, projectId?: string): WriteKeyRea
   return { ok: true, key: scopedKey(key, active.projectId) };
 }
 
+const activeProjectListeners = new Set<() => void>();
+
+/** 使用中プロジェクトが変わったときに、画面側のフックが読み直すための購読。 */
+export function subscribeActiveProject(listener: () => void): () => void {
+  activeProjectListeners.add(listener);
+  return () => {
+    activeProjectListeners.delete(listener);
+  };
+}
+
+function notifyActiveProjectListeners() {
+  for (const listener of activeProjectListeners) listener();
+}
+
 /**
  * 使うプロジェクトを切り替える（内部API。切替UIはまだ無い）。
  * データは projectId ごとに分かれているので、切り替えても互いに混ざらない。
  * 移行が終わっていないときは切り替えない（旧キーで動いている最中に分岐させないため）。
+ * 切替に成功したら購読中のフックへ知らせ、旧プロジェクトの画面状態を新プロジェクトへ書かない。
  */
 export function setActiveProject(projectId: string): boolean {
   if (projectId === "" || !isMigrated()) return false;
+  const previous = tryGetActiveProjectId();
   try {
     localStorage.setItem(ACTIVE_PROJECT_KEY, projectId);
-    return true;
   } catch {
     return false;
   }
+  if (!previous.ok || previous.projectId !== projectId) {
+    notifyActiveProjectListeners();
+  }
+  return true;
 }
 
 /**
@@ -195,8 +235,15 @@ export type LogicalRead = { ok: true; raw: string | null } | { ok: false };
 /** readLogicalRaw と同じ判断をしつつ、読み取れなかった場合を区別して返す。 */
 export function tryReadLogicalRaw(key: string, projectId?: string): LogicalRead {
   try {
-    const marker = readMarker();
-    if (!isMigratableKey(key) || marker === null) {
+    if (!isMigratableKey(key)) {
+      return { ok: true, raw: localStorage.getItem(key) };
+    }
+
+    const markerRead = tryReadMarker();
+    // 印が読めない間は「未移行」と取り違えない。旧キーへ戻ると、復旧後にその変更が消える。
+    if (!markerRead.ok) return { ok: false };
+    const marker = markerRead.marker;
+    if (marker === null) {
       return { ok: true, raw: localStorage.getItem(key) };
     }
 
@@ -236,7 +283,12 @@ export function tryReadLogicalRaw(key: string, projectId?: string): LogicalRead 
 export function migrateToProjectStorage(
   projectId: string = DEFAULT_PROJECT_ID,
 ): MigrationResult {
-  if (isMigrated()) return { status: "already", copied: 0, skipped: [] };
+  const markerRead = tryReadMarker();
+  // 印が読めない間は「未移行」と取り違えない。v1 を写すと移行後の編集を潰す。
+  if (!markerRead.ok) {
+    return { status: "failed", copied: 0, skipped: [], reason: "marker unreadable" };
+  }
+  if (markerRead.marker !== null) return { status: "already", copied: 0, skipped: [] };
 
   // v2 が1つでも残っていれば復旧モード。初回移行と扱いを分ける。
   const recovering = MIGRATED_KEYS.some((key) => getItem(scopedKey(key, projectId)) !== null);

@@ -10,8 +10,11 @@ import {
   setActiveProject,
   migrateToProjectStorage,
   readLogicalRaw,
+  subscribeActiveProject,
   tryGetActiveProjectId,
   tryReadLogicalRaw,
+  tryReadMarker,
+  tryResolveWriteKey,
   resolveWriteKey,
   scopedKey,
 } from "../lib/projectStorage";
@@ -675,5 +678,203 @@ describe("使用中プロジェクトの判定（3つの状態を区別する）
 
     expect(state.loaded).toBe(true);
     expect(state.value).toEqual([{ id: "1", text: "書く" }]);
+  });
+});
+
+// 印が「無い／壊れている」と「一時的に読めない」は別物。
+// 読めない間に旧キーへ読み書きすると、印が復旧したあと v2 が正本に戻り、その変更が消える。
+describe("印の読み取り失敗（未移行と取り違えない）", () => {
+  function throwOnMarkerRead() {
+    const realGetItem = Storage.prototype.getItem;
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(function (
+      this: Storage,
+      k: string,
+    ) {
+      if (k === MIGRATION_MARKER_KEY) throw new DOMException("SecurityError");
+      return realGetItem.call(this, k);
+    });
+  }
+
+  it("印が無いときは未移行として扱い、旧キーを読む", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+
+    expect(tryReadMarker()).toEqual({ ok: true, marker: null });
+    expect(tryReadLogicalRaw(TASKS)).toEqual({ ok: true, raw: TASKS_V1 });
+    expect(tryResolveWriteKey(TASKS)).toEqual({ ok: true, key: TASKS });
+  });
+
+  it("印が壊れているときは未移行として扱い、旧キーを読む", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    localStorage.setItem(MIGRATION_MARKER_KEY, "{壊れた印");
+
+    expect(tryReadMarker()).toEqual({ ok: true, marker: null });
+    expect(tryReadLogicalRaw(TASKS)).toEqual({ ok: true, raw: TASKS_V1 });
+    expect(tryResolveWriteKey(TASKS)).toEqual({ ok: true, key: TASKS });
+  });
+
+  it("印が読めないときは旧キーの内容を返さない", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    safeSetItem(TASKS, [{ id: "2", text: "移行後に書いた" }]);
+
+    throwOnMarkerRead();
+    const read = tryReadLogicalRaw(TASKS);
+    vi.restoreAllMocks();
+
+    expect(read.ok).toBe(false);
+  });
+
+  it("印が読めない間は保存しない（旧キーにも v2 にも書かない）", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    safeSetItem(TASKS, [{ id: "2", text: "移行後に書いた" }]);
+    const v2 = localStorage.getItem(scopedKey(TASKS));
+
+    throwOnMarkerRead();
+    const ok = safeSetItem(TASKS, [{ id: "x", text: "消えてしまう変更" }]);
+    vi.restoreAllMocks();
+
+    expect(ok).toBe(false);
+    expect(localStorage.getItem(TASKS)).toBe(TASKS_V1);
+    expect(localStorage.getItem(scopedKey(TASKS))).toBe(v2);
+  });
+
+  it("印が読めない間は移行を走らせない（既存の v2 を触らない）", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    safeSetItem(TASKS, [{ id: "2", text: "移行後に書いた" }]);
+    const v2 = localStorage.getItem(scopedKey(TASKS));
+    const marker = localStorage.getItem(MIGRATION_MARKER_KEY);
+
+    throwOnMarkerRead();
+    const result = migrateToProjectStorage();
+    vi.restoreAllMocks();
+
+    expect(result.status).toBe("failed");
+    expect(result.reason).toBe("marker unreadable");
+    expect(localStorage.getItem(scopedKey(TASKS))).toBe(v2);
+    expect(localStorage.getItem(MIGRATION_MARKER_KEY)).toBe(marker);
+    expect(localStorage.getItem(TASKS)).toBe(TASKS_V1);
+  });
+
+  it("印が読めないときは初期化を保存しない印（loaded:false）を返す", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    safeSetItem(TASKS, [{ id: "2", text: "移行後に書いた" }]);
+    const v2 = localStorage.getItem(scopedKey(TASKS));
+
+    throwOnMarkerRead();
+    const state = loadInitialState(TASKS, [{ id: "x", text: "初期値" }]);
+    vi.restoreAllMocks();
+
+    expect(state.loaded).toBe(false);
+    expect(localStorage.getItem(scopedKey(TASKS))).toBe(v2);
+  });
+
+  it("印の読み取りが復旧したら、再び v2 を読む（旧キーへ書いた変更は無い）", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    safeSetItem(TASKS, [{ id: "2", text: "移行後に書いた" }]);
+    const v2 = localStorage.getItem(scopedKey(TASKS));
+
+    throwOnMarkerRead();
+    expect(tryReadLogicalRaw(TASKS).ok).toBe(false);
+    expect(safeSetItem(TASKS, [{ id: "x", text: "消えてしまう変更" }])).toBe(false);
+    vi.restoreAllMocks();
+
+    expect(readLogicalRaw(TASKS)).toBe(v2);
+    expect(localStorage.getItem(TASKS)).toBe(TASKS_V1);
+  });
+
+  it("使用中プロジェクトが未設定で印も読めないときは、default へ倒さない", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    localStorage.removeItem(ACTIVE_PROJECT_KEY);
+
+    throwOnMarkerRead();
+    const active = tryGetActiveProjectId();
+    vi.restoreAllMocks();
+
+    expect(active).toEqual({ ok: false });
+  });
+});
+
+describe("プロジェクト切替の購読", () => {
+  it("切替に成功したら購読者へ知らせる", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+
+    const seen: string[] = [];
+    const stop = subscribeActiveProject(() => {
+      seen.push(getActiveProjectId());
+    });
+
+    expect(setActiveProject("B")).toBe(true);
+    expect(seen).toEqual(["B"]);
+
+    stop();
+    expect(setActiveProject("C")).toBe(true);
+    expect(seen).toEqual(["B"]); // 解除後は増えない
+  });
+
+  it("同じプロジェクトへの切替では知らせない", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    setActiveProject("B");
+
+    let calls = 0;
+    const stop = subscribeActiveProject(() => {
+      calls += 1;
+    });
+
+    expect(setActiveProject("B")).toBe(true);
+    expect(calls).toBe(0);
+    stop();
+  });
+
+  it("購読者が再読み込みしてから保存すると、旧プロジェクトへは書かない", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    safeSetItem(TASKS, [{ id: "a", text: "Aの作業" }]);
+    const aValue = localStorage.getItem(scopedKey(TASKS, DEFAULT_PROJECT_ID));
+
+    let snapshot = loadInitialState(TASKS, [] as { id: string; text: string }[]);
+    expect(snapshot.value).toEqual([{ id: "a", text: "Aの作業" }]);
+    expect(snapshot.boundProject).toBe(DEFAULT_PROJECT_ID);
+
+    const stop = subscribeActiveProject(() => {
+      snapshot = loadInitialState(TASKS, [] as { id: string; text: string }[]);
+    });
+
+    expect(setActiveProject("B")).toBe(true);
+    expect(snapshot.boundProject).toBe("B");
+    expect(snapshot.value).toEqual([]);
+
+    safeSetItem(TASKS, [{ id: "b", text: "Bの作業" }]);
+    stop();
+
+    expect(localStorage.getItem(scopedKey(TASKS, DEFAULT_PROJECT_ID))).toBe(aValue);
+    expect(localStorage.getItem(scopedKey(TASKS, "B"))).toBe(
+      '[{"id":"b","text":"Bの作業"}]',
+    );
+  });
+
+  it("切替後に再読み込みしない画面状態は、新プロジェクトと boundProject が食い違う", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+
+    const stale = loadInitialState(TASKS, [] as { id: string; text: string }[]);
+    expect(stale.boundProject).toBe(DEFAULT_PROJECT_ID);
+
+    expect(setActiveProject("B")).toBe(true);
+
+    const active = tryGetActiveProjectId();
+    expect(active).toEqual({ ok: true, projectId: "B" });
+    expect(stale.boundProject).not.toBe(active.ok ? active.projectId : "");
+    expect(stale.value).toEqual([{ id: "1", text: "書く" }]); // 旧プロジェクトの値のまま
+
+    const fresh = loadInitialState(TASKS, [] as { id: string; text: string }[]);
+    expect(fresh.boundProject).toBe("B");
+    expect(fresh.value).toEqual([]);
   });
 });

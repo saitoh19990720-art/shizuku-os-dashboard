@@ -1,6 +1,13 @@
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { SetStateAction } from "react";
-import { ensureMigrated, tryReadLogicalRaw, tryResolveWriteKey } from "../lib/projectStorage";
+import {
+  ensureMigrated,
+  isMigratableKey,
+  subscribeActiveProject,
+  tryGetActiveProjectId,
+  tryReadLogicalRaw,
+  tryResolveWriteKey,
+} from "../lib/projectStorage";
 
 // 「この端末に保存できなかったキー」を覚えておく小さな置き場。
 // 保存に失敗しても画面は止めないが、黙って捨てない（利用者に知らせる）。
@@ -86,23 +93,33 @@ export function safeSetRawItem(key: string, raw: string | null): boolean {
   }
 }
 
+export type LoadedState<T> = {
+  value: T;
+  loaded: boolean;
+  /** この値が属するプロジェクト。切替後に旧値を新プロジェクトへ書かないための印。 */
+  boundProject: string | null;
+};
+
 // 保存済みの内容を読み出す。
 // loaded:false は「読み取れなかった＝内容が分からない」で、未保存とは別物。
 // 分からないまま初期値を書き戻すと、復旧後に本来の内容を潰すため、保存を見送る合図に使う。
 export function loadInitialState<T>(
   key: string,
   initialValue: T,
-): { value: T; loaded: boolean } {
+): LoadedState<T> {
+  const active = tryGetActiveProjectId();
+  const boundProject = active.ok ? active.projectId : null;
   const read = tryReadLogicalRaw(key);
-  if (!read.ok) return { value: initialValue, loaded: false };
+  if (!read.ok) return { value: initialValue, loaded: false, boundProject };
   try {
     return {
       value: read.raw !== null ? (JSON.parse(read.raw) as T) : initialValue,
       loaded: true,
+      boundProject,
     };
   } catch {
     // 壊れたデータが入っていても初期値で復帰する
-    return { value: initialValue, loaded: true };
+    return { value: initialValue, loaded: true, boundProject };
   }
 }
 
@@ -112,16 +129,26 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
   // 印があれば何もしない。無いときだけ v1 → v2 のコピーを試す（失敗しても旧キーを読む）。
   ensureMigrated();
 
-  const [state, setState] = useState<{ value: T; loaded: boolean }>(() =>
+  const initialRef = useRef(initialValue);
+  initialRef.current = initialValue;
+
+  const [state, setState] = useState<LoadedState<T>>(() =>
     loadInitialState(key, initialValue),
   );
 
   const setValue = useCallback((next: SetStateAction<T>) => {
     setState((prev) => ({
-      loaded: prev.loaded,
+      ...prev,
       value: typeof next === "function" ? (next as (prev: T) => T)(prev.value) : next,
     }));
   }, []);
+
+  // 切替後は、画面に残っている旧プロジェクトの値を新プロジェクトへ書かない。
+  useEffect(() => {
+    return subscribeActiveProject(() => {
+      setState(loadInitialState(key, initialRef.current));
+    });
+  }, [key]);
 
   useEffect(() => {
     // 読み出せていない間は保存しない。ストレージが復旧しても、
@@ -129,6 +156,14 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
     if (!state.loaded) {
       reportStorageFailure(key);
       return;
+    }
+    // 切替通知より先に書き込みが走っても、旧プロジェクトの値は新先へ書かない。
+    if (isMigratableKey(key) && state.boundProject !== null) {
+      const active = tryGetActiveProjectId();
+      if (!active.ok || active.projectId !== state.boundProject) {
+        setState(loadInitialState(key, initialRef.current));
+        return;
+      }
     }
     safeSetItem(key, state.value);
   }, [key, state]);
