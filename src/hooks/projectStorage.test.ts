@@ -4,14 +4,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   DEFAULT_PROJECT_ID,
   MIGRATION_MARKER_KEY,
+  getActiveProjectId,
   isMigrated,
+  setActiveProject,
   migrateToProjectStorage,
   readLogicalRaw,
   resolveWriteKey,
   scopedKey,
 } from "../lib/projectStorage";
 import { safeSetItem } from "./useLocalStorage";
-import { buildExport } from "../components/DataBridgeCard";
+import { applyImport, buildExport, parseImport } from "../components/DataBridgeCard";
 
 const TASKS = "shizuku.tasks";
 const LINKS = "shizuku.links";
@@ -112,14 +114,38 @@ describe("途中中断からの復旧", () => {
 });
 
 describe("破損v1", () => {
-  it("旧キーが壊れていても移行は止まらず、内容をそのまま引き継ぐ", () => {
+  it("壊れた旧キーがあると移行を完了させない（印を作らず旧キーのままにする）", () => {
     localStorage.setItem(TASKS, "{壊れたJSON");
+    localStorage.setItem(LINKS, LINKS_V1);
 
     const result = migrateToProjectStorage();
 
-    expect(result.status).toBe("migrated");
-    expect(localStorage.getItem(scopedKey(TASKS))).toBe("{壊れたJSON");
-    expect(readLogicalRaw(TASKS)).toBe("{壊れたJSON"); // 勝手に作り変えない
+    expect(result.status).toBe("partial");
+    expect(result.copied).toBe(0); // 成功扱いにしない
+    expect(result.skipped).toEqual([TASKS]);
+    expect(isMigrated()).toBe(false); // 完了markerは立たない
+    expect(localStorage.getItem(MIGRATION_MARKER_KEY)).toBeNull();
+    expect(localStorage.getItem(scopedKey(TASKS))).toBeNull(); // 壊れた値をv2の正本にしない
+    expect(localStorage.getItem(scopedKey(LINKS))).toBeNull(); // 中途半端なv2も残さない
+    expect(localStorage.getItem(TASKS)).toBe("{壊れたJSON"); // 旧キーは削除も上書きもしない
+    expect(localStorage.getItem(LINKS)).toBe(LINKS_V1);
+    expect(readLogicalRaw(TASKS)).toBe("{壊れたJSON"); // 旧キー側で動き続ける
+    expect(readLogicalRaw(LINKS)).toBe(LINKS_V1);
+  });
+
+  it("壊れた値を直してから実行すると、今度は移行できる（復旧できる）", () => {
+    localStorage.setItem(TASKS, "{壊れたJSON");
+    localStorage.setItem(LINKS, LINKS_V1);
+    expect(migrateToProjectStorage().status).toBe("partial");
+
+    localStorage.setItem(TASKS, TASKS_V1); // 壊れた値を直す
+
+    const retry = migrateToProjectStorage();
+
+    expect(retry.status).toBe("migrated");
+    expect(retry.skipped).toEqual([]);
+    expect(isMigrated()).toBe(true);
+    expect(localStorage.getItem(scopedKey(TASKS))).toBe(TASKS_V1);
   });
 });
 
@@ -194,5 +220,129 @@ describe("v1 import 互換と DataBridge の入出力", () => {
     expect(exported.data[TASKS]).toEqual([{ id: "imported", text: "取り込み" }]);
     expect(exported.data[LINKS]).toEqual([{ label: "GitHub", url: "https://example.com" }]);
     expect(exported.data["shizuku.condition"]).toBeUndefined(); // 体調は書き出さない
+  });
+});
+
+describe("projectId 名前空間", () => {
+  it("指定したprojectIdのキーへ移行し、default には作らない", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+
+    const result = migrateToProjectStorage("projectA");
+
+    expect(result.status).toBe("migrated");
+    expect(localStorage.getItem(scopedKey(TASKS, "projectA"))).toBe(TASKS_V1);
+    expect(localStorage.getItem(scopedKey(TASKS, DEFAULT_PROJECT_ID))).toBeNull();
+    expect(getActiveProjectId()).toBe("projectA");
+  });
+
+  it("移行後の保存先が指定したprojectIdになる（default固定にならない）", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage("projectA");
+
+    safeSetItem(TASKS, [{ id: "a", title: "Aの作業" }]);
+
+    expect(resolveWriteKey(TASKS)).toBe(scopedKey(TASKS, "projectA"));
+    expect(localStorage.getItem(scopedKey(TASKS, "projectA"))).toBe('[{"id":"a","title":"Aの作業"}]');
+    expect(localStorage.getItem(scopedKey(TASKS, DEFAULT_PROJECT_ID))).toBeNull();
+  });
+
+  it("setActiveProject で A → B へ切り替えても、データは混ざらない", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage("projectA");
+    safeSetItem(TASKS, [{ id: "a", title: "Aの作業" }]);
+
+    // 切替は関数経由で行う（UIはまだ無いが、内部APIとして成立している）
+    expect(setActiveProject("projectB")).toBe(true);
+    expect(getActiveProjectId()).toBe("projectB");
+
+    safeSetItem(TASKS, [{ id: "b", title: "Bの作業" }]);
+
+    expect(localStorage.getItem(scopedKey(TASKS, "projectA"))).toBe('[{"id":"a","title":"Aの作業"}]');
+    expect(localStorage.getItem(scopedKey(TASKS, "projectB"))).toBe('[{"id":"b","title":"Bの作業"}]');
+    expect(readLogicalRaw(TASKS)).toBe('[{"id":"b","title":"Bの作業"}]'); // いま見えるのはBだけ
+  });
+
+  it("Aへ戻すと、Aで書いた内容がそのまま見える", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage("projectA");
+    safeSetItem(TASKS, [{ id: "a", title: "Aの作業" }]);
+    setActiveProject("projectB");
+    safeSetItem(TASKS, [{ id: "b", title: "Bの作業" }]);
+
+    expect(setActiveProject("projectA")).toBe(true);
+
+    expect(readLogicalRaw(TASKS)).toBe('[{"id":"a","title":"Aの作業"}]');
+    expect(resolveWriteKey(TASKS)).toBe(scopedKey(TASKS, "projectA"));
+  });
+
+  it("未移行のうちは切り替えない（旧キーで動いている最中に分岐させない）", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+
+    expect(setActiveProject("projectB")).toBe(false);
+    expect(getActiveProjectId()).toBe(DEFAULT_PROJECT_ID);
+  });
+});
+
+describe("DataBridge 回帰（export → import の実動経路）", () => {
+  const VALID_TASKS = '[{"id":"t1","title":"書く"}]';
+  const VALID_LINKS = '[{"id":"l1","label":"Figma","url":"https://example.com"}]';
+
+  it("書き出したJSONをそのまま取り込むと、書き出した時点の内容へ戻る", () => {
+    localStorage.setItem(TASKS, VALID_TASKS);
+    localStorage.setItem(LINKS, VALID_LINKS);
+    migrateToProjectStorage();
+    const exported = buildExport();
+
+    // いったん中身を変えてから、書き出したJSONで戻す
+    safeSetItem(TASKS, [{ id: "t2", title: "あとで消す" }]);
+
+    const parsed = parseImport(exported);
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
+    const applied = applyImport(parsed.data, parsed.present);
+
+    expect(applied.ok).toBe(true);
+    expect(localStorage.getItem(scopedKey(TASKS))).toBe(VALID_TASKS);
+    expect(localStorage.getItem(scopedKey(LINKS))).toBe(VALID_LINKS);
+  });
+
+  it("既存のv1形式JSONを取り込むと、既定プロジェクトへ入る（旧キーは書き換えない）", () => {
+    localStorage.setItem(TASKS, "[]");
+    migrateToProjectStorage();
+
+    // 旧バージョンが書き出したJSON（data の中は v1 のキー名のまま）
+    const v1json = JSON.stringify({
+      app: "shizuku-os",
+      version: 1,
+      exportedAt: "2026-01-01T00:00:00.000Z",
+      data: {
+        "shizuku.tasks": [{ id: "old1", title: "旧データ" }],
+        "shizuku.links": [{ id: "old2", label: "GitHub", url: "https://example.com" }],
+      },
+    });
+
+    const parsed = parseImport(v1json);
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
+    const applied = applyImport(parsed.data, parsed.present);
+
+    expect(applied.ok).toBe(true);
+    if (applied.ok) expect(applied.written).toBe(2);
+    expect(localStorage.getItem(scopedKey(TASKS, DEFAULT_PROJECT_ID))).toBe(
+      '[{"id":"old1","title":"旧データ"}]',
+    );
+    expect(localStorage.getItem(TASKS)).toBe("[]"); // 旧キーは上書きしない
+  });
+
+  it("形式が合わないJSONは保存せずに止まる", () => {
+    localStorage.setItem(TASKS, VALID_TASKS);
+    migrateToProjectStorage();
+
+    // title が無い＝tasks の形式に合わない
+    const broken = JSON.stringify({ data: { "shizuku.tasks": [{ id: "x" }] } });
+    const parsed = parseImport(broken);
+
+    expect(parsed.ok).toBe(false);
+    expect(localStorage.getItem(scopedKey(TASKS))).toBe(VALID_TASKS); // 元のまま
   });
 });

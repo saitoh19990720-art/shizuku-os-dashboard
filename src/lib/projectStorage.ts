@@ -19,6 +19,9 @@ export const DEFAULT_PROJECT_ID = "default";
 /** 移行済みの印。これが無い間は旧キーを読む。 */
 export const MIGRATION_MARKER_KEY = "shizuku.v2.migration";
 
+/** いま使っているプロジェクトID。印（移行の記録）とは別に持つ。 */
+export const ACTIVE_PROJECT_KEY = "shizuku.v2.activeProject";
+
 /** 移行対象（DataBridge の10キー）。ここに condition / cardOpen は入れない。 */
 export const MIGRATED_KEYS = [
   "shizuku.tasks",
@@ -33,12 +36,15 @@ export const MIGRATED_KEYS = [
   "shizuku.nextAction",
 ] as const;
 
-export type MigrationStatus = "migrated" | "already" | "failed";
+// partial: 壊れた旧キーがあり、移行を完了させなかった状態（印は作らない＝旧キーで動き続ける）
+export type MigrationStatus = "migrated" | "already" | "failed" | "partial";
 
 export interface MigrationResult {
   status: MigrationStatus;
   /** v2 へ書けたキーの数（already / failed のときは 0） */
   copied: number;
+  /** JSONとして壊れていたため v2 へ写さなかったキー（旧キーはそのまま残る） */
+  skipped: string[];
   /** 失敗した理由（人間向け・失敗時のみ） */
   reason?: string;
 }
@@ -94,10 +100,35 @@ export function isMigrated(): boolean {
 }
 
 /**
+ * いま使っているプロジェクトID。
+ * 切替キー →（無ければ）移行時に記録した値 →（無ければ）既定ID の順で決める。
+ */
+export function getActiveProjectId(): string {
+  const explicit = getItem(ACTIVE_PROJECT_KEY);
+  if (explicit !== null && explicit !== "") return explicit;
+  return readMarker()?.projectId ?? DEFAULT_PROJECT_ID;
+}
+
+/**
+ * 使うプロジェクトを切り替える（内部API。切替UIはまだ無い）。
+ * データは projectId ごとに分かれているので、切り替えても互いに混ざらない。
+ * 移行が終わっていないときは切り替えない（旧キーで動いている最中に分岐させないため）。
+ */
+export function setActiveProject(projectId: string): boolean {
+  if (projectId === "" || !isMigrated()) return false;
+  try {
+    localStorage.setItem(ACTIVE_PROJECT_KEY, projectId);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * 書き込み先のキー。移行後は必ず v2 を返す。
  * （旧キーへ書き戻すことは無い＝v1 は移行時点のまま凍結される）
  */
-export function resolveWriteKey(key: string, projectId: string = DEFAULT_PROJECT_ID): string {
+export function resolveWriteKey(key: string, projectId: string = getActiveProjectId()): string {
   if (!isMigratableKey(key)) return key;
   if (!isMigrated()) return key;
   return scopedKey(key, projectId);
@@ -110,7 +141,7 @@ export function resolveWriteKey(key: string, projectId: string = DEFAULT_PROJECT
  *   - v2 が存在しない
  *   - v2 が壊れていて、旧キーは読める
  */
-export function readLogicalRaw(key: string, projectId: string = DEFAULT_PROJECT_ID): string | null {
+export function readLogicalRaw(key: string, projectId: string = getActiveProjectId()): string | null {
   if (!isMigratableKey(key) || !isMigrated()) return getItem(key);
 
   const v2raw = getItem(scopedKey(key, projectId));
@@ -128,33 +159,54 @@ export function readLogicalRaw(key: string, projectId: string = DEFAULT_PROJECT_
 export function migrateToProjectStorage(
   projectId: string = DEFAULT_PROJECT_ID,
 ): MigrationResult {
-  if (isMigrated()) return { status: "already", copied: 0 };
+  if (isMigrated()) return { status: "already", copied: 0, skipped: [] };
 
   const written: string[] = [];
+  const skipped: string[] = [];
   try {
     // 3. コピー（中身が無いキーは作らない）
+    //    JSONとして壊れている値は v2 へ写さない。写すと壊れたまま新しい正本になってしまう。
+    //    旧キーは触らないので、その項目はこれまで通り旧キー側を読み続ける。
     for (const key of MIGRATED_KEYS) {
       const raw = getItem(key);
       if (raw === null) continue;
+      if (!isParseable(raw)) {
+        skipped.push(key);
+        continue;
+      }
       localStorage.setItem(scopedKey(key, projectId), raw);
       written.push(scopedKey(key, projectId));
     }
 
-    // 4. 読み直して照合（1件でも食い違えば失敗）
+    // 4. 読み直して照合（1件でも食い違えば失敗）。写さなかったキーは対象外。
     for (const key of MIGRATED_KEYS) {
       const raw = getItem(key);
-      if (raw === null) continue;
+      if (raw === null || skipped.includes(key)) continue;
       if (localStorage.getItem(scopedKey(key, projectId)) !== raw) {
         throw new Error("verify mismatch: " + key);
       }
     }
 
-    // 5. 照合できたときだけ印を作る
+    // 5-a. 壊れた旧キーが1件でもあれば「成功」にしない。
+    //      印を作らず、この実行で書いた v2 も残さない＝旧キーのままで動き続ける（復旧可能）。
+    if (skipped.length > 0) {
+      for (const v2 of written) {
+        try {
+          localStorage.removeItem(v2);
+        } catch {
+          // 消せなくても印が無いので、読み出しは旧キーへ戻る
+        }
+      }
+      return { status: "partial", copied: 0, skipped };
+    }
+
+    // 5-b. 全件を照合できたときだけ印を作り、そのプロジェクトを使用中にする
     localStorage.setItem(
       MIGRATION_MARKER_KEY,
       JSON.stringify({ version: 2, projectId, migratedAt: new Date().toISOString() }),
     );
-    return { status: "migrated", copied: written.length };
+    localStorage.setItem(ACTIVE_PROJECT_KEY, projectId);
+    return { status: "migrated", copied: written.length, skipped };
   } catch (e) {
     // 6. v2 を採用しない。この実行で書いた分だけ片付ける（旧キーは削除も上書きもしない）
     for (const v2 of written) {
@@ -167,6 +219,7 @@ export function migrateToProjectStorage(
     return {
       status: "failed",
       copied: 0,
+      skipped,
       reason: e instanceof Error ? e.message : "unknown",
     };
   }
