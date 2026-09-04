@@ -143,20 +143,42 @@ export function resolveWriteKey(key: string, projectId: string = getActiveProjec
  *   - v2 が壊れていて、旧キーは読める
  */
 export function readLogicalRaw(key: string, projectId: string = getActiveProjectId()): string | null {
-  const marker = readMarker();
-  if (!isMigratableKey(key) || marker === null) return getItem(key);
+  const read = tryReadLogicalRaw(key, projectId);
+  return read.ok ? read.raw : null;
+}
 
-  const v2raw = getItem(scopedKey(key, projectId));
+/**
+ * 読み出しの結果。
+ * `ok: false` は「読み取れなかった」で、`ok: true, raw: null`（未保存）とは別物。
+ * 取り込み前の控えのように、この2つを取り違えると既存の内容を消しかねない場面で使う。
+ */
+export type LogicalRead = { ok: true; raw: string | null } | { ok: false };
 
-  // 旧キーへ戻れるのは、移行を受けたプロジェクトだけ。
-  // それ以外で旧キーを読むと、別プロジェクトの内容が混ざって保存されてしまう。
-  if (projectId !== marker.projectId) return v2raw;
+/** readLogicalRaw と同じ判断をしつつ、読み取れなかった場合を区別して返す。 */
+export function tryReadLogicalRaw(
+  key: string,
+  projectId: string = getActiveProjectId(),
+): LogicalRead {
+  try {
+    const marker = readMarker();
+    if (!isMigratableKey(key) || marker === null) {
+      return { ok: true, raw: localStorage.getItem(key) };
+    }
 
-  const v1raw = getItem(key);
+    const v2raw = localStorage.getItem(scopedKey(key, projectId));
 
-  if (v2raw === null) return v1raw;
-  if (!isParseable(v2raw) && isParseable(v1raw)) return v1raw;
-  return v2raw;
+    // 旧キーへ戻れるのは、移行を受けたプロジェクトだけ。
+    // それ以外で旧キーを読むと、別プロジェクトの内容が混ざって保存されてしまう。
+    if (projectId !== marker.projectId) return { ok: true, raw: v2raw };
+
+    const v1raw = localStorage.getItem(key);
+
+    if (v2raw === null) return { ok: true, raw: v1raw };
+    if (!isParseable(v2raw) && isParseable(v1raw)) return { ok: true, raw: v1raw };
+    return { ok: true, raw: v2raw };
+  } catch {
+    return { ok: false };
+  }
 }
 
 /**
@@ -220,7 +242,12 @@ export function migrateToProjectStorage(
 
     // 5-b. 使用中プロジェクトを先に記録し、印は最後に作る。
     //      印だけ残って「移行済み」に見える中途半端な状態を防ぐ。
-    localStorage.setItem(ACTIVE_PROJECT_KEY, projectId);
+    //      ただし既に選択があるなら書き換えない。印の作り直しは「印を戻す」だけの作業で、
+    //      利用者が選んでいるプロジェクトを default へ引き戻してよい理由にはならない。
+    const activeNow = getItem(ACTIVE_PROJECT_KEY);
+    if (activeNow === null || activeNow === "") {
+      localStorage.setItem(ACTIVE_PROJECT_KEY, projectId);
+    }
     localStorage.setItem(
       MIGRATION_MARKER_KEY,
       JSON.stringify({ version: 2, projectId, migratedAt: new Date().toISOString() }),

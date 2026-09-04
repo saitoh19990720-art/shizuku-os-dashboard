@@ -458,3 +458,104 @@ describe("印の後始末", () => {
     expect(localStorage.getItem(TASKS)).toBe(TASKS_V1); // 旧キーは無傷
   });
 });
+
+// 控えが読めないまま書き込むと、失敗したときの巻き戻しが
+// 「読めなかった値」を「元々未保存」と取り違えて、既存の内容を消してしまう。
+describe("取り込み前の控え（読み取り失敗）", () => {
+  it("控えを1件でも読めなければ、1件も書き込まずに中止する", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    localStorage.setItem(LINKS, LINKS_V1);
+    migrateToProjectStorage();
+
+    const realGetItem = Storage.prototype.getItem;
+    // LINKS の控えだけ読めない状態を作る（保存のブロック設定などの再現）
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(function (
+      this: Storage,
+      k: string,
+    ) {
+      if (k === scopedKey(LINKS)) throw new DOMException("SecurityError");
+      return realGetItem.call(this, k);
+    });
+
+    const result = applyImport(
+      { [TASKS]: [{ id: "9", text: "取り込み" }], [LINKS]: [] },
+      [TASKS, LINKS],
+    );
+    vi.restoreAllMocks();
+
+    expect(result.ok).toBe(false);
+    // 1件も書いていない（TASKS は元のまま）
+    expect(localStorage.getItem(scopedKey(TASKS))).toBe(TASKS_V1);
+    expect(localStorage.getItem(scopedKey(LINKS))).toBe(LINKS_V1);
+  });
+
+  it("控えが読めなくても、既存の内容は削除されない", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+
+    const realGetItem = Storage.prototype.getItem;
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(function (
+      this: Storage,
+      k: string,
+    ) {
+      if (k === scopedKey(TASKS)) throw new DOMException("SecurityError");
+      return realGetItem.call(this, k);
+    });
+
+    applyImport({ [TASKS]: [{ id: "9", text: "取り込み" }] }, [TASKS]);
+    vi.restoreAllMocks();
+
+    expect(localStorage.getItem(scopedKey(TASKS))).toBe(TASKS_V1);
+    expect(localStorage.getItem(TASKS)).toBe(TASKS_V1); // 旧キーも無傷
+  });
+});
+
+// 印の復旧は「印を作り直す」だけの作業。使用中プロジェクトの選択まで戻してはいけない。
+describe("復旧時に選択中プロジェクトを保持する", () => {
+  it("印が消えても、選択中のプロジェクトを default へ戻さない", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    setActiveProject("B");
+    expect(getActiveProjectId()).toBe("B");
+
+    localStorage.removeItem(MIGRATION_MARKER_KEY);
+    migrateToProjectStorage();
+
+    expect(localStorage.getItem(ACTIVE_PROJECT_KEY)).toBe("B");
+    expect(getActiveProjectId()).toBe("B");
+  });
+
+  it("印が壊れても、選択中のプロジェクトを default へ戻さない", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    setActiveProject("B");
+
+    localStorage.setItem(MIGRATION_MARKER_KEY, "{壊れた印");
+    migrateToProjectStorage();
+
+    expect(getActiveProjectId()).toBe("B");
+  });
+
+  it("復旧してもBで書いた内容はBのまま、defaultと混ざらない", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    setActiveProject("B");
+    safeSetItem(TASKS, [{ id: "b", text: "Bの記録" }]);
+    const bValue = localStorage.getItem(scopedKey(TASKS, "B"));
+
+    localStorage.removeItem(MIGRATION_MARKER_KEY);
+    migrateToProjectStorage();
+
+    expect(localStorage.getItem(scopedKey(TASKS, "B"))).toBe(bValue);
+    expect(localStorage.getItem(scopedKey(TASKS, DEFAULT_PROJECT_ID))).toBe(TASKS_V1);
+    expect(readLogicalRaw(TASKS)).toBe(bValue); // 選択中はBのまま
+  });
+
+  it("まだ選択の記録が無ければ、移行したプロジェクトを記録する", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+
+    migrateToProjectStorage();
+
+    expect(localStorage.getItem(ACTIVE_PROJECT_KEY)).toBe(DEFAULT_PROJECT_ID);
+  });
+});

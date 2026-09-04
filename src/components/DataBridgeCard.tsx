@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Card from "./Card";
 import { safeSetItem, safeSetRawItem } from "../hooks/useLocalStorage";
-import { ensureMigrated, readLogicalRaw } from "../lib/projectStorage";
+import { ensureMigrated, readLogicalRaw, tryReadLogicalRaw } from "../lib/projectStorage";
 
 // n8n Bridge / JSON Export：全データをJSONで出し入れ（バックアップ＋将来のn8n受け渡し口）。
 // 外部接続はしない・localStorage内のデータだけ・秘密情報は扱わない。
@@ -205,16 +205,20 @@ export function applyImport(data: Record<string, unknown>, present: string[]): I
   // 途中で失敗しても中途半端な状態を残さないよう、書き込む前に今の値を控えておく。
   // （未保存だったキーは null。戻すときはキーごと消す）
   // 控えが取れないと失敗時に元へ戻せないので、その場合は1件も書かずに中止する。
+  // 「読み取れなかった」を「未保存」と取り違えると、巻き戻しが復元ではなく削除になるため、
+  // tryReadLogicalRaw で両者を区別し、1件でも読めなければ書き込みフェーズへ進まない。
   const backup = new Map<string, string | null>();
-  try {
-    for (const k of present) backup.set(k, readLogicalRaw(k));
-  } catch {
-    return {
-      ok: false,
-      error:
-        "読み込みを中止しました。現在の保存内容を読み取れないため、失敗したときに元へ戻せません（まだ1件も書き換えていません）。" +
-        "ブラウザのプライベートモードや保存のブロック設定を解除してから、もう一度お試しください。",
-    };
+  for (const k of present) {
+    const read = tryReadLogicalRaw(k);
+    if (!read.ok) {
+      return {
+        ok: false,
+        error:
+          "読み込みを中止しました。現在の保存内容を読み取れないため、失敗したときに元へ戻せません（まだ1件も書き換えていません）。" +
+          "ブラウザのプライベートモードや保存のブロック設定を解除してから、もう一度お試しください。",
+      };
+    }
+    backup.set(k, read.raw);
   }
 
   const written: string[] = [];
