@@ -145,9 +145,17 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
 
   // 切替後は、画面に残っている旧プロジェクトの値を新プロジェクトへ書かない。
   useEffect(() => {
-    return subscribeActiveProject(() => {
+    const unsubscribe = subscribeActiveProject(() => {
       setState(loadInitialState(key, initialRef.current));
     });
+    // 購読より前に復旧していた場合、その合図は受け取れない。
+    // 購読できた時点で一度だけ読み直す（読めないままなら状態を変えないので繰り返さない）。
+    setState((prev) => {
+      if (prev.loaded) return prev;
+      const retry = loadInitialState(key, initialRef.current);
+      return retry.loaded ? retry : prev;
+    });
+    return unsubscribe;
   }, [key]);
 
   useEffect(() => {

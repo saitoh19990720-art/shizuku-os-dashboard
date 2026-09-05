@@ -1299,3 +1299,112 @@ describe("復旧の合図", () => {
     expect(seen.length).toBe(0);
   });
 });
+
+// 復旧待ちを共通のフラグ1つで持つと、関係ないフックが他人の合図を消費してしまう。
+// 止まった対象ごとに区別する。
+describe("対象ごとの復旧", () => {
+  const failOn = (targets: string[]) => {
+    const realGetItem = Storage.prototype.getItem;
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(function (
+      this: Storage,
+      k: string,
+    ) {
+      if (targets.includes(k)) throw new DOMException("SecurityError");
+      return realGetItem.call(this, k);
+    });
+  };
+
+  it("移行対象外のキーが止まっていても、他が読めるだけで合図を出さない", () => {
+    const CONDITION = "shizuku.condition";
+    localStorage.setItem(TASKS, TASKS_V1);
+    localStorage.setItem(CONDITION, '{"note":"体調"}');
+    migrateToProjectStorage();
+
+    failOn([CONDITION]);
+    expect(tryReadLogicalRaw(CONDITION).ok).toBe(false); // 移行対象外のフックが止まる
+
+    const seen: number[] = [];
+    const unsubscribe = subscribeActiveProject(() => seen.push(1));
+    migrateToProjectStorage(); // 他の10キーは読める
+    migrateToProjectStorage();
+    unsubscribe();
+    vi.restoreAllMocks();
+
+    expect(seen.length).toBe(0); // 止まっている当人が読めないので合図は出さない
+  });
+
+  it("止まった対象と無関係のキーを読んでも、合図は消費されない", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    localStorage.setItem(LINKS, LINKS_V1);
+    migrateToProjectStorage();
+
+    failOn([scopedKey(TASKS)]);
+    expect(tryReadLogicalRaw(TASKS).ok).toBe(false); // Aが止まる
+    expect(tryReadLogicalRaw(LINKS).ok).toBe(true); // Bは正常
+
+    const seen: number[] = [];
+    const unsubscribe = subscribeActiveProject(() => seen.push(1));
+    migrateToProjectStorage();
+    unsubscribe();
+    vi.restoreAllMocks();
+
+    expect(seen.length).toBe(0); // Bが読めてもAの合図は消えない
+  });
+
+  it("複数の対象が止まっても、読めるようになった対象だけ復旧する", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    localStorage.setItem(LINKS, LINKS_V1);
+    migrateToProjectStorage();
+
+    failOn([scopedKey(TASKS), scopedKey(LINKS)]);
+    expect(tryReadLogicalRaw(TASKS).ok).toBe(false);
+    expect(tryReadLogicalRaw(LINKS).ok).toBe(false);
+    vi.restoreAllMocks();
+
+    failOn([scopedKey(LINKS)]); // TASKS だけ復旧
+    const seen: number[] = [];
+    const unsubscribe = subscribeActiveProject(() => seen.push(1));
+    migrateToProjectStorage();
+    unsubscribe();
+
+    expect(seen.length).toBe(1); // 復旧した対象があるので知らせる
+    expect(tryReadLogicalRaw(LINKS).ok).toBe(false); // 未復旧はそのまま
+    vi.restoreAllMocks();
+  });
+
+  it("購読より前に復旧しても、あとから読み直せば保存済みの内容へ戻れる", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    safeSetItem(TASKS, [{ id: "2", text: "保存済み" }]);
+    const stored = localStorage.getItem(scopedKey(TASKS));
+
+    failOn([scopedKey(TASKS)]);
+    const suspended = loadInitialState<unknown>(TASKS, []);
+    vi.restoreAllMocks(); // 購読より前に復旧
+
+    migrateToProjectStorage(); // 誰も購読していない状態で合図が消費される
+
+    const resumed = loadInitialState<unknown>(TASKS, []);
+
+    expect(suspended.loaded).toBe(false);
+    expect(resumed.loaded).toBe(true); // 取りこぼさない
+    expect(JSON.stringify(resumed.value)).toBe(stored);
+  });
+
+  it("復旧していない対象は読み込みが止まったままで、復旧した対象だけ読み直せる", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    localStorage.setItem(LINKS, LINKS_V1);
+    migrateToProjectStorage();
+
+    failOn([scopedKey(TASKS), scopedKey(LINKS)]);
+    expect(loadInitialState<unknown>(TASKS, []).loaded).toBe(false);
+    expect(loadInitialState<unknown>(LINKS, []).loaded).toBe(false);
+    vi.restoreAllMocks();
+
+    failOn([scopedKey(LINKS)]); // TASKS だけ復旧
+
+    expect(loadInitialState<unknown>(TASKS, []).loaded).toBe(true);
+    expect(loadInitialState<unknown>(LINKS, []).loaded).toBe(false);
+    vi.restoreAllMocks();
+  });
+});

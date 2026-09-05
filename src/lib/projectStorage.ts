@@ -184,7 +184,7 @@ export type WriteKeyRead = { ok: true; key: string } | { ok: false };
 /** resolveWriteKey と同じ判断をしつつ、判定できなかった場合を区別して返す。 */
 export function tryResolveWriteKey(key: string, projectId?: string): WriteKeyRead {
   const resolved = resolveWriteKeyOrFail(key, projectId);
-  if (!resolved.ok) markReadsSuspended();
+  if (!resolved.ok) markReadsSuspended(key);
   return resolved;
 }
 
@@ -274,7 +274,8 @@ export type LogicalRead = { ok: true; raw: string | null } | { ok: false };
 /** readLogicalRaw と同じ判断をしつつ、読み取れなかった場合を区別して返す。 */
 export function tryReadLogicalRaw(key: string, projectId?: string): LogicalRead {
   const read = readLogicalRawOrFail(key, projectId);
-  if (!read.ok) markReadsSuspended();
+  if (read.ok) suspendedKeys.delete(key);
+  else markReadsSuspended(key);
   return read;
 }
 
@@ -328,27 +329,31 @@ function readLogicalRawOrFail(key: string, projectId?: string): LogicalRead {
  *
  * 途中で失敗したら、この実行で書いた v2 だけを消して未移行のまま返す（旧キーは触らない）。
  */
-// 読み書きを止めたことがあるか。復旧できたときに、止まっている画面へ読み直しを促すために使う。
-let readsSuspended = false;
+// 読み書きが止まっている対象（キー）。共通のフラグ1つにすると、
+// 関係のないフックが他人の合図を先に消費してしまうため、止まった対象ごとに持つ。
+const suspendedKeys = new Set<string>();
 
-/** 読み書きを止めたことを覚えておく（判定不能で止まったすべての経路から呼ぶ）。 */
-function markReadsSuspended(): void {
-  readsSuspended = true;
+/** この対象の読み書きが止まったことを覚えておく。 */
+function markReadsSuspended(key: string): void {
+  suspendedKeys.add(key);
 }
 
 /**
- * 止まっていた読み書きが本当に再開できるかを確かめ、できていれば読み直しを知らせる。
- * 移行が成功しただけでは復旧とみなさない。使用中プロジェクトや選択中の値など、
- * 画面が読み込みに使う経路が実際に通ることまで確認する。
+ * 止まっている対象それぞれについて、本当に読めるようになったかを確かめる。
+ * 確認は「止まった当人のキー」で行う。別のキーが読めることは復旧の根拠にならない。
+ * 1件でも読めるようになったときだけ、既存の読み直し通知へ合流させる。
  */
 function resumeIfRecovered(): void {
-  if (!readsSuspended) return;
-  for (const key of MIGRATED_KEYS) {
-    if (!tryReadLogicalRaw(key).ok) return; // まだ読めない。合図は保留したまま
+  if (suspendedKeys.size === 0) return;
+  let recovered = false;
+  for (const key of [...suspendedKeys]) {
+    // 記録を書き換えない内部版で確かめる（確認そのもので状態を変えない）
+    if (!readLogicalRawOrFail(key).ok) continue; // まだ読めない対象は残す
+    suspendedKeys.delete(key);
+    recovered = true;
   }
-  readsSuspended = false;
   // 止まっている間、画面は初期値のまま保存を見送っている。読み直させる。
-  notifyActiveProjectListeners();
+  if (recovered) notifyActiveProjectListeners();
 }
 
 /**
@@ -358,7 +363,9 @@ function resumeIfRecovered(): void {
  */
 function finishMigration(result: MigrationResult): MigrationResult {
   if (result.status === "unavailable") {
-    markReadsSuspended();
+    // 移行が扱うのはこのキー群。状態を判定できない間は全部が止まる。
+    // 復旧の確認は、この後もキーごとに個別に行う。
+    for (const key of MIGRATED_KEYS) markReadsSuspended(key);
     return result;
   }
   if (
