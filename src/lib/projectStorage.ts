@@ -183,6 +183,12 @@ export type WriteKeyRead = { ok: true; key: string } | { ok: false };
 
 /** resolveWriteKey と同じ判断をしつつ、判定できなかった場合を区別して返す。 */
 export function tryResolveWriteKey(key: string, projectId?: string): WriteKeyRead {
+  const resolved = resolveWriteKeyOrFail(key, projectId);
+  if (!resolved.ok) markReadsSuspended();
+  return resolved;
+}
+
+function resolveWriteKeyOrFail(key: string, projectId?: string): WriteKeyRead {
   if (!isMigratableKey(key)) return { ok: true, key };
   const markerRead = tryReadMarker();
   if (!markerRead.ok) return { ok: false };
@@ -267,6 +273,12 @@ export type LogicalRead = { ok: true; raw: string | null } | { ok: false };
 
 /** readLogicalRaw と同じ判断をしつつ、読み取れなかった場合を区別して返す。 */
 export function tryReadLogicalRaw(key: string, projectId?: string): LogicalRead {
+  const read = readLogicalRawOrFail(key, projectId);
+  if (!read.ok) markReadsSuspended();
+  return read;
+}
+
+function readLogicalRawOrFail(key: string, projectId?: string): LogicalRead {
   try {
     if (!isMigratableKey(key)) {
       return { ok: true, raw: localStorage.getItem(key) };
@@ -316,20 +328,45 @@ export function tryReadLogicalRaw(key: string, projectId?: string): LogicalRead 
  *
  * 途中で失敗したら、この実行で書いた v2 だけを消して未移行のまま返す（旧キーは触らない）。
  */
-// 直前の試行が「状態を読めず中止」だったか。
-// 復旧できたときに、止まっている画面へ読み直しを促すためだけに使う。
-let wasUnavailable = false;
+// 読み書きを止めたことがあるか。復旧できたときに、止まっている画面へ読み直しを促すために使う。
+let readsSuspended = false;
 
-/** 復旧できたときだけ、既存の読み直し通知へ合流させる。 */
+/** 読み書きを止めたことを覚えておく（判定不能で止まったすべての経路から呼ぶ）。 */
+function markReadsSuspended(): void {
+  readsSuspended = true;
+}
+
+/**
+ * 止まっていた読み書きが本当に再開できるかを確かめ、できていれば読み直しを知らせる。
+ * 移行が成功しただけでは復旧とみなさない。使用中プロジェクトや選択中の値など、
+ * 画面が読み込みに使う経路が実際に通ることまで確認する。
+ */
+function resumeIfRecovered(): void {
+  if (!readsSuspended) return;
+  for (const key of MIGRATED_KEYS) {
+    if (!tryReadLogicalRaw(key).ok) return; // まだ読めない。合図は保留したまま
+  }
+  readsSuspended = false;
+  // 止まっている間、画面は初期値のまま保存を見送っている。読み直させる。
+  notifyActiveProjectListeners();
+}
+
+/**
+ * 移行の結果を返しつつ、復旧の合図を出すか決める。
+ * 合図を出すのは正常な状態（migrated / recovered / already）に戻れたときだけ。
+ * failed / partial は印が無いままなので、合図を消費せず保留する。
+ */
 function finishMigration(result: MigrationResult): MigrationResult {
   if (result.status === "unavailable") {
-    wasUnavailable = true;
+    markReadsSuspended();
     return result;
   }
-  if (wasUnavailable) {
-    wasUnavailable = false;
-    // 止まっている間、画面は初期値のまま保存を見送っている。読み直させる。
-    notifyActiveProjectListeners();
+  if (
+    result.status === "migrated" ||
+    result.status === "recovered" ||
+    result.status === "already"
+  ) {
+    resumeIfRecovered();
   }
   return result;
 }

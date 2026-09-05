@@ -1181,3 +1181,121 @@ describe("一時障害からの復帰", () => {
     expect(seen.length).toBe(1); // 読み直しの合図が飛ぶ
   });
 });
+
+// 止まった読み書きを再開させる合図は、実際に読めるようになったことを確かめてから出す。
+// 移行が成功しただけでは足りず、途中で合図を失ってもいけない。
+describe("復旧の合図", () => {
+  const failOn = (target: string) => {
+    const realGetItem = Storage.prototype.getItem;
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(function (
+      this: Storage,
+      k: string,
+    ) {
+      if (k === target) throw new DOMException("SecurityError");
+      return realGetItem.call(this, k);
+    });
+  };
+
+  it("止まったままの間は合図を出さない", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    safeSetItem(TASKS, [{ id: "2", text: "保存済み" }]);
+    localStorage.removeItem(MIGRATION_MARKER_KEY);
+
+    failOn(scopedKey(TASKS));
+    const seen: number[] = [];
+    const unsubscribe = subscribeActiveProject(() => seen.push(1));
+    migrateToProjectStorage();
+    migrateToProjectStorage();
+    unsubscribe();
+    vi.restoreAllMocks();
+
+    expect(seen.length).toBe(0);
+  });
+
+  it("復旧の途中で別の失敗が起きても、合図の保留を失わない", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    safeSetItem(TASKS, [{ id: "2", text: "保存済み" }]);
+    localStorage.removeItem(MIGRATION_MARKER_KEY);
+
+    // まず「読めない」で止まる
+    failOn(scopedKey(TASKS));
+    expect(migrateToProjectStorage().status).toBe("unavailable");
+    vi.restoreAllMocks();
+
+    // 次は書き込みが失敗する（印はまだ作られない）
+    const realSetItem = Storage.prototype.setItem;
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(function (
+      this: Storage,
+      k: string,
+      v: string,
+    ) {
+      if (k === MIGRATION_MARKER_KEY) throw new DOMException("QuotaExceededError");
+      realSetItem.call(this, k, v);
+    });
+    const seen: number[] = [];
+    const unsubscribe = subscribeActiveProject(() => seen.push(1));
+    migrateToProjectStorage();
+    vi.restoreAllMocks();
+
+    expect(seen.length).toBe(0); // ここで合図を消費しない
+
+    // 本当に復旧したときに合図が飛ぶ
+    const after = migrateToProjectStorage();
+    unsubscribe();
+
+    expect(after.status).toBe("recovered");
+    expect(seen.length).toBe(1);
+  });
+
+  it("移行は成功していても、選択中プロジェクトが読めない間は止まったまま", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    safeSetItem(TASKS, [{ id: "2", text: "保存済み" }]);
+
+    failOn(ACTIVE_PROJECT_KEY);
+    const migration = migrateToProjectStorage();
+    const state = loadInitialState<unknown>(TASKS, []);
+    const saved = safeSetItem(TASKS, [{ id: "x", text: "初期値" }]);
+    vi.restoreAllMocks();
+
+    expect(migration.status).toBe("already"); // 移行自体は成功している
+    expect(state.loaded).toBe(false); // それでも読み込みは止まる
+    expect(saved).toBe(false); // 保存もしない
+  });
+
+  it("選択中プロジェクトの読み取りが復旧したら、読み直しを知らせる", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    safeSetItem(TASKS, [{ id: "2", text: "保存済み" }]);
+    const stored = localStorage.getItem(scopedKey(TASKS));
+
+    failOn(ACTIVE_PROJECT_KEY);
+    loadInitialState<unknown>(TASKS, []); // ここで止まる
+    vi.restoreAllMocks(); // 復旧
+
+    const seen: number[] = [];
+    const unsubscribe = subscribeActiveProject(() => seen.push(1));
+    migrateToProjectStorage(); // 次の描画で呼ばれる
+    unsubscribe();
+
+    expect(seen.length).toBe(1);
+    const resumed = loadInitialState<unknown>(TASKS, []);
+    expect(resumed.loaded).toBe(true);
+    expect(JSON.stringify(resumed.value)).toBe(stored);
+  });
+
+  it("正常なときは、余計な合図を出さない", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+
+    const seen: number[] = [];
+    const unsubscribe = subscribeActiveProject(() => seen.push(1));
+    migrateToProjectStorage();
+    loadInitialState<unknown>(TASKS, []);
+    unsubscribe();
+
+    expect(seen.length).toBe(0);
+  });
+});
