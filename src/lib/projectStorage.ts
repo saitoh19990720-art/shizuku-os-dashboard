@@ -274,8 +274,10 @@ export type LogicalRead = { ok: true; raw: string | null } | { ok: false };
 /** readLogicalRaw と同じ判断をしつつ、読み取れなかった場合を区別して返す。 */
 export function tryReadLogicalRaw(key: string, projectId?: string): LogicalRead {
   const read = readLogicalRawOrFail(key, projectId);
-  if (read.ok) suspendedKeys.delete(key);
-  else markReadsSuspended(key);
+  // 記録を消すのは復旧確認（通知を伴う経路）だけにする。
+  // ここで消すと、たまたま読めた別処理が合図を持ち去り、
+  // 止まったままのフックへ読み直しが届かなくなる。
+  if (!read.ok) markReadsSuspended(key);
   return read;
 }
 
@@ -342,6 +344,9 @@ function markReadsSuspended(key: string): void {
  * 止まっている対象それぞれについて、本当に読めるようになったかを確かめる。
  * 確認は「止まった当人のキー」で行う。別のキーが読めることは復旧の根拠にならない。
  * 1件でも読めるようになったときだけ、既存の読み直し通知へ合流させる。
+ *
+ * 記録を解除できるのはこの経路だけ。解除と通知を必ず同時に行うことで、
+ * 「記録は消えたのに読み直しは届かない」状態を作らない。
  */
 function resumeIfRecovered(): void {
   if (suspendedKeys.size === 0) return;

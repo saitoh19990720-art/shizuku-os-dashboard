@@ -1408,3 +1408,84 @@ describe("対象ごとの復旧", () => {
     vi.restoreAllMocks();
   });
 });
+
+// 復旧待ちの記録を消すのは、必ず「読めることを確かめて知らせる」経路だけにする。
+// 無関係な読み取りが記録だけ消すと、止まったフックへ合図が届かず取り残される。
+describe("記録の解除は通知を伴う経路だけ", () => {
+  const failOn = (targets: string[]) => {
+    const realGetItem = Storage.prototype.getItem;
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(function (
+      this: Storage,
+      k: string,
+    ) {
+      if (targets.includes(k)) throw new DOMException("SecurityError");
+      return realGetItem.call(this, k);
+    });
+  };
+
+  it("別処理が同じキーを読めても、それだけでは復旧待ちの記録を消さない", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    safeSetItem(TASKS, [{ id: "2", text: "保存済み" }]);
+    const stored = localStorage.getItem(scopedKey(TASKS));
+
+    failOn([scopedKey(TASKS)]);
+    expect(loadInitialState<unknown>(TASKS, []).loaded).toBe(false); // フックが止まる
+    vi.restoreAllMocks();
+
+    // 別処理がたまたま同じキーを読めてしまう（断続的な復旧）
+    expect(tryReadLogicalRaw(TASKS).ok).toBe(true);
+
+    // それでも合図は残っており、正式な復旧確認で通知される
+    const seen: number[] = [];
+    const unsubscribe = subscribeActiveProject(() => seen.push(1));
+    migrateToProjectStorage();
+    unsubscribe();
+
+    expect(seen.length).toBe(1);
+
+    // 通知を受けたフックは、保存済みの内容へ戻り、保存もできる
+    const resumed = loadInitialState<unknown>(TASKS, []);
+    expect(resumed.loaded).toBe(true);
+    expect(JSON.stringify(resumed.value)).toBe(stored);
+    expect(safeSetItem(TASKS, [{ id: "3", text: "保存できる" }])).toBe(true);
+  });
+
+  it("書き出し経由で解除される場合も、解除と通知が同時に起きる", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    safeSetItem(TASKS, [{ id: "2", text: "保存済み" }]);
+
+    failOn([scopedKey(TASKS)]);
+    expect(loadInitialState<unknown>(TASKS, []).loaded).toBe(false);
+    vi.restoreAllMocks();
+
+    const seen: number[] = [];
+    const unsubscribe = subscribeActiveProject(() => seen.push(1));
+
+    // 書き出しは内部で復旧確認を通る。記録が消えるならここで通知も出る。
+    expect(buildExport().ok).toBe(true);
+    expect(seen.length).toBe(1);
+
+    migrateToProjectStorage(); // 解除済みなので、もう通知は増えない
+    unsubscribe();
+
+    expect(seen.length).toBe(1);
+  });
+
+  it("まだ読めない対象は、記録も通知も保留したままにする", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+
+    failOn([scopedKey(TASKS)]);
+    expect(loadInitialState<unknown>(TASKS, []).loaded).toBe(false);
+
+    const seen: number[] = [];
+    const unsubscribe = subscribeActiveProject(() => seen.push(1));
+    migrateToProjectStorage();
+    unsubscribe();
+    vi.restoreAllMocks();
+
+    expect(seen.length).toBe(0);
+  });
+});
