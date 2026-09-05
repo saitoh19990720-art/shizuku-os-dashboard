@@ -302,7 +302,15 @@ export function migrateToProjectStorage(
     //    JSONとして壊れている旧キーは v2 へ写さない。写すと壊れたまま新しい正本になってしまう。
     for (const key of MIGRATED_KEYS) {
       const target = scopedKey(key, projectId);
-      if (getItem(target) !== null) continue;
+      // 既存の v2 が読めないときは「無い」と扱わない。
+      // 無いことにすると旧キーを上へ写してしまい、移行後の編集が消える。
+      let existing: string | null;
+      try {
+        existing = localStorage.getItem(target);
+      } catch {
+        throw new Error("scoped read failed: " + key);
+      }
+      if (existing !== null) continue;
 
       const raw = getItem(key);
       if (raw === null) continue;
@@ -339,7 +347,14 @@ export function migrateToProjectStorage(
     //      印だけ残って「移行済み」に見える中途半端な状態を防ぐ。
     //      ただし既に選択があるなら書き換えない。印の作り直しは「印を戻す」だけの作業で、
     //      利用者が選んでいるプロジェクトを default へ引き戻してよい理由にはならない。
-    const activeNow = getItem(ACTIVE_PROJECT_KEY);
+    // 選択が読めないときは「未設定」と扱わない。
+    // 未設定として書くと、default 以外を選んでいた場合にその選択を潰す。
+    let activeNow: string | null;
+    try {
+      activeNow = localStorage.getItem(ACTIVE_PROJECT_KEY);
+    } catch {
+      throw new Error("active project unreadable");
+    }
     if (activeNow === null || activeNow === "") {
       localStorage.setItem(ACTIVE_PROJECT_KEY, projectId);
     }

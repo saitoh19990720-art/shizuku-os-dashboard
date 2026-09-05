@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Card from "./Card";
 import { safeSetItem, safeSetRawItem } from "../hooks/useLocalStorage";
-import { ensureMigrated, readLogicalRaw, tryReadLogicalRaw } from "../lib/projectStorage";
+import { ensureMigrated, tryReadLogicalRaw } from "../lib/projectStorage";
 
 // n8n Bridge / JSON Export：全データをJSONで出し入れ（バックアップ＋将来のn8n受け渡し口）。
 // 外部接続はしない・localStorage内のデータだけ・秘密情報は扱わない。
@@ -124,22 +124,37 @@ const VALIDATORS: Record<string, (value: unknown) => boolean> = {
   "shizuku.nextAction": (v) => isObject(v) && optStr(v.text) && optBool(v.done),
 };
 
-export function buildExport(): string {
+export type ExportResult = { ok: true; json: string } | { ok: false; error: string };
+
+export function buildExport(): ExportResult {
   ensureMigrated();
   const data: Record<string, unknown> = {};
   for (const k of KEYS) {
+    // 「読み取れなかった」を「未保存(null)」として書き出すと、
+    // 中身が残っているのに空のバックアップができ、それを信じて使われてしまう。
+    const read = tryReadLogicalRaw(k);
+    if (!read.ok) {
+      return {
+        ok: false,
+        error:
+          "書き出しを中止しました。現在の保存内容を読み取れないため、中身が空のバックアップができてしまいます（データは消えていません）。" +
+          "ブラウザのプライベートモードや保存のブロック設定を解除してから、もう一度お試しください。",
+      };
+    }
     try {
-      const raw = readLogicalRaw(k);
-      data[k] = raw ? JSON.parse(raw) : null;
+      data[k] = read.raw ? JSON.parse(read.raw) : null;
     } catch {
       data[k] = null;
     }
   }
-  return JSON.stringify(
-    { app: "shizuku-os", version: 1, exportedAt: new Date().toISOString(), data },
-    null,
-    2,
-  );
+  return {
+    ok: true,
+    json: JSON.stringify(
+      { app: "shizuku-os", version: 1, exportedAt: new Date().toISOString(), data },
+      null,
+      2,
+    ),
+  };
 }
 
 // ---- 取り込みの中身（UIを持たない部分。ここだけテストできるように切り出した） ----
@@ -269,7 +284,12 @@ export default function DataBridgeCard() {
   const [error, setError] = useState("");
 
   const doCopy = async () => {
-    const json = buildExport();
+    const result = buildExport();
+    if (!result.ok) {
+      setError(result.error);
+      return;
+    }
+    const json = result.json;
     setOut(json);
     try {
       await navigator.clipboard.writeText(json);
@@ -281,8 +301,12 @@ export default function DataBridgeCard() {
   };
 
   const doDownload = () => {
-    const json = buildExport();
-    const blob = new Blob([json], { type: "application/json" });
+    const result = buildExport();
+    if (!result.ok) {
+      setError(result.error);
+      return;
+    }
+    const blob = new Blob([result.json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;

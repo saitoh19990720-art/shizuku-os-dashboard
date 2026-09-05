@@ -220,7 +220,10 @@ describe("v1 import 互換と DataBridge の入出力", () => {
 
     expect(localStorage.getItem(scopedKey(TASKS))).toBe('[{"id":"imported","text":"取り込み"}]');
 
-    const exported = JSON.parse(buildExport()) as {
+    const exportResult = buildExport();
+    expect(exportResult.ok).toBe(true);
+    if (!exportResult.ok) return;
+    const exported = JSON.parse(exportResult.json) as {
       version: number;
       data: Record<string, unknown>;
     };
@@ -300,7 +303,10 @@ describe("DataBridge 回帰（export → import の実動経路）", () => {
     localStorage.setItem(TASKS, VALID_TASKS);
     localStorage.setItem(LINKS, VALID_LINKS);
     migrateToProjectStorage();
-    const exported = buildExport();
+    const exportResult = buildExport();
+    expect(exportResult.ok).toBe(true);
+    if (!exportResult.ok) return;
+    const exported = exportResult.json;
 
     // いったん中身を変えてから、書き出したJSONで戻す
     safeSetItem(TASKS, [{ id: "t2", title: "あとで消す" }]);
@@ -876,5 +882,87 @@ describe("プロジェクト切替の購読", () => {
     const fresh = loadInitialState(TASKS, [] as { id: string; text: string }[]);
     expect(fresh.boundProject).toBe("B");
     expect(fresh.value).toEqual([]);
+  });
+});
+
+// localStorage の読み取りは3つの状態がある。
+//   ①読めた・値あり ②読めた・値なし ③読めなかった
+// ③を②と同じに扱うと、既存の内容を上書きしたり、空のバックアップを作ってしまう。
+describe("読み取りの三状態（復旧と書き出し）", () => {
+  it("復旧中に既存のv2が読めないときは、旧キーで上書きせず中止する", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    safeSetItem(TASKS, [{ id: "2", text: "移行後に書いた" }]);
+    const edited = localStorage.getItem(scopedKey(TASKS));
+    localStorage.removeItem(MIGRATION_MARKER_KEY);
+
+    const realGetItem = Storage.prototype.getItem;
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(function (
+      this: Storage,
+      k: string,
+    ) {
+      if (k === scopedKey(TASKS)) throw new DOMException("SecurityError");
+      return realGetItem.call(this, k);
+    });
+
+    const result = migrateToProjectStorage();
+    vi.restoreAllMocks();
+
+    expect(result.status).toBe("failed");
+    expect(localStorage.getItem(scopedKey(TASKS))).toBe(edited); // 上書きしない
+    expect(localStorage.getItem(TASKS)).toBe(TASKS_V1); // 旧キーも無傷
+    expect(isMigrated()).toBe(false); // 印も作らない
+  });
+
+  it("復旧中に使用中プロジェクトが読めないときは、未設定扱いせず中止する", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    setActiveProject("B");
+    localStorage.removeItem(MIGRATION_MARKER_KEY);
+
+    const realGetItem = Storage.prototype.getItem;
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(function (
+      this: Storage,
+      k: string,
+    ) {
+      if (k === ACTIVE_PROJECT_KEY) throw new DOMException("SecurityError");
+      return realGetItem.call(this, k);
+    });
+
+    const result = migrateToProjectStorage();
+    vi.restoreAllMocks();
+
+    expect(result.status).toBe("failed");
+    expect(localStorage.getItem(ACTIVE_PROJECT_KEY)).toBe("B"); // defaultへ潰さない
+    expect(isMigrated()).toBe(false);
+  });
+
+  it("書き出しは、読み取れないときに空のバックアップを作らない", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+
+    const realGetItem = Storage.prototype.getItem;
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(function (
+      this: Storage,
+      k: string,
+    ) {
+      if (k === MIGRATION_MARKER_KEY) throw new DOMException("SecurityError");
+      return realGetItem.call(this, k);
+    });
+
+    const result = buildExport();
+    vi.restoreAllMocks();
+
+    expect(result.ok).toBe(false);
+  });
+
+  it("値が無いだけのときは、これまで通り書き出せる", () => {
+    const result = buildExport();
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const parsed = JSON.parse(result.json) as { version: number; data: Record<string, unknown> };
+    expect(parsed.version).toBe(1); // 形式は据え置き
+    expect(parsed.data[TASKS]).toBeNull(); // 未保存は null のまま
   });
 });
