@@ -70,13 +70,19 @@ export function scopedKey(key: string, projectId: string = DEFAULT_PROJECT_ID): 
 }
 
 /**
- * 印が無いのに v2 が残っているか。
+ * 印が無いのに v2 が残っているか（どのプロジェクトのものでも見る）。
+ * 選択中のプロジェクトだけを見ると、空の別プロジェクトを選んでいるときに
+ * 「移行していない」と誤判定し、移行済みの内容があるのに旧キーを正本にしてしまう。
  * 残っていれば「移行済みで印だけ失われた（＝復旧待ち）」で、旧キーはもう正本ではない。
  * 読み取りに失敗したら例外をそのまま投げ、呼び出し側が中止できるようにする。
  */
-function hasScopedValues(projectId: string): boolean {
-  for (const key of MIGRATED_KEYS) {
-    if (localStorage.getItem(scopedKey(key, projectId)) !== null) return true;
+function hasScopedValues(): boolean {
+  for (let i = 0; i < localStorage.length; i++) {
+    const stored = localStorage.key(i);
+    if (stored === null) continue;
+    // 印と使用中プロジェクトの記録は同じ接頭辞だが、移行データではない
+    if (stored === MIGRATION_MARKER_KEY || stored === ACTIVE_PROJECT_KEY) continue;
+    if (stored.startsWith("shizuku.v2.")) return true;
   }
   return false;
 }
@@ -183,9 +189,7 @@ export function tryResolveWriteKey(key: string, projectId?: string): WriteKeyRea
   if (markerRead.marker === null) {
     // 復旧待ち（印が無いのに v2 がある）なら、旧キーへ書かない。
     try {
-      const active = tryGetActiveProjectId();
-      if (!active.ok) return { ok: false };
-      if (hasScopedValues(active.projectId)) return { ok: false };
+      if (hasScopedValues()) return { ok: false };
     } catch {
       return { ok: false };
     }
@@ -275,9 +279,7 @@ export function tryReadLogicalRaw(key: string, projectId?: string): LogicalRead 
     if (marker === null) {
       // 印が無くても v2 が残っているなら、復旧が済むまで旧キーは正本ではない。
       // ここで旧キーを返すと、その古い内容が新しい v2 を上書きしてしまう。
-      const active = tryGetActiveProjectId();
-      if (!active.ok) return { ok: false };
-      if (hasScopedValues(active.projectId)) return { ok: false };
+      if (hasScopedValues()) return { ok: false };
       return { ok: true, raw: localStorage.getItem(key) };
     }
 
@@ -314,15 +316,34 @@ export function tryReadLogicalRaw(key: string, projectId?: string): LogicalRead 
  *
  * 途中で失敗したら、この実行で書いた v2 だけを消して未移行のまま返す（旧キーは触らない）。
  */
+// 直前の試行が「状態を読めず中止」だったか。
+// 復旧できたときに、止まっている画面へ読み直しを促すためだけに使う。
+let wasUnavailable = false;
+
+/** 復旧できたときだけ、既存の読み直し通知へ合流させる。 */
+function finishMigration(result: MigrationResult): MigrationResult {
+  if (result.status === "unavailable") {
+    wasUnavailable = true;
+    return result;
+  }
+  if (wasUnavailable) {
+    wasUnavailable = false;
+    // 止まっている間、画面は初期値のまま保存を見送っている。読み直させる。
+    notifyActiveProjectListeners();
+  }
+  return result;
+}
+
 export function migrateToProjectStorage(
   projectId: string = DEFAULT_PROJECT_ID,
 ): MigrationResult {
   const markerRead = tryReadMarker();
   // 印が読めない間は「未移行」と取り違えない。v1 を写すと移行後の編集を潰す。
   if (!markerRead.ok) {
-    return { status: "failed", copied: 0, skipped: [], reason: "marker unreadable" };
+    // 印が読めない＝状態を判定できない。書き込み失敗（failed）と混ぜない。
+    return finishMigration({ status: "unavailable", copied: 0, skipped: [], reason: "marker unreadable" });
   }
-  if (markerRead.marker !== null) return { status: "already", copied: 0, skipped: [] };
+  if (markerRead.marker !== null) return finishMigration({ status: "already", copied: 0, skipped: [] });
 
   // v2 が1つでも残っていれば復旧モード。初回移行と扱いを分ける。
   const recovering = MIGRATED_KEYS.some((key) => getItem(scopedKey(key, projectId)) !== null);
@@ -377,7 +398,7 @@ export function migrateToProjectStorage(
           // 消せなくても印が無いので、読み出しは旧キーへ戻る
         }
       }
-      return { status: "partial", copied: 0, skipped };
+      return finishMigration({ status: "partial", copied: 0, skipped });
     }
 
     // 5-b. 使用中プロジェクトを先に記録し、印は最後に作る。
@@ -400,11 +421,11 @@ export function migrateToProjectStorage(
       MIGRATION_MARKER_KEY,
       JSON.stringify({ version: 2, projectId, migratedAt: new Date().toISOString() }),
     );
-    return {
+    return finishMigration({
       status: recovering ? "recovered" : "migrated",
       copied: written.length,
       skipped,
-    };
+    });
   } catch (e) {
     // 6. v2 を採用しない。この実行で書いた分だけ片付ける（旧キーは削除も上書きもしない）
     for (const { target } of written) {
@@ -420,12 +441,12 @@ export function migrateToProjectStorage(
     } catch {
       // 消せない場合でも、下の failed で未移行として扱う
     }
-    return {
+    return finishMigration({
       status: stateUnreadable ? "unavailable" : "failed",
       copied: 0,
       skipped,
       reason: e instanceof Error ? e.message : "unknown",
-    };
+    });
   }
 }
 

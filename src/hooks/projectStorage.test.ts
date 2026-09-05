@@ -8,9 +8,10 @@ import {
   getActiveProjectId,
   isMigrated,
   setActiveProject,
+  subscribeActiveProject,
   migrateToProjectStorage,
   readLogicalRaw,
-  subscribeActiveProject,
+
   tryGetActiveProjectId,
   tryReadLogicalRaw,
   tryReadMarker,
@@ -756,7 +757,7 @@ describe("印の読み取り失敗（未移行と取り違えない）", () => {
     const result = migrateToProjectStorage();
     vi.restoreAllMocks();
 
-    expect(result.status).toBe("failed");
+    expect(result.status).toBe("unavailable");
     expect(result.reason).toBe("marker unreadable");
     expect(localStorage.getItem(scopedKey(TASKS))).toBe(v2);
     expect(localStorage.getItem(MIGRATION_MARKER_KEY)).toBe(marker);
@@ -1044,5 +1045,139 @@ describe("復旧に失敗した後の扱い", () => {
 
     expect(result.status).toBe("migrated");
     expect(localStorage.getItem(scopedKey(TASKS))).toBe(TASKS_V1);
+  });
+});
+
+// unavailable（状態を判定できない）は、呼び出し階層の最後まで一貫して扱う必要がある。
+// 途中で「未移行」に読み替えると、凍結された旧キーが正本に戻ってしまう。
+describe("判定不能状態の一貫した扱い", () => {
+  it("印そのものが読めないときも unavailable として伝わる", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+
+    const realGetItem = Storage.prototype.getItem;
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(function (
+      this: Storage,
+      k: string,
+    ) {
+      if (k === MIGRATION_MARKER_KEY) throw new DOMException("SecurityError");
+      return realGetItem.call(this, k);
+    });
+
+    const result = migrateToProjectStorage();
+    vi.restoreAllMocks();
+
+    expect(result.status).toBe("unavailable");
+    expect(localStorage.getItem(scopedKey(TASKS))).toBeNull(); // 移行を始めない
+  });
+
+  it("印が読めないときは旧キーへフォールバックしない", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+
+    const realGetItem = Storage.prototype.getItem;
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(function (
+      this: Storage,
+      k: string,
+    ) {
+      if (k === MIGRATION_MARKER_KEY) throw new DOMException("SecurityError");
+      return realGetItem.call(this, k);
+    });
+
+    const read = tryReadLogicalRaw(TASKS);
+    const write = safeSetItem(TASKS, [{ id: "x", text: "書かない" }]);
+    vi.restoreAllMocks();
+
+    expect(read.ok).toBe(false);
+    expect(write).toBe(false);
+    expect(localStorage.getItem(TASKS)).toBe(TASKS_V1); // 旧キーは無傷
+  });
+
+  it("別プロジェクトが選択中でも、移行済みのv2があれば旧キーを正本にしない", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage(); // default が移行を受ける
+    safeSetItem(TASKS, [{ id: "2", text: "移行後に書いた" }]);
+    setActiveProject("B"); // 中身が空の別プロジェクトへ切替
+    localStorage.removeItem(MIGRATION_MARKER_KEY); // 印だけ失われる
+
+    const read = tryReadLogicalRaw(TASKS);
+    const write = safeSetItem(TASKS, [{ id: "x", text: "古いstate" }]);
+
+    expect(read.ok).toBe(false); // 空のBを見て「未移行」と誤判定しない
+    expect(write).toBe(false);
+    expect(localStorage.getItem(TASKS)).toBe(TASKS_V1); // 旧キーを上書きしない
+  });
+});
+
+// 一時的な読み取り障害で止まったあと、読めるようになったら保存を再開できないと、
+// 利用者からは「書いたのに保存されない」状態が続いてしまう。
+describe("一時障害からの復帰", () => {
+  it("読み取り失敗で止まった後、復旧したら保存済みの内容を読み直す", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    safeSetItem(TASKS, [{ id: "2", text: "保存済み" }]);
+    const stored = localStorage.getItem(scopedKey(TASKS));
+
+    const realGetItem = Storage.prototype.getItem;
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(function (
+      this: Storage,
+      k: string,
+    ) {
+      if (k === MIGRATION_MARKER_KEY) throw new DOMException("SecurityError");
+      return realGetItem.call(this, k);
+    });
+    const suspended = loadInitialState<unknown>(TASKS, []);
+    vi.restoreAllMocks(); // ここで復旧
+
+    const resumed = loadInitialState<unknown>(TASKS, []);
+
+    expect(suspended.loaded).toBe(false);
+    expect(resumed.loaded).toBe(true);
+    expect(JSON.stringify(resumed.value)).toBe(stored); // 初期値ではなく保存済みの内容
+  });
+
+  it("復旧する前は、古い初期stateを保存しない", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    safeSetItem(TASKS, [{ id: "2", text: "保存済み" }]);
+    const stored = localStorage.getItem(scopedKey(TASKS));
+
+    const realGetItem = Storage.prototype.getItem;
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(function (
+      this: Storage,
+      k: string,
+    ) {
+      if (k === MIGRATION_MARKER_KEY) throw new DOMException("SecurityError");
+      return realGetItem.call(this, k);
+    });
+    const ok = safeSetItem(TASKS, [{ id: "x", text: "初期値" }]);
+    vi.restoreAllMocks();
+
+    expect(ok).toBe(false);
+    expect(localStorage.getItem(scopedKey(TASKS))).toBe(stored);
+  });
+
+  it("復旧に成功したら、画面へ読み直しを知らせる", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    safeSetItem(TASKS, [{ id: "2", text: "保存済み" }]);
+    localStorage.removeItem(MIGRATION_MARKER_KEY);
+
+    const realGetItem = Storage.prototype.getItem;
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(function (
+      this: Storage,
+      k: string,
+    ) {
+      if (k === scopedKey(TASKS)) throw new DOMException("SecurityError");
+      return realGetItem.call(this, k);
+    });
+    expect(migrateToProjectStorage().status).toBe("unavailable");
+    vi.restoreAllMocks(); // 復旧
+
+    const seen: number[] = [];
+    const unsubscribe = subscribeActiveProject(() => seen.push(1));
+    const after = migrateToProjectStorage();
+    unsubscribe();
+
+    expect(after.status).toBe("recovered");
+    expect(seen.length).toBe(1); // 読み直しの合図が飛ぶ
   });
 });
