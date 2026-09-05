@@ -127,7 +127,17 @@ const VALIDATORS: Record<string, (value: unknown) => boolean> = {
 export type ExportResult = { ok: true; json: string } | { ok: false; error: string };
 
 export function buildExport(): ExportResult {
-  ensureMigrated();
+  // 復旧が「状態を読めない」で中止したときは、印が無いまま残る。
+  // そのまま書き出すと、旧キーの古い内容で「正しく見えるバックアップ」を作ってしまう。
+  const migration = ensureMigrated();
+  if (migration.status === "unavailable") {
+    return {
+      ok: false,
+      error:
+        "書き出しを中止しました。現在の保存内容を読み取れないため、古い内容のバックアップができてしまいます（データは消えていません）。" +
+        "ブラウザのプライベートモードや保存のブロック設定を解除してから、もう一度お試しください。",
+    };
+  }
   const data: Record<string, unknown> = {};
   for (const k of KEYS) {
     // 「読み取れなかった」を「未保存(null)」として書き出すと、

@@ -39,7 +39,14 @@ export const MIGRATED_KEYS = [
 
 // recovered: 印だけが失われた／壊れた状態からの復旧。既存のv2は一切上書きしない。
 // partial: 壊れた旧キーがあり、初回移行を完了させなかった状態（印は作らない＝旧キーで動き続ける）
-export type MigrationStatus = "migrated" | "recovered" | "already" | "failed" | "partial";
+// unavailable: 状態を読み取れず復旧を中止した。印が無いままなので、呼び出し側は後続を止める。
+export type MigrationStatus =
+  | "migrated"
+  | "recovered"
+  | "already"
+  | "failed"
+  | "partial"
+  | "unavailable";
 
 export interface MigrationResult {
   status: MigrationStatus;
@@ -60,6 +67,18 @@ export function isMigratableKey(key: string): boolean {
 export function scopedKey(key: string, projectId: string = DEFAULT_PROJECT_ID): string {
   const suffix = key.startsWith("shizuku.") ? key.slice("shizuku.".length) : key;
   return `shizuku.v2.${projectId}.${suffix}`;
+}
+
+/**
+ * 印が無いのに v2 が残っているか。
+ * 残っていれば「移行済みで印だけ失われた（＝復旧待ち）」で、旧キーはもう正本ではない。
+ * 読み取りに失敗したら例外をそのまま投げ、呼び出し側が中止できるようにする。
+ */
+function hasScopedValues(projectId: string): boolean {
+  for (const key of MIGRATED_KEYS) {
+    if (localStorage.getItem(scopedKey(key, projectId)) !== null) return true;
+  }
+  return false;
 }
 
 /** JSONとして読めるか。壊れたv2を見分けるために使う。 */
@@ -161,7 +180,17 @@ export function tryResolveWriteKey(key: string, projectId?: string): WriteKeyRea
   if (!isMigratableKey(key)) return { ok: true, key };
   const markerRead = tryReadMarker();
   if (!markerRead.ok) return { ok: false };
-  if (markerRead.marker === null) return { ok: true, key };
+  if (markerRead.marker === null) {
+    // 復旧待ち（印が無いのに v2 がある）なら、旧キーへ書かない。
+    try {
+      const active = tryGetActiveProjectId();
+      if (!active.ok) return { ok: false };
+      if (hasScopedValues(active.projectId)) return { ok: false };
+    } catch {
+      return { ok: false };
+    }
+    return { ok: true, key };
+  }
   if (projectId !== undefined) return { ok: true, key: scopedKey(key, projectId) };
 
   const active = tryGetActiveProjectId();
@@ -244,6 +273,11 @@ export function tryReadLogicalRaw(key: string, projectId?: string): LogicalRead 
     if (!markerRead.ok) return { ok: false };
     const marker = markerRead.marker;
     if (marker === null) {
+      // 印が無くても v2 が残っているなら、復旧が済むまで旧キーは正本ではない。
+      // ここで旧キーを返すと、その古い内容が新しい v2 を上書きしてしまう。
+      const active = tryGetActiveProjectId();
+      if (!active.ok) return { ok: false };
+      if (hasScopedValues(active.projectId)) return { ok: false };
       return { ok: true, raw: localStorage.getItem(key) };
     }
 
@@ -295,6 +329,8 @@ export function migrateToProjectStorage(
 
   const written: { key: string; target: string }[] = [];
   const skipped: string[] = [];
+  // 状態そのものを読めずに中止したか。書き込み失敗（failed）とは区別して伝える。
+  let stateUnreadable = false;
   try {
     // 3. コピー（中身が無いキーは作らない）
     //    既に v2 があるキーは触らない。壊れていても上書きしない
@@ -308,6 +344,7 @@ export function migrateToProjectStorage(
       try {
         existing = localStorage.getItem(target);
       } catch {
+        stateUnreadable = true;
         throw new Error("scoped read failed: " + key);
       }
       if (existing !== null) continue;
@@ -353,6 +390,7 @@ export function migrateToProjectStorage(
     try {
       activeNow = localStorage.getItem(ACTIVE_PROJECT_KEY);
     } catch {
+      stateUnreadable = true;
       throw new Error("active project unreadable");
     }
     if (activeNow === null || activeNow === "") {
@@ -383,7 +421,7 @@ export function migrateToProjectStorage(
       // 消せない場合でも、下の failed で未移行として扱う
     }
     return {
-      status: "failed",
+      status: stateUnreadable ? "unavailable" : "failed",
       copied: 0,
       skipped,
       reason: e instanceof Error ? e.message : "unknown",

@@ -908,7 +908,7 @@ describe("読み取りの三状態（復旧と書き出し）", () => {
     const result = migrateToProjectStorage();
     vi.restoreAllMocks();
 
-    expect(result.status).toBe("failed");
+    expect(result.status).toBe("unavailable"); // 状態を読めずに中止したことを伝える
     expect(localStorage.getItem(scopedKey(TASKS))).toBe(edited); // 上書きしない
     expect(localStorage.getItem(TASKS)).toBe(TASKS_V1); // 旧キーも無傷
     expect(isMigrated()).toBe(false); // 印も作らない
@@ -932,7 +932,7 @@ describe("読み取りの三状態（復旧と書き出し）", () => {
     const result = migrateToProjectStorage();
     vi.restoreAllMocks();
 
-    expect(result.status).toBe("failed");
+    expect(result.status).toBe("unavailable"); // 状態を読めずに中止したことを伝える
     expect(localStorage.getItem(ACTIVE_PROJECT_KEY)).toBe("B"); // defaultへ潰さない
     expect(isMigrated()).toBe(false);
   });
@@ -964,5 +964,85 @@ describe("読み取りの三状態（復旧と書き出し）", () => {
     const parsed = JSON.parse(result.json) as { version: number; data: Record<string, unknown> };
     expect(parsed.version).toBe(1); // 形式は据え置き
     expect(parsed.data[TASKS]).toBeNull(); // 未保存は null のまま
+  });
+});
+
+// 復旧が「状態を読めない」で中止すると、印は無いまま残る。
+// このとき「印が無い＝未移行」と解釈すると、凍結された旧キーを正本として扱ってしまい、
+// 保持したはずの新しい v2 を古い内容で上書きしかねない。
+describe("復旧に失敗した後の扱い", () => {
+  const suspendScopedRead = () => {
+    const realGetItem = Storage.prototype.getItem;
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(function (
+      this: Storage,
+      k: string,
+    ) {
+      if (k === scopedKey(TASKS)) throw new DOMException("SecurityError");
+      return realGetItem.call(this, k);
+    });
+  };
+
+  it("復旧の中止が呼び出し側へ伝わる（unavailable）", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    safeSetItem(TASKS, [{ id: "2", text: "移行後に書いた" }]);
+    localStorage.removeItem(MIGRATION_MARKER_KEY);
+
+    suspendScopedRead();
+    const result = migrateToProjectStorage();
+    vi.restoreAllMocks();
+
+    expect(result.status).toBe("unavailable");
+  });
+
+  it("復旧に失敗した後は、旧キーを正本として読まない", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    safeSetItem(TASKS, [{ id: "2", text: "移行後に書いた" }]);
+    localStorage.removeItem(MIGRATION_MARKER_KEY);
+
+    // 印は無いが、v2 は残っている＝移行済みで印だけ失われた状態
+    const read = tryReadLogicalRaw(TASKS);
+
+    expect(read.ok).toBe(false); // 旧キーへ戻らない
+  });
+
+  it("復旧に失敗した後は、v2へ書き込まない", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    safeSetItem(TASKS, [{ id: "2", text: "移行後に書いた" }]);
+    const edited = localStorage.getItem(scopedKey(TASKS));
+    localStorage.removeItem(MIGRATION_MARKER_KEY);
+
+    const ok = safeSetItem(TASKS, [{ id: "x", text: "古いstate" }]);
+
+    expect(ok).toBe(false);
+    expect(localStorage.getItem(scopedKey(TASKS))).toBe(edited); // v2 は無傷
+    expect(localStorage.getItem(TASKS)).toBe(TASKS_V1); // 旧キーも無傷
+  });
+
+  it("復旧に失敗した後は、書き出しを作らない", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    safeSetItem(TASKS, [{ id: "2", text: "移行後に書いた" }]);
+    localStorage.removeItem(MIGRATION_MARKER_KEY);
+
+    suspendScopedRead();
+    const result = buildExport();
+    vi.restoreAllMocks();
+
+    expect(result.ok).toBe(false); // 古い内容のバックアップを作らない
+  });
+
+  it("正常な未移行（v2が無い）状態は、これまで通り移行できる", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    localStorage.setItem(LINKS, LINKS_V1);
+
+    expect(tryReadLogicalRaw(TASKS)).toEqual({ ok: true, raw: TASKS_V1 });
+
+    const result = migrateToProjectStorage();
+
+    expect(result.status).toBe("migrated");
+    expect(localStorage.getItem(scopedKey(TASKS))).toBe(TASKS_V1);
   });
 });
