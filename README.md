@@ -73,6 +73,9 @@ Shizuku OS は、その「判断」と「再開」を支えるための小型OS�
 
 ---
 
+> **必要な環境**：Node.js **20.19 以上**（推奨：**Node.js 22 LTS 以上**）。
+> `npm run lint` / `npm test` は ESLint 10・jsdom 29 を使うため、**Node 18 では動作しません**。
+
 ## 起動方法
 
 ```bash
