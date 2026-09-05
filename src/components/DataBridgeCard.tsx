@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Card from "./Card";
 import { safeSetItem, safeSetRawItem } from "../hooks/useLocalStorage";
+import { ensureMigrated, tryReadLogicalRaw } from "../lib/projectStorage";
 
 // n8n Bridge / JSON Export：全データをJSONで出し入れ（バックアップ＋将来のn8n受け渡し口）。
 // 外部接続はしない・localStorage内のデータだけ・秘密情報は扱わない。
@@ -123,21 +124,167 @@ const VALIDATORS: Record<string, (value: unknown) => boolean> = {
   "shizuku.nextAction": (v) => isObject(v) && optStr(v.text) && optBool(v.done),
 };
 
-function buildExport(): string {
+export type ExportResult = { ok: true; json: string } | { ok: false; error: string };
+
+export function buildExport(): ExportResult {
+  // 復旧が「状態を読めない」で中止したときは、印が無いまま残る。
+  // そのまま書き出すと、旧キーの古い内容で「正しく見えるバックアップ」を作ってしまう。
+  const migration = ensureMigrated();
+  if (migration.status === "unavailable") {
+    return {
+      ok: false,
+      error:
+        "書き出しを中止しました。現在の保存内容を読み取れないため、古い内容のバックアップができてしまいます（データは消えていません）。" +
+        "ブラウザのプライベートモードや保存のブロック設定を解除してから、もう一度お試しください。",
+    };
+  }
   const data: Record<string, unknown> = {};
   for (const k of KEYS) {
+    // 「読み取れなかった」を「未保存(null)」として書き出すと、
+    // 中身が残っているのに空のバックアップができ、それを信じて使われてしまう。
+    const read = tryReadLogicalRaw(k);
+    if (!read.ok) {
+      return {
+        ok: false,
+        error:
+          "書き出しを中止しました。現在の保存内容を読み取れないため、中身が空のバックアップができてしまいます（データは消えていません）。" +
+          "ブラウザのプライベートモードや保存のブロック設定を解除してから、もう一度お試しください。",
+      };
+    }
     try {
-      const raw = localStorage.getItem(k);
-      data[k] = raw ? JSON.parse(raw) : null;
+      data[k] = read.raw ? JSON.parse(read.raw) : null;
     } catch {
       data[k] = null;
     }
   }
-  return JSON.stringify(
-    { app: "shizuku-os", version: 1, exportedAt: new Date().toISOString(), data },
-    null,
-    2,
-  );
+  return {
+    ok: true,
+    json: JSON.stringify(
+      { app: "shizuku-os", version: 1, exportedAt: new Date().toISOString(), data },
+      null,
+      2,
+    ),
+  };
+}
+
+// ---- 取り込みの中身（UIを持たない部分。ここだけテストできるように切り出した） ----
+// 画面側の確認ダイアログ・再読み込みは呼び出し元に残す。文言・判定順は変更していない。
+
+export type ImportParse =
+  | { ok: true; data: Record<string, unknown>; present: string[] }
+  | { ok: false; error: string };
+
+/** 貼り付けられた文字列を検証して、書き込める形にする。保存はしない。 */
+export function parseImport(text: string): ImportParse {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    return {
+      ok: false,
+      error:
+        "JSONの形式が正しくありません。コピー漏れがないか確認してください。入力内容は消えていません。",
+    };
+  }
+
+  const wrapper = parsed as { data?: unknown } | null;
+  const data = isObject(wrapper) && isObject(wrapper.data) ? wrapper.data : parsed;
+  if (!isObject(data)) {
+    return {
+      ok: false,
+      error:
+        "読み込めるデータが見つかりません。このアプリでエクスポートしたJSONを貼ってください。",
+    };
+  }
+
+  // 中身のあるキーだけを見る（null は「未保存」として無視する）
+  const present = KEYS.filter((key) => key in data && data[key] != null);
+  const invalid = present.filter((key) => !VALIDATORS[key](data[key]));
+
+  // 1つでも形式が合わなければ、保存も再読み込みもせずに止める。
+  if (invalid.length > 0) {
+    const names = invalid.map((key) => KEY_LABEL[key] ?? key).join(" / ");
+    return {
+      ok: false,
+      error:
+        "次のデータの形式が正しくありません：" +
+        names +
+        "。保存はしていません（今の内容はそのままです）。このアプリの「.json ダウンロード」で作ったファイルを貼り直してください。",
+    };
+  }
+
+  if (present.length === 0) {
+    return {
+      ok: false,
+      error: "読み込めるデータが見つかりません。各カードのデータが空でないか確認してください。",
+    };
+  }
+
+  return { ok: true, data, present };
+}
+
+export type ImportApply = { ok: true; written: number } | { ok: false; error: string };
+
+/** 実際に書き込む。途中で失敗したら、書けた分を元へ戻す。 */
+export function applyImport(data: Record<string, unknown>, present: string[]): ImportApply {
+  // 途中で失敗しても中途半端な状態を残さないよう、書き込む前に今の値を控えておく。
+  // （未保存だったキーは null。戻すときはキーごと消す）
+  // 控えが取れないと失敗時に元へ戻せないので、その場合は1件も書かずに中止する。
+  // 「読み取れなかった」を「未保存」と取り違えると、巻き戻しが復元ではなく削除になるため、
+  // tryReadLogicalRaw で両者を区別し、1件でも読めなければ書き込みフェーズへ進まない。
+  const backup = new Map<string, string | null>();
+  for (const k of present) {
+    const read = tryReadLogicalRaw(k);
+    if (!read.ok) {
+      return {
+        ok: false,
+        error:
+          "読み込みを中止しました。現在の保存内容を読み取れないため、失敗したときに元へ戻せません（まだ1件も書き換えていません）。" +
+          "ブラウザのプライベートモードや保存のブロック設定を解除してから、もう一度お試しください。",
+      };
+    }
+    backup.set(k, read.raw);
+  }
+
+  const written: string[] = [];
+  let failedKey: string | null = null;
+  for (const k of present) {
+    if (safeSetItem(k, data[k])) {
+      written.push(k);
+    } else {
+      failedKey = k;
+      break; // 1つでも失敗したら、そこで止める（部分反映を広げない）
+    }
+  }
+
+  // 失敗したら、書けてしまった分を元へ戻す。成功表示は出さない。
+  if (failedKey !== null) {
+    const restoreFailed: string[] = [];
+    for (const k of written) {
+      if (!safeSetRawItem(k, backup.get(k) ?? null)) restoreFailed.push(KEY_LABEL[k] ?? k);
+    }
+
+    if (restoreFailed.length > 0) {
+      return {
+        ok: false,
+        error:
+          "保存に失敗し、さらに元の内容へ戻すことにも失敗しました。次のデータが新しい内容のまま残っている可能性があります：" +
+          restoreFailed.join(" / ") +
+          "。画面は更新していません。まず「.json ダウンロード」で今の状態を控えてから、ブラウザを開き直してください。",
+      };
+    }
+
+    return {
+      ok: false,
+      error:
+        "「" +
+        (KEY_LABEL[failedKey] ?? failedKey) +
+        "」を保存できなかったため、読み込みを中止して元の内容に戻しました（部分的に反映されたものはありません）。" +
+        "ブラウザのプライベートモードや保存容量の上限が原因のことがあります。画面は更新していません。",
+    };
+  }
+
+  return { ok: true, written: written.length };
 }
 
 export default function DataBridgeCard() {
@@ -147,7 +294,12 @@ export default function DataBridgeCard() {
   const [error, setError] = useState("");
 
   const doCopy = async () => {
-    const json = buildExport();
+    const result = buildExport();
+    if (!result.ok) {
+      setError(result.error);
+      return;
+    }
+    const json = result.json;
     setOut(json);
     try {
       await navigator.clipboard.writeText(json);
@@ -159,8 +311,12 @@ export default function DataBridgeCard() {
   };
 
   const doDownload = () => {
-    const json = buildExport();
-    const blob = new Blob([json], { type: "application/json" });
+    const result = buildExport();
+    if (!result.ok) {
+      setError(result.error);
+      return;
+    }
+    const blob = new Blob([result.json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -171,44 +327,12 @@ export default function DataBridgeCard() {
 
   const doImport = () => {
     setError("");
+    ensureMigrated();
     if (!imp.trim()) return;
 
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(imp);
-    } catch {
-      setError(
-        "JSONの形式が正しくありません。コピー漏れがないか確認してください。入力内容は消えていません。",
-      );
-      return;
-    }
-
-    const wrapper = parsed as { data?: unknown } | null;
-    const data = isObject(wrapper) && isObject(wrapper.data) ? wrapper.data : parsed;
-    if (!isObject(data)) {
-      setError(
-        "読み込めるデータが見つかりません。このアプリでエクスポートしたJSONを貼ってください。",
-      );
-      return;
-    }
-
-    // 中身のあるキーだけを見る（null は「未保存」として無視する）
-    const present = KEYS.filter((key) => key in data && data[key] != null);
-    const invalid = present.filter((key) => !VALIDATORS[key](data[key]));
-
-    // 1つでも形式が合わなければ、保存も再読み込みもせずに止める。
-    if (invalid.length > 0) {
-      const names = invalid.map((key) => KEY_LABEL[key] ?? key).join(" / ");
-      setError(
-        "次のデータの形式が正しくありません：" +
-          names +
-          "。保存はしていません（今の内容はそのままです）。このアプリの「.json ダウンロード」で作ったファイルを貼り直してください。",
-      );
-      return;
-    }
-
-    if (present.length === 0) {
-      setError("読み込めるデータが見つかりません。各カードのデータが空でないか確認してください。");
+    const parsed = parseImport(imp);
+    if (!parsed.ok) {
+      setError(parsed.error);
       return;
     }
 
@@ -220,57 +344,13 @@ export default function DataBridgeCard() {
       return;
     }
 
-    // 途中で失敗しても中途半端な状態を残さないよう、書き込む前に今の値を控えておく。
-    // （未保存だったキーは null。戻すときはキーごと消す）
-    // 控えが取れないと失敗時に元へ戻せないので、その場合は1件も書かずに中止する。
-    const backup = new Map<string, string | null>();
-    try {
-      for (const k of present) backup.set(k, localStorage.getItem(k));
-    } catch {
-      setError(
-        "読み込みを中止しました。現在の保存内容を読み取れないため、失敗したときに元へ戻せません（まだ1件も書き換えていません）。" +
-          "ブラウザのプライベートモードや保存のブロック設定を解除してから、もう一度お試しください。",
-      );
+    const applied = applyImport(parsed.data, parsed.present);
+    if (!applied.ok) {
+      setError(applied.error);
       return;
     }
 
-    const written: string[] = [];
-    let failedKey: string | null = null;
-    for (const k of present) {
-      if (safeSetItem(k, data[k])) {
-        written.push(k);
-      } else {
-        failedKey = k;
-        break; // 1つでも失敗したら、そこで止める（部分反映を広げない）
-      }
-    }
-
-    // 失敗したら、書けてしまった分を元へ戻す。成功表示は出さない。
-    if (failedKey !== null) {
-      const restoreFailed: string[] = [];
-      for (const k of written) {
-        if (!safeSetRawItem(k, backup.get(k) ?? null)) restoreFailed.push(KEY_LABEL[k] ?? k);
-      }
-
-      if (restoreFailed.length > 0) {
-        setError(
-          "保存に失敗し、さらに元の内容へ戻すことにも失敗しました。次のデータが新しい内容のまま残っている可能性があります：" +
-            restoreFailed.join(" / ") +
-            "。画面は更新していません。まず「.json ダウンロード」で今の状態を控えてから、ブラウザを開き直してください。",
-        );
-        return;
-      }
-
-      setError(
-        "「" +
-          (KEY_LABEL[failedKey] ?? failedKey) +
-          "」を保存できなかったため、読み込みを中止して元の内容に戻しました（部分的に反映されたものはありません）。" +
-          "ブラウザのプライベートモードや保存容量の上限が原因のことがあります。画面は更新していません。",
-      );
-      return;
-    }
-
-    alert(String(written.length) + "件のデータを読み込みました。画面を更新します。");
+    alert(String(applied.written) + "件のデータを読み込みました。画面を更新します。");
     window.location.reload();
   };
 

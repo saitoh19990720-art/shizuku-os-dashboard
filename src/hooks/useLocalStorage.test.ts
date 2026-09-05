@@ -3,6 +3,7 @@
 // 入れた場所で、壊れると記録が消える。だから最初にテストで固定する。
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { makeId, safeSetItem, safeSetRawItem } from "./useLocalStorage";
+import { migrateToProjectStorage, scopedKey } from "../lib/projectStorage";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -69,5 +70,45 @@ describe("makeId", () => {
     const ids = new Set(Array.from({ length: 50 }, () => makeId()));
 
     expect(ids.size).toBe(50);
+  });
+});
+
+// プロジェクト単位保存（v2）へ移行したあと、保存先が正しく切り替わるか。
+describe("移行後の保存先", () => {
+  it("移行前は旧キーへ保存する", () => {
+    safeSetItem("shizuku.tasks", [{ id: "1" }]);
+
+    expect(localStorage.getItem("shizuku.tasks")).toBe('[{"id":"1"}]');
+    expect(localStorage.getItem(scopedKey("shizuku.tasks"))).toBeNull();
+  });
+
+  it("移行後はv2へ保存し、旧キーは移行時点のまま変わらない", () => {
+    localStorage.setItem("shizuku.tasks", '[{"id":"old"}]');
+    migrateToProjectStorage();
+
+    safeSetItem("shizuku.tasks", [{ id: "new" }]);
+
+    expect(localStorage.getItem(scopedKey("shizuku.tasks"))).toBe('[{"id":"new"}]');
+    expect(localStorage.getItem("shizuku.tasks")).toBe('[{"id":"old"}]');
+  });
+
+  it("移行対象外のキー（体調メモ）は移行後も旧キーへ保存する", () => {
+    localStorage.setItem("shizuku.tasks", "[]");
+    migrateToProjectStorage();
+
+    safeSetItem("shizuku.condition", { body: "3" });
+
+    expect(localStorage.getItem("shizuku.condition")).toBe('{"body":"3"}');
+    expect(localStorage.getItem(scopedKey("shizuku.condition"))).toBeNull();
+  });
+
+  it("巻き戻し（safeSetRawItem）も移行後はv2へ書き戻す", () => {
+    localStorage.setItem("shizuku.links", '[{"label":"元"}]');
+    migrateToProjectStorage();
+    safeSetItem("shizuku.links", [{ label: "新" }]);
+
+    safeSetRawItem("shizuku.links", '[{"label":"元"}]');
+
+    expect(localStorage.getItem(scopedKey("shizuku.links"))).toBe('[{"label":"元"}]');
   });
 });

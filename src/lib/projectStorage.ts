@@ -1,0 +1,505 @@
+// プロジェクト単位の保存（v2）。
+// 目的：12カード→6構造化の前提として、保存を projectId で仕切れるようにする。
+//
+// 安全方針（この順番を崩さない）
+//   1. 既定プロジェクトは固定ID
+//   2. 旧キー（v1）は削除も上書きもしない＝いつでも戻れる
+//   3. v2 へコピー
+//   4. コピー後に v2 を読み直して照合する
+//   5. 照合できたときだけ「移行済みの印」を作る
+//   6. 書き込み失敗・中断・破損のときは v2 を採用せず旧キーへ戻る
+//   7. 印が無い／壊れている（malformed）／v2 が壊れているときは旧キーを読む
+//   8. 印が一時的に読めない（throw）ときは旧キーへ戻らず、読み書きを止める
+//
+// 対象は DataBridge の10キーだけ。
+// shizuku.condition（体調＝機微情報）と shizuku.cardOpen.*（開閉状態）は対象外。
+
+/** 既定プロジェクトの固定ID。将来ここが複数になる。 */
+export const DEFAULT_PROJECT_ID = "default";
+
+/** 移行済みの印。これが無い間は旧キーを読む。 */
+export const MIGRATION_MARKER_KEY = "shizuku.v2.migration";
+
+/** いま使っているプロジェクトID。印（移行の記録）とは別に持つ。 */
+export const ACTIVE_PROJECT_KEY = "shizuku.v2.activeProject";
+
+/** 移行対象（DataBridge の10キー）。ここに condition / cardOpen は入れない。 */
+export const MIGRATED_KEYS = [
+  "shizuku.tasks",
+  "shizuku.nightLogs",
+  "shizuku.links",
+  "shizuku.qualityGate",
+  "shizuku.qualityGateHistory",
+  "shizuku.promptBuilder",
+  "shizuku.promptVault",
+  "shizuku.weeklyReviews",
+  "shizuku.retire",
+  "shizuku.nextAction",
+] as const;
+
+// recovered: 印だけが失われた／壊れた状態からの復旧。既存のv2は一切上書きしない。
+// partial: 壊れた旧キーがあり、初回移行を完了させなかった状態（印は作らない＝旧キーで動き続ける）
+// unavailable: 状態を読み取れず復旧を中止した。印が無いままなので、呼び出し側は後続を止める。
+export type MigrationStatus =
+  | "migrated"
+  | "recovered"
+  | "already"
+  | "failed"
+  | "partial"
+  | "unavailable";
+
+export interface MigrationResult {
+  status: MigrationStatus;
+  /** v2 へ書けたキーの数（already / failed のときは 0） */
+  copied: number;
+  /** JSONとして壊れていたため v2 へ写さなかったキー（旧キーはそのまま残る） */
+  skipped: string[];
+  /** 失敗した理由（人間向け・失敗時のみ） */
+  reason?: string;
+}
+
+/** 移行対象のキーか。対象外（condition / cardOpen）はここで false になる。 */
+export function isMigratableKey(key: string): boolean {
+  return (MIGRATED_KEYS as readonly string[]).includes(key);
+}
+
+/** 旧キー → プロジェクト付きのv2キー。例：shizuku.tasks → shizuku.v2.default.tasks */
+export function scopedKey(key: string, projectId: string = DEFAULT_PROJECT_ID): string {
+  const suffix = key.startsWith("shizuku.") ? key.slice("shizuku.".length) : key;
+  return `shizuku.v2.${projectId}.${suffix}`;
+}
+
+/**
+ * 印が無いのに v2 が残っているか（どのプロジェクトのものでも見る）。
+ * 選択中のプロジェクトだけを見ると、空の別プロジェクトを選んでいるときに
+ * 「移行していない」と誤判定し、移行済みの内容があるのに旧キーを正本にしてしまう。
+ * 残っていれば「移行済みで印だけ失われた（＝復旧待ち）」で、旧キーはもう正本ではない。
+ * 読み取りに失敗したら例外をそのまま投げ、呼び出し側が中止できるようにする。
+ */
+function hasScopedValues(): boolean {
+  for (let i = 0; i < localStorage.length; i++) {
+    const stored = localStorage.key(i);
+    if (stored === null) continue;
+    // 印と使用中プロジェクトの記録は同じ接頭辞だが、移行データではない
+    if (stored === MIGRATION_MARKER_KEY || stored === ACTIVE_PROJECT_KEY) continue;
+    if (stored.startsWith("shizuku.v2.")) return true;
+  }
+  return false;
+}
+
+/** JSONとして読めるか。壊れたv2を見分けるために使う。 */
+function isParseable(raw: string | null): boolean {
+  if (raw === null) return false;
+  try {
+    JSON.parse(raw);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function getItem(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 印の判定結果。
+ * `ok: false` は「読めなかった」で、「無い／壊れている」とは別物。
+ * ここを取り違えると、移行済みなのに旧キーへ読み書きしてしまい、復旧後にその変更が消える。
+ */
+export type MarkerRead =
+  | { ok: true; marker: { version: number; projectId: string } | null }
+  | { ok: false };
+
+/** 印を読む。無い／壊れているときは marker:null。読めないときは ok:false。 */
+export function tryReadMarker(): MarkerRead {
+  let raw: string | null;
+  try {
+    raw = localStorage.getItem(MIGRATION_MARKER_KEY);
+  } catch {
+    return { ok: false };
+  }
+  if (raw === null) return { ok: true, marker: null };
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (typeof parsed !== "object" || parsed === null) return { ok: true, marker: null };
+    const o = parsed as Record<string, unknown>;
+    if (o.version !== 2 || typeof o.projectId !== "string") return { ok: true, marker: null };
+    return { ok: true, marker: { version: 2, projectId: o.projectId } };
+  } catch {
+    return { ok: true, marker: null };
+  }
+}
+
+/** 移行済みの印を読む。無い／壊れている／読めないときは null。データ読み書きには tryReadMarker を使う。 */
+export function readMarker(): { version: number; projectId: string } | null {
+  const read = tryReadMarker();
+  return read.ok ? read.marker : null;
+}
+
+/** 移行が完了しているか。 */
+export function isMigrated(): boolean {
+  return readMarker() !== null;
+}
+
+/**
+ * いま使っているプロジェクトID。
+ * 切替キー →（無ければ）移行時に記録した値 →（無ければ）既定ID の順で決める。
+ */
+export function getActiveProjectId(): string {
+  const active = tryGetActiveProjectId();
+  return active.ok ? active.projectId : DEFAULT_PROJECT_ID;
+}
+
+/**
+ * 使用中プロジェクトの判定結果。
+ * `ok: false` は「読み取れなかった」で、「未設定」とは別物。
+ * ここを取り違えると、別のプロジェクトを見ているのに既定側を読み書きしてしまう。
+ */
+export type ActiveProjectRead = { ok: true; projectId: string } | { ok: false };
+
+/** getActiveProjectId と同じ判断をしつつ、読み取れなかった場合を区別して返す。 */
+export function tryGetActiveProjectId(): ActiveProjectRead {
+  let explicit: string | null;
+  try {
+    explicit = localStorage.getItem(ACTIVE_PROJECT_KEY);
+  } catch {
+    // どのプロジェクトを見ているのか分からない状態。
+    // ここで既定値へ倒すと、別プロジェクトの内容を読み、その値を書き戻してしまう。
+    return { ok: false };
+  }
+  if (explicit !== null && explicit !== "") return { ok: true, projectId: explicit };
+  const markerRead = tryReadMarker();
+  if (!markerRead.ok) return { ok: false };
+  return { ok: true, projectId: markerRead.marker?.projectId ?? DEFAULT_PROJECT_ID };
+}
+
+/** 書き込み先の判定結果。`ok: false` は「使用中プロジェクトが分からない」＝書いてはいけない。 */
+export type WriteKeyRead = { ok: true; key: string } | { ok: false };
+
+/** resolveWriteKey と同じ判断をしつつ、判定できなかった場合を区別して返す。 */
+export function tryResolveWriteKey(key: string, projectId?: string): WriteKeyRead {
+  const resolved = resolveWriteKeyOrFail(key, projectId);
+  if (!resolved.ok) markReadsSuspended(key);
+  return resolved;
+}
+
+function resolveWriteKeyOrFail(key: string, projectId?: string): WriteKeyRead {
+  if (!isMigratableKey(key)) return { ok: true, key };
+  const markerRead = tryReadMarker();
+  if (!markerRead.ok) return { ok: false };
+  if (markerRead.marker === null) {
+    // 復旧待ち（印が無いのに v2 がある）なら、旧キーへ書かない。
+    try {
+      if (hasScopedValues()) return { ok: false };
+    } catch {
+      return { ok: false };
+    }
+    return { ok: true, key };
+  }
+  if (projectId !== undefined) return { ok: true, key: scopedKey(key, projectId) };
+
+  const active = tryGetActiveProjectId();
+  if (!active.ok) return { ok: false };
+  return { ok: true, key: scopedKey(key, active.projectId) };
+}
+
+const activeProjectListeners = new Set<() => void>();
+
+/** 使用中プロジェクトが変わったときに、画面側のフックが読み直すための購読。 */
+export function subscribeActiveProject(listener: () => void): () => void {
+  activeProjectListeners.add(listener);
+  return () => {
+    activeProjectListeners.delete(listener);
+  };
+}
+
+function notifyActiveProjectListeners() {
+  for (const listener of activeProjectListeners) listener();
+}
+
+/**
+ * 使うプロジェクトを切り替える（内部API。切替UIはまだ無い）。
+ * データは projectId ごとに分かれているので、切り替えても互いに混ざらない。
+ * 移行が終わっていないときは切り替えない（旧キーで動いている最中に分岐させないため）。
+ * 切替に成功したら購読中のフックへ知らせ、旧プロジェクトの画面状態を新プロジェクトへ書かない。
+ */
+export function setActiveProject(projectId: string): boolean {
+  if (projectId === "" || !isMigrated()) return false;
+  const previous = tryGetActiveProjectId();
+  try {
+    localStorage.setItem(ACTIVE_PROJECT_KEY, projectId);
+  } catch {
+    return false;
+  }
+  if (!previous.ok || previous.projectId !== projectId) {
+    notifyActiveProjectListeners();
+  }
+  return true;
+}
+
+/**
+ * 書き込み先のキー。移行後は必ず v2 を返す。
+ * （旧キーへ書き戻すことは無い＝v1 は移行時点のまま凍結される）
+ */
+export function resolveWriteKey(key: string, projectId: string = getActiveProjectId()): string {
+  if (!isMigratableKey(key)) return key;
+  if (!isMigrated()) return key;
+  return scopedKey(key, projectId);
+}
+
+/**
+ * 読み出し。次の場合は旧キーへ戻る。
+ *   - 移行対象外のキー
+ *   - 移行の印が無い
+ *   - v2 が存在しない
+ *   - v2 が壊れていて、旧キーは読める
+ */
+export function readLogicalRaw(key: string, projectId?: string): string | null {
+  const read = tryReadLogicalRaw(key, projectId);
+  return read.ok ? read.raw : null;
+}
+
+/**
+ * 読み出しの結果。
+ * `ok: false` は「読み取れなかった」で、`ok: true, raw: null`（未保存）とは別物。
+ * 取り込み前の控えのように、この2つを取り違えると既存の内容を消しかねない場面で使う。
+ */
+export type LogicalRead = { ok: true; raw: string | null } | { ok: false };
+
+/** readLogicalRaw と同じ判断をしつつ、読み取れなかった場合を区別して返す。 */
+export function tryReadLogicalRaw(key: string, projectId?: string): LogicalRead {
+  const read = readLogicalRawOrFail(key, projectId);
+  // 記録を消すのは復旧確認（通知を伴う経路）だけにする。
+  // ここで消すと、たまたま読めた別処理が合図を持ち去り、
+  // 止まったままのフックへ読み直しが届かなくなる。
+  if (!read.ok) markReadsSuspended(key);
+  return read;
+}
+
+function readLogicalRawOrFail(key: string, projectId?: string): LogicalRead {
+  try {
+    if (!isMigratableKey(key)) {
+      return { ok: true, raw: localStorage.getItem(key) };
+    }
+
+    const markerRead = tryReadMarker();
+    // 印が読めない間は「未移行」と取り違えない。旧キーへ戻ると、復旧後にその変更が消える。
+    if (!markerRead.ok) return { ok: false };
+    const marker = markerRead.marker;
+    if (marker === null) {
+      // 印が無くても v2 が残っているなら、復旧が済むまで旧キーは正本ではない。
+      // ここで旧キーを返すと、その古い内容が新しい v2 を上書きしてしまう。
+      if (hasScopedValues()) return { ok: false };
+      return { ok: true, raw: localStorage.getItem(key) };
+    }
+
+    let target = projectId;
+    if (target === undefined) {
+      const active = tryGetActiveProjectId();
+      // どのプロジェクトを見ているか分からないまま既定側を読まない
+      if (!active.ok) return { ok: false };
+      target = active.projectId;
+    }
+
+    const v2raw = localStorage.getItem(scopedKey(key, target));
+
+    // 旧キーへ戻れるのは、移行を受けたプロジェクトだけ。
+    // それ以外で旧キーを読むと、別プロジェクトの内容が混ざって保存されてしまう。
+    if (target !== marker.projectId) return { ok: true, raw: v2raw };
+
+    const v1raw = localStorage.getItem(key);
+
+    if (v2raw === null) return { ok: true, raw: v1raw };
+    if (!isParseable(v2raw) && isParseable(v1raw)) return { ok: true, raw: v1raw };
+    return { ok: true, raw: v2raw };
+  } catch {
+    return { ok: false };
+  }
+}
+
+/**
+ * 旧キー → v2 へコピーして移行する。
+ *
+ * 印が無くても、v2 が既にあるなら「移行は済んでいて印だけ失われた」状態。
+ * 旧キーは移行時点で凍結されているため、そこで v1 を書くと移行後の編集が消える。
+ * そのため復旧モードでは、既存の v2 を一切上書きせず、まだ無いキーだけを補って印を作り直す。
+ *
+ * 途中で失敗したら、この実行で書いた v2 だけを消して未移行のまま返す（旧キーは触らない）。
+ */
+// 読み書きが止まっている対象（キー）。共通のフラグ1つにすると、
+// 関係のないフックが他人の合図を先に消費してしまうため、止まった対象ごとに持つ。
+const suspendedKeys = new Set<string>();
+
+/** この対象の読み書きが止まったことを覚えておく。 */
+function markReadsSuspended(key: string): void {
+  suspendedKeys.add(key);
+}
+
+/**
+ * 止まっている対象それぞれについて、本当に読めるようになったかを確かめる。
+ * 確認は「止まった当人のキー」で行う。別のキーが読めることは復旧の根拠にならない。
+ * 1件でも読めるようになったときだけ、既存の読み直し通知へ合流させる。
+ *
+ * 記録を解除できるのはこの経路だけ。解除と通知を必ず同時に行うことで、
+ * 「記録は消えたのに読み直しは届かない」状態を作らない。
+ */
+function resumeIfRecovered(): void {
+  if (suspendedKeys.size === 0) return;
+  let recovered = false;
+  for (const key of [...suspendedKeys]) {
+    // 記録を書き換えない内部版で確かめる（確認そのもので状態を変えない）
+    if (!readLogicalRawOrFail(key).ok) continue; // まだ読めない対象は残す
+    suspendedKeys.delete(key);
+    recovered = true;
+  }
+  // 止まっている間、画面は初期値のまま保存を見送っている。読み直させる。
+  if (recovered) notifyActiveProjectListeners();
+}
+
+/**
+ * 移行の結果を返しつつ、復旧の合図を出すか決める。
+ * 合図を出すのは正常な状態（migrated / recovered / already）に戻れたときだけ。
+ * failed / partial は印が無いままなので、合図を消費せず保留する。
+ */
+function finishMigration(result: MigrationResult): MigrationResult {
+  if (result.status === "unavailable") {
+    // 移行が扱うのはこのキー群。状態を判定できない間は全部が止まる。
+    // 復旧の確認は、この後もキーごとに個別に行う。
+    for (const key of MIGRATED_KEYS) markReadsSuspended(key);
+    return result;
+  }
+  if (
+    result.status === "migrated" ||
+    result.status === "recovered" ||
+    result.status === "already"
+  ) {
+    resumeIfRecovered();
+  }
+  return result;
+}
+
+export function migrateToProjectStorage(
+  projectId: string = DEFAULT_PROJECT_ID,
+): MigrationResult {
+  const markerRead = tryReadMarker();
+  // 印が読めない間は「未移行」と取り違えない。v1 を写すと移行後の編集を潰す。
+  if (!markerRead.ok) {
+    // 印が読めない＝状態を判定できない。書き込み失敗（failed）と混ぜない。
+    return finishMigration({ status: "unavailable", copied: 0, skipped: [], reason: "marker unreadable" });
+  }
+  if (markerRead.marker !== null) return finishMigration({ status: "already", copied: 0, skipped: [] });
+
+  // v2 が1つでも残っていれば復旧モード。初回移行と扱いを分ける。
+  const recovering = MIGRATED_KEYS.some((key) => getItem(scopedKey(key, projectId)) !== null);
+
+  const written: { key: string; target: string }[] = [];
+  const skipped: string[] = [];
+  // 状態そのものを読めずに中止したか。書き込み失敗（failed）とは区別して伝える。
+  let stateUnreadable = false;
+  try {
+    // 3. コピー（中身が無いキーは作らない）
+    //    既に v2 があるキーは触らない。壊れていても上書きしない
+    //    （壊れた v2 は読み出し側が旧キーへ戻るので、消すより残すほうが安全）。
+    //    JSONとして壊れている旧キーは v2 へ写さない。写すと壊れたまま新しい正本になってしまう。
+    for (const key of MIGRATED_KEYS) {
+      const target = scopedKey(key, projectId);
+      // 既存の v2 が読めないときは「無い」と扱わない。
+      // 無いことにすると旧キーを上へ写してしまい、移行後の編集が消える。
+      let existing: string | null;
+      try {
+        existing = localStorage.getItem(target);
+      } catch {
+        stateUnreadable = true;
+        throw new Error("scoped read failed: " + key);
+      }
+      if (existing !== null) continue;
+
+      const raw = getItem(key);
+      if (raw === null) continue;
+      if (!isParseable(raw)) {
+        skipped.push(key);
+        continue;
+      }
+      localStorage.setItem(target, raw);
+      written.push({ key, target });
+    }
+
+    // 4. 読み直して照合（この実行で書いたものだけ。1件でも食い違えば失敗）
+    for (const { key, target } of written) {
+      if (localStorage.getItem(target) !== getItem(key)) {
+        throw new Error("verify mismatch: " + key);
+      }
+    }
+
+    // 5-a. 初回移行では、壊れた旧キーが1件でもあれば「成功」にしない。
+    //      印を作らず、この実行で書いた v2 も残さない＝旧キーのままで動き続ける（復旧可能）。
+    //      復旧モードでは中断しない。印を作り直さないと、既存の v2 を読めないままになるため。
+    if (skipped.length > 0 && !recovering) {
+      for (const { target } of written) {
+        try {
+          localStorage.removeItem(target);
+        } catch {
+          // 消せなくても印が無いので、読み出しは旧キーへ戻る
+        }
+      }
+      return finishMigration({ status: "partial", copied: 0, skipped });
+    }
+
+    // 5-b. 使用中プロジェクトを先に記録し、印は最後に作る。
+    //      印だけ残って「移行済み」に見える中途半端な状態を防ぐ。
+    //      ただし既に選択があるなら書き換えない。印の作り直しは「印を戻す」だけの作業で、
+    //      利用者が選んでいるプロジェクトを default へ引き戻してよい理由にはならない。
+    // 選択が読めないときは「未設定」と扱わない。
+    // 未設定として書くと、default 以外を選んでいた場合にその選択を潰す。
+    let activeNow: string | null;
+    try {
+      activeNow = localStorage.getItem(ACTIVE_PROJECT_KEY);
+    } catch {
+      stateUnreadable = true;
+      throw new Error("active project unreadable");
+    }
+    if (activeNow === null || activeNow === "") {
+      localStorage.setItem(ACTIVE_PROJECT_KEY, projectId);
+    }
+    localStorage.setItem(
+      MIGRATION_MARKER_KEY,
+      JSON.stringify({ version: 2, projectId, migratedAt: new Date().toISOString() }),
+    );
+    return finishMigration({
+      status: recovering ? "recovered" : "migrated",
+      copied: written.length,
+      skipped,
+    });
+  } catch (e) {
+    // 6. v2 を採用しない。この実行で書いた分だけ片付ける（旧キーは削除も上書きもしない）
+    for (const { target } of written) {
+      try {
+        localStorage.removeItem(target);
+      } catch {
+        // 片付けに失敗しても、印が無いので読み出しは旧キーへ戻る
+      }
+    }
+    // 印を書いた直後に失敗した場合に、印だけ残さない
+    try {
+      localStorage.removeItem(MIGRATION_MARKER_KEY);
+    } catch {
+      // 消せない場合でも、下の failed で未移行として扱う
+    }
+    return finishMigration({
+      status: stateUnreadable ? "unavailable" : "failed",
+      copied: 0,
+      skipped,
+      reason: e instanceof Error ? e.message : "unknown",
+    });
+  }
+}
+
+/** 起動時に一度だけ試す。印があれば何もしない（何度呼んでも安全）。 */
+export function ensureMigrated(projectId: string = DEFAULT_PROJECT_ID): MigrationResult {
+  return migrateToProjectStorage(projectId);
+}
