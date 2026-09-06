@@ -73,8 +73,9 @@ Shizuku OS は、その「判断」と「再開」を支えるための小型OS�
 
 ---
 
-> **必要な環境**：Node.js **20.19 以上**（推奨：**Node.js 22 LTS 以上**）。
-> `npm run lint` / `npm test` は ESLint 10・jsdom 29 を使うため、**Node 18 では動作しません**。
+> **必要な環境**：Node.js は **20.19 以上の 20系** / **22.13 以上の 22系** / **24 以上**。迷ったら 24系。
+> 18・21・23、および 22.12 以下では `npm run lint` / `npm test` が動きません。
+> （ESLint 10 と jsdom 29 の要件。根拠は `package-lock.json` の `engines`）
 
 ## 起動方法
 
