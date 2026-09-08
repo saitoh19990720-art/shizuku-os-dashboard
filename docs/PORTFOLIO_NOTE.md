@@ -1,7 +1,7 @@
 # PORTFOLIO_NOTE.md｜Shizuku OS Dashboard v0.19
 
 > ポートフォリオ／応募で「この作品をどう説明するか」のメモ。
-> 公開URL・スクリーンショットと一緒に使う。最終更新：2026-09-01（`main` の実装・PR #1〜#9 で検証）
+> 公開URL・スクリーンショットと一緒に使う。最終更新：2026-09-08（`main` の実装・PR #1〜#15 と、test / typecheck / lint / build で確認）
 
 > **このファイルの約束**
 > ここに書くのは **いま公開されている v0.19 の事実だけ**。
@@ -123,17 +123,15 @@ React 18 / TypeScript（strict）/ Tailwind CSS / Vite / localStorage / Vercel
 - 通知
 - 課金
 - 複数ユーザー対応
-- 自動テスト（Vitest 等）・ESLint の導入
 - Figma との同期：`neutral2.500` は実装が先行し、**Figma 側は未反映**
 - Figma の正本URL（file / node-id）がリポジトリに記録されていない
 
 ## 9. 次に改善するなら（ROADMAP の採用順）
 
-1. **テスト基盤（Vitest）** — 構造変更の前に保険をかける
-2. **データを `projectId` で串刺しにする** — 6構造化の前提
-3. **12カード → 6構造へ畳む**（North Star / Current / Bottleneck / Decisions / AI Office / Resume）
+1. **Figma の正本URL（file / node-id）を記録する** — 設計から実装への根拠を第三者もたどれるようにする
+2. **12カード → 6構造へ畳む**（North Star / Current / Bottleneck / Decisions / AI Office / Resume）
    ※ **機能を足さずに畳む**。作品の主張＝「複雑を静かに構造化」の実証にあたる
-4. **Bottleneck カード**（詰まっていること・判断待ち）
+3. **Bottleneck カード**（詰まっていること・判断待ち）
 
 保留：meta description / OGP / favicon、横断 Search / Filter、AI夜勤キュー（**自動実行にはしない**）。
 → 詳細と判定は [`docs/ROADMAP.md`](./ROADMAP.md)。
