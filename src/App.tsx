@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import Landing from "./components/Landing";
+import CaseStudy from "./components/CaseStudy";
 import ConditionCard from "./components/ConditionCard";
 import NextActionCard from "./components/NextActionCard";
 import TaskCard from "./components/TaskCard";
@@ -76,5 +77,6 @@ function Dashboard() {
 export default function App() {
   const hash = useHashRoute();
   const isDashboard = hash === "#/dashboard" || hash === "#dashboard";
-  return isDashboard ? <Dashboard /> : <Landing />;
+  const isCaseStudy = hash === "#/case-study" || hash === "#case-study";
+  return isDashboard ? <Dashboard /> : isCaseStudy ? <CaseStudy /> : <Landing />;
 }
