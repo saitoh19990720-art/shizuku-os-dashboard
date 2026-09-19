@@ -48,6 +48,7 @@ export default function Landing() {
           >
             GitHubを見る
           </a>
+          <a href="#/case-study" className="inline-flex min-h-[48px] items-center rounded-2xl border border-main-300 px-6 text-sm font-medium text-accent-600 transition-colors hover:bg-main-100">Case Studyを見る</a>
         </div>
       </section>
 
