@@ -130,7 +130,9 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
   ensureMigrated();
 
   const initialRef = useRef(initialValue);
-  initialRef.current = initialValue;
+  useEffect(() => {
+    initialRef.current = initialValue;
+  }, [initialValue]);
 
   const [state, setState] = useState<LoadedState<T>>(() =>
     loadInitialState(key, initialValue),
