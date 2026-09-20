@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import Landing from "./components/Landing";
 import CaseStudy from "./components/CaseStudy";
+import StartHereBanner from "./components/StartHereBanner";
+import SaveToast from "./components/SaveToast";
 import ConditionCard from "./components/ConditionCard";
 import NextActionCard from "./components/NextActionCard";
 import TaskCard from "./components/TaskCard";
@@ -32,18 +34,34 @@ function useHashRoute() {
   return hash;
 }
 
-// Shizuku OS Dashboard 本体（12カードを1画面へ縦に積む）。
+const NAV = [
+  { id: "today", label: "Today" },
+  { id: "log", label: "Log" },
+  { id: "gate", label: "Gate" },
+  { id: "more", label: "More" },
+] as const;
+
+// ハッシュルーティング（#/dashboard）を壊さないよう、location.hash は変えずにスクロールする。
+function scrollToSection(id: string) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+// Shizuku OS Dashboard 本体。
+// 主カード（Today／制作候補／Night log／Quality Gate）は開、二次は畳み。
+// 上部に Start here ＋ sticky ナビ。
 function Dashboard() {
   return (
-    <main className="mx-auto flex w-full max-w-[400px] flex-col gap-4 px-4 py-8">
-      <header className="mb-2 px-1">
+    <main className="mx-auto flex w-full max-w-[400px] flex-col gap-4 px-4 pb-16 pt-8">
+      <header className="mb-1 px-1">
         <a
           href="#/"
-          className="mb-3 inline-flex min-h-[36px] items-center text-xs text-accent-500 transition-colors hover:text-accent-600"
+          className="mb-3 inline-flex min-h-[36px] items-center text-xs text-accent-600 transition-colors hover:text-accent-500"
         >
           ← Shizuku OS について（Aboutに戻る）
         </a>
-        <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-accent-400">
+        <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-accent-500">
           Shizuku OS
         </p>
         <h1 className="font-mincho text-2xl font-semibold text-ink">しずくの仕事机</h1>
@@ -52,24 +70,62 @@ function Dashboard() {
         </p>
       </header>
 
-      <StorageAlert />
+      {/* sticky ミニナビ（モバイルで主WFへすぐ戻る） */}
+      <nav
+        aria-label="セクション"
+        className="sticky top-0 z-20 -mx-4 border-b border-main-200/90 bg-[#f7f8fc]/92 px-4 py-2 backdrop-blur-md"
+      >
+        <ul className="flex items-center gap-1">
+          {NAV.map((item) => (
+            <li key={item.id} className="flex-1">
+              <button
+                type="button"
+                onClick={() => scrollToSection(item.id)}
+                className="flex min-h-[40px] w-full items-center justify-center rounded-xl text-xs font-semibold text-accent-600 transition-colors hover:bg-main-100"
+              >
+                {item.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </nav>
 
+      <StorageAlert />
+      <StartHereBanner />
+
+      {/* 二次：コンディション等は畳み */}
       <ConditionCard />
       <NextActionCard />
-      <TaskCard />
+
+      <div id="today" className="scroll-mt-14">
+        <TaskCard />
+      </div>
+
       <RoleRouterCard />
       <PromptBuilderCard />
-      <NightLogCard />
+
+      <div id="log" className="scroll-mt-14">
+        <NightLogCard />
+      </div>
+
       <LinksCard />
-      <QualityGateCard />
-      <WeeklyReviewCard />
-      <BrandPanelCard />
-      <DataBridgeCard />
-      <RetireCard />
+
+      <div id="gate" className="scroll-mt-14">
+        <QualityGateCard />
+      </div>
+
+      <div id="more" className="scroll-mt-14 flex flex-col gap-4">
+        <WeeklyReviewCard />
+        <BrandPanelCard />
+        <DataBridgeCard />
+        <RetireCard />
+      </div>
 
       <footer className="mt-2 px-1 text-center text-[11px] text-neutral2-500">
         入力はこの端末に自動保存されます（localStorage）。
       </footer>
+
+      <SaveToast />
     </main>
   );
 }

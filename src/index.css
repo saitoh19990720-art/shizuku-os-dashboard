@@ -42,3 +42,12 @@ textarea,
     scroll-behavior: auto !important;
   }
 }
+
+
+/* must-fix: contrast — 薄い二次テキストを少し濃く（静けさは残す） */
+.text-neutral2-500 {
+  color: #3d4a5c !important;
+}
+.text-accent-400 {
+  color: #4a73b8 !important;
+}

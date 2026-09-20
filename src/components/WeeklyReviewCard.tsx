@@ -69,7 +69,11 @@ export default function WeeklyReviewCard() {
     setReviews([{ id: makeId(), ...form, week: form.week.trim(), savedAt: stamp() }, ...reviews]);
     setForm(EMPTY);
   };
-  const remove = (id: string) => setReviews(reviews.filter((r) => r.id !== id));
+  const remove = (id: string) => {
+    const target = reviews.find((r) => r.id === id);
+    if (!window.confirm(`「${target?.week || "週未記入"}」のレビューを削除しますか？`)) return;
+    setReviews(reviews.filter((r) => r.id !== id));
+  };
   const copyMd = async (r: WeeklyReview) => {
     const md = toMarkdown(r);
     try {
@@ -129,7 +133,7 @@ export default function WeeklyReviewCard() {
                     <button
                       onClick={() => remove(r.id)}
                       aria-label={`${r.week || "週未記入"} のレビューを削除`}
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-neutral2-500 transition-colors hover:bg-white/70 hover:text-accent-500"
+                      className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-lg text-neutral2-500 transition-colors hover:bg-white/70 hover:text-accent-600"
                     >
                       ×
                     </button>

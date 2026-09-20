@@ -31,7 +31,11 @@ export default function NightLogCard() {
     setNext("");
   };
 
-  const remove = (id: string) => setLogs(logs.filter((l) => l.id !== id));
+  const remove = (id: string) => {
+    const target = logs.find((l) => l.id === id);
+    if (!window.confirm(`${target?.date || "この"}ログを削除しますか？`)) return;
+    setLogs(logs.filter((l) => l.id !== id));
+  };
 
   const fields = [
     { label: "やった", value: did, set: setDid, placeholder: "今日やったこと" },
@@ -74,9 +78,10 @@ export default function NightLogCard() {
               <div className="mb-1 flex items-center justify-between">
                 <span className="text-[11px] font-semibold text-accent-600">{log.date}</span>
                 <button
+                  type="button"
                   onClick={() => remove(log.id)}
                   aria-label={`${log.date} のログを削除`}
-                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-neutral2-500 transition-colors hover:bg-white/70 hover:text-accent-500"
+                  className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-lg text-neutral2-500 transition-colors hover:bg-white/70 hover:text-accent-600"
                 >
                   ×
                 </button>

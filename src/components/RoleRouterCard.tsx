@@ -1,6 +1,6 @@
 import Card from "./Card";
 
-// AI Role Router：タスク種別ごとに「どのAI/ツールに投げるか」を示す早見カード。
+// AI reference（参考）：タスク種別ごとに「どのAI/ツールに投げるか」を示す参考表（自動ルーティングしない）。
 // 中身は .claude/rules/model-usage.md と一致（高性能の無駄遣い防止）。
 const ROUTES: { task: string; tool: string }[] = [
   { task: "複雑な設計・難所・長時間の自律作業", tool: "Fable 5" },
@@ -17,9 +17,9 @@ const ROUTES: { task: string; tool: string }[] = [
 
 export default function RoleRouterCard() {
   return (
-    <Card eyebrow="AI Role Router" title="どのAIに投げる？" defaultOpen={false}>
+    <Card eyebrow="AI reference（参考）" title="どのAIに投げるか" defaultOpen={false}>
       <p className="mb-3 text-xs text-neutral2-500">
-        迷ったら Opus 5。Fable 5 は最難関だけ（料金が高い）。
+        参考表です（自動ルーティングはしません）。迷ったら Opus 5。Fable 5 は最難関だけ（料金が高い）。
       </p>
       <ul className="flex flex-col gap-1.5">
         {ROUTES.map((r) => (

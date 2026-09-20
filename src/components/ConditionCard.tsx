@@ -34,7 +34,7 @@ export default function ConditionCard() {
     setC({ ...c, [key]: value });
 
   return (
-    <Card eyebrow="Condition" title="今日のコンディション">
+    <Card eyebrow="Condition" title="今日のコンディション" defaultOpen={false}>
       <p className="mb-3 text-xs text-neutral2-500">
         体調を無視しない。今日できる分だけ、静かに進める。（この端末だけに保存・外に出しません）
       </p>
