@@ -82,7 +82,11 @@ export default function PromptBuilderCard() {
   };
   const toggleFav = (id: string) =>
     setSaved(saved.map((s) => (s.id === id ? { ...s, favorite: !s.favorite } : s)));
-  const removeSaved = (id: string) => setSaved(saved.filter((s) => s.id !== id));
+  const removeSaved = (id: string) => {
+    const target = saved.find((s) => s.id === id);
+    if (!window.confirm(`「${target?.name || "このプロンプト"}」を削除しますか？`)) return;
+    setSaved(saved.filter((s) => s.id !== id));
+  };
 
   const shown = saved
     .filter((s) => filterAI === "すべて" || s.targetAI === filterAI)
@@ -215,7 +219,7 @@ export default function PromptBuilderCard() {
                     <button
                       onClick={() => removeSaved(s.id)}
                       aria-label={`${s.name} を削除`}
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-neutral2-500 transition-colors hover:bg-white/70 hover:text-accent-500"
+                      className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-lg text-neutral2-500 transition-colors hover:bg-white/70 hover:text-accent-600"
                     >
                       ×
                     </button>

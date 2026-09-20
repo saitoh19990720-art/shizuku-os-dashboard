@@ -13,6 +13,8 @@ export interface Task {
   priority: Priority;
   status: TaskStatus;
   done: boolean;
+  /** 初回シード（本番データと区別するデモ表示用） */
+  demo?: boolean;
 }
 
 // 夜タスク3行ログ（やった / 学び / 次やる）の1日分

@@ -21,9 +21,9 @@ const STATUS_STYLE: Record<TaskStatus, string> = {
 const STATUS_ORDER: TaskStatus[] = ["today", "tomorrow", "hold"];
 
 const DEFAULT_TASKS: Task[] = [
-  { id: makeId(), title: "ポートフォリオLPの文言を整える", priority: "A", status: "today", done: false },
-  { id: makeId(), title: "Figmaの3カードを微調整", priority: "B", status: "tomorrow", done: false },
-  { id: makeId(), title: "Obsidianに今日の結論を残す", priority: "C", status: "hold", done: false },
+  { id: "seed-demo-1", title: "ポートフォリオLPの文言を整える", priority: "A", status: "today", done: false, demo: true },
+  { id: "seed-demo-2", title: "Figmaの3カードを微調整", priority: "B", status: "tomorrow", done: false, demo: true },
+  { id: "seed-demo-3", title: "Obsidianに今日の結論を残す", priority: "C", status: "hold", done: false, demo: true },
 ];
 
 export default function TaskCard() {
@@ -55,7 +55,18 @@ export default function TaskCard() {
       }),
     );
 
-  const remove = (id: string) => setTasks(tasks.filter((t) => t.id !== id));
+  const remove = (id: string) => {
+    const target = tasks.find((x) => x.id === id);
+    if (!window.confirm(`「${target?.title || "この候補"}」を削除しますか？`)) return;
+    setTasks(tasks.filter((x) => x.id !== id));
+  };
+
+  const clearDemo = () => {
+    const demos = tasks.filter((x) => x.demo);
+    if (demos.length === 0) return;
+    if (!window.confirm(`デモ候補 ${demos.length}件を消しますか？（自分で追加したものは残ります）`)) return;
+    setTasks(tasks.filter((x) => !x.demo));
+  };
 
   return (
     <Card eyebrow="Today" title="今日の制作候補">
@@ -76,11 +87,17 @@ export default function TaskCard() {
                 />
                 <span id={titleId} className={`grow text-sm ${task.done ? "text-neutral2-500 line-through" : "text-ink"}`}>
                   {task.title}
+                  {task.demo && (
+                    <span className="ml-2 inline-block rounded-full bg-main-200 px-2 py-0.5 text-[10px] font-semibold text-accent-600">
+                      デモ
+                    </span>
+                  )}
                 </span>
                 <button
+                  type="button"
                   onClick={() => remove(task.id)}
                   aria-label={`${task.title} を削除`}
-                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-neutral2-500 transition-colors hover:bg-main-100 hover:text-accent-500"
+                  className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-lg text-neutral2-500 transition-colors hover:bg-main-100 hover:text-accent-600"
                 >
                   ×
                 </button>
@@ -106,6 +123,16 @@ export default function TaskCard() {
           </li>
         )}
       </ul>
+
+      {tasks.some((x) => x.demo) && (
+        <button
+          type="button"
+          onClick={clearDemo}
+          className="mt-3 min-h-[40px] w-full rounded-xl border border-main-300 bg-white text-xs font-medium text-accent-600 transition-colors hover:bg-main-100"
+        >
+          デモ候補を消す
+        </button>
+      )}
 
       <div className="mt-4 flex flex-col gap-2">
         <input

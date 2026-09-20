@@ -12,8 +12,26 @@ const DEFAULT_LINKS: LinkItem[] = [
   { id: makeId(), label: "参考URL", url: "" },
 ];
 
-// http/https で始まる時だけ「開く」リンクにする（メモ文はテキスト表示）
-const isUrl = (s: string) => /^https?:\/\//i.test(s.trim());
+// URL状態：空 / 有効(http/https) / 不正っぽい / メモ文
+type UrlKind = "empty" | "valid" | "invalid" | "memo";
+function urlKind(s: string): UrlKind {
+  const t = s.trim();
+  if (!t) return "empty";
+  if (/^https?:\/\//i.test(t)) {
+    try {
+      const u = new URL(t);
+      if (u.protocol === "http:" || u.protocol === "https:") return "valid";
+      return "invalid";
+    } catch {
+      return "invalid";
+    }
+  }
+  // スキーム無しのドメインっぽい／他スキーム → 形式エラーとして案内
+  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(t) || /^[\w.-]+\.[a-z]{2,}([\/:].*)?$/i.test(t)) {
+    return "invalid";
+  }
+  return "memo";
+}
 
 export default function LinksCard() {
   const [links, setLinks] = useLocalStorage<LinkItem[]>("shizuku.links", DEFAULT_LINKS);
@@ -22,7 +40,11 @@ export default function LinksCard() {
   const update = (id: string, patch: Partial<LinkItem>) =>
     setLinks(links.map((l) => (l.id === id ? { ...l, ...patch } : l)));
 
-  const remove = (id: string) => setLinks(links.filter((l) => l.id !== id));
+  const remove = (id: string) => {
+    const target = links.find((l) => l.id === id);
+    if (!window.confirm(`「${target?.label || "このリンク"}」を削除しますか？`)) return;
+    setLinks(links.filter((l) => l.id !== id));
+  };
 
   const add = () => {
     const label = newLabel.trim() || "新しいリンク";
@@ -31,7 +53,7 @@ export default function LinksCard() {
   };
 
   return (
-    <Card eyebrow="Links" title="制作中リンク">
+    <Card eyebrow="Links" title="制作中リンク" defaultOpen={false}>
       <ul className="flex flex-col gap-3">
         {links.map((link) => (
           <li key={link.id} className="rounded-2xl bg-main-50 px-3 py-2.5">
@@ -42,7 +64,7 @@ export default function LinksCard() {
                 className="grow bg-transparent text-xs font-semibold text-accent-600 outline-none"
               />
               <div className="flex shrink-0 items-center gap-2">
-                {isUrl(link.url) && (
+                {urlKind(link.url) === "valid" && (
                   <a
                     href={link.url}
                     target="_blank"
@@ -53,9 +75,10 @@ export default function LinksCard() {
                   </a>
                 )}
                 <button
+                  type="button"
                   onClick={() => remove(link.id)}
                   aria-label={`${link.label || "リンク"} を削除`}
-                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-neutral2-500 transition-colors hover:bg-main-100 hover:text-accent-500"
+                  className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-lg text-neutral2-500 transition-colors hover:bg-main-100 hover:text-accent-600"
                 >
                   ×
                 </button>
@@ -65,8 +88,19 @@ export default function LinksCard() {
               value={link.url}
               onChange={(e) => update(link.id, { url: e.target.value })}
               placeholder="URL またはメモを入力…"
-              className="w-full rounded-xl border border-main-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-accent-300"
+              aria-invalid={urlKind(link.url) === "invalid"}
+              className={`w-full rounded-xl border bg-white px-3 py-1.5 text-sm outline-none focus:border-accent-300 ${
+                urlKind(link.url) === "invalid" ? "border-accent-400" : "border-main-200"
+              }`}
             />
+            {urlKind(link.url) === "invalid" && (
+              <p className="mt-1 text-[11px] leading-relaxed text-accent-600" role="alert">
+                URL形式が正しくありません。https:// から始まるURLか、メモ文として入力してください。
+              </p>
+            )}
+            {urlKind(link.url) === "valid" && (
+              <p className="mt-1 text-[11px] text-neutral2-500">外部リンクとして開けます。</p>
+            )}
           </li>
         ))}
       </ul>

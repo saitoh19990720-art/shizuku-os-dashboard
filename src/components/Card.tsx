@@ -11,9 +11,10 @@ interface CardProps {
 }
 
 export default function Card({ eyebrow, title, defaultOpen = true, children }: CardProps) {
-  const [open, setOpen] = useLocalStorage<boolean>(`shizuku.cardOpen.${title}`, defaultOpen);
+  // v2: 主カード／二次カードの既定開閉をリセット（must-fix 2）
+  const [open, setOpen] = useLocalStorage<boolean>(`shizuku.cardOpen.v2.${title}`, defaultOpen);
   return (
-    <section className="rounded-card border border-white/70 bg-white/75 p-5 shadow-soft backdrop-blur-sm">
+    <section className="rounded-card border border-white/70 bg-white/80 p-5 shadow-soft backdrop-blur-sm">
       <button
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
@@ -21,7 +22,7 @@ export default function Card({ eyebrow, title, defaultOpen = true, children }: C
       >
         <span>
           {eyebrow && (
-            <span className="mb-1 block text-[11px] font-medium uppercase tracking-[0.18em] text-accent-400">
+            <span className="mb-1 block text-[11px] font-medium uppercase tracking-[0.18em] text-accent-500">
               {eyebrow}
             </span>
           )}
@@ -29,7 +30,7 @@ export default function Card({ eyebrow, title, defaultOpen = true, children }: C
         </span>
         <span
           aria-hidden
-          className={`mt-1 shrink-0 text-accent-400 transition-transform ${open ? "" : "-rotate-90"}`}
+          className={`mt-1 shrink-0 text-accent-500 transition-transform ${open ? "" : "-rotate-90"}`}
         >
           ▾
         </span>

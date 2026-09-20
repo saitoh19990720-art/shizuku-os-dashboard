@@ -11,7 +11,7 @@ export default function NextActionCard() {
   const [na, setNa] = useLocalStorage<NextAction>("shizuku.nextAction", { text: "", done: false });
 
   return (
-    <Card eyebrow="Next Action" title="今日の次アクション">
+    <Card eyebrow="Next Action" title="今日の次アクション" defaultOpen={false}>
       <p className="mb-3 text-xs text-neutral2-500">迷ったら、今日はこれ1つだけ。</p>
       <div className="flex items-center gap-3">
         <input

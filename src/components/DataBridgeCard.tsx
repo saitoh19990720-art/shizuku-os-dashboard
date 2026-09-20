@@ -71,7 +71,7 @@ const VALIDATORS: Record<string, (value: unknown) => boolean> = {
   "shizuku.nightLogs": rows(
     (l) => isStr(l.id) && optStr(l.date) && optStr(l.did) && optStr(l.learned) && optStr(l.next),
   ),
-  // url は必須。LinksCard が isUrl(link.url) で .trim() を直接呼ぶため、欠けていると描画時に落ちる。
+  // url は必須。LinksCard が urlKind(link.url) で .trim() を直接呼ぶため、欠けていると描画時に落ちる。
   "shizuku.links": rows((l) => isStr(l.id) && optStr(l.label) && isStr(l.url)),
   "shizuku.qualityGate": (v) =>
     isObject(v) &&
@@ -183,7 +183,7 @@ export function parseImport(text: string): ImportParse {
     return {
       ok: false,
       error:
-        "JSONの形式が正しくありません。コピー漏れがないか確認してください。入力内容は消えていません。",
+        "JSONとして読めません（括弧の欠け・コピー漏れなど）。貼り付け内容はそのまま残しています。",
     };
   }
 
@@ -406,8 +406,9 @@ export default function DataBridgeCard() {
         {error && (
           <p
             role="alert"
-            className="mt-2 rounded-xl border border-accent-300 bg-crystal-100 px-3 py-2 text-[11px] leading-relaxed text-ink"
+            className="mt-2 rounded-xl border border-accent-400 bg-crystal-100 px-3 py-2.5 text-xs leading-relaxed text-ink"
           >
+            <span className="mb-0.5 block font-semibold text-accent-600">読み込みできませんでした</span>
             {error}
           </p>
         )}

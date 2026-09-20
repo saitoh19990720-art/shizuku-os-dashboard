@@ -14,6 +14,14 @@ import {
 let failedKeys: string[] = [];
 const listeners = new Set<() => void>();
 
+// 最終保存時刻（成功時のみ）。トースト／フッター表示用。
+let lastSavedAt: number | null = null;
+const saveListeners = new Set<() => void>();
+
+function emitSave() {
+  for (const listener of saveListeners) listener();
+}
+
 function emit() {
   for (const listener of listeners) listener();
 }
@@ -60,6 +68,11 @@ export function safeSetItem(key: string, value: unknown): boolean {
   try {
     localStorage.setItem(target.key, JSON.stringify(value));
     resolveStorageFailure(key);
+    // 開閉状態など軽いキーはトーストを出さない（ノイズになる）
+    if (!key.startsWith("shizuku.cardOpen.")) {
+      lastSavedAt = Date.now();
+      emitSave();
+    }
     return true;
   } catch {
     // 容量超過・プライベートモード等。画面は止めず、失敗として残す。
@@ -72,6 +85,22 @@ export function safeSetItem(key: string, value: unknown): boolean {
 // （保存に失敗していれば false。表示側で「保存しました」を出すかの判定に使う）
 export function useStorageOk(key: string): boolean {
   return !useStorageFailures().includes(key);
+}
+
+function subscribeSave(listener: () => void) {
+  saveListeners.add(listener);
+  return () => {
+    saveListeners.delete(listener);
+  };
+}
+
+function getLastSavedSnapshot() {
+  return lastSavedAt;
+}
+
+/** 最後に localStorage へ書けた時刻（ms）。未保存なら null。 */
+export function useLastSavedAt(): number | null {
+  return useSyncExternalStore(subscribeSave, getLastSavedSnapshot, getLastSavedSnapshot);
 }
 
 // 文字列のまま書き戻す（インポート失敗時に元の値へ戻すため）。
