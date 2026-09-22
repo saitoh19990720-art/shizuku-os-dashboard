@@ -28,6 +28,34 @@ Shizuku OS は、その「判断」と「再開」を支えるための小型OS�
 
 ---
 
+## ケーススタディ
+
+既存機能を増やさず、Figmaを正本にして情報設計・実装・アクセシビリティ監査・QAを一続きで改善した。
+
+### Design Principles
+
+1. **役割で分ける**：制作前の候補、制作後の振り返り、再開時のリンクを混ぜず、主要3カードへ役割ごとに分ける。
+2. **判断負荷を減らす**：必要な情報に絞り、広い余白・静かな配色・明確な見出しで優先関係を示す。
+3. **誰でも続けられる**：キーボード操作、意味のある要素名、見出し・ランドマーク、モバイル表示を整える。
+
+### 改善内容と検証
+
+| 領域 | 実施内容 | 確認結果 |
+|---|---|---|
+| Figma | Variables 31件、Text Styles 7件、Components 2件を既存値から整備 | 既存画面と主要3カードの構造・見た目は変更なし |
+| React / TypeScript / Tailwind CSS | WCAG 2.2 Level Aを中心に、9ファイルを最小差分で修正 | `npm run typecheck`、`npm run build`、`git diff --check` 成功 |
+| Keyboard / Focus | Tabで主要操作57件を一巡 | トラップと画面外フォーカスなし、フォーカス表示を確認 |
+| Semantics / Forms | カード見出し、入力目的、操作名、URLエラーとの関連を明示 | h1は1件、カードを含むh2は13件、主要ランドマークを確認 |
+| Mobile | 小さい操作対象を24px以上へ調整 | 320px幅で横スクロールなし（`clientWidth = scrollWidth = 305`） |
+
+- [Figmaケーススタディ](https://www.figma.com/design/koKE3FNUcGw7MAq3325bbG/%E7%84%A1%E9%A1%8C?node-id=2-4)
+- [WCAG 2.2 Level A 監査・修正ログ](./docs/ACCESSIBILITY_AUDIT.md)
+- [公開ダッシュボード](https://shizuku-os-dashboard.vercel.app/#/dashboard)
+
+> Level AAの完全監査と、実スクリーンリーダーによる音声確認は未実施。確認済み範囲と残件は監査・修正ログに分けて記録している。
+
+---
+
 ## 主な機能
 
 - **今日のコンディション**：体力・痛み・制作モード・休憩条件を記録。機微情報としてJSONバックアップから除外。
@@ -190,6 +218,7 @@ v0.19 時点で、12カード・折りたたみ・週次振り返りまで実装
 | [`docs/RELEASE_LOG.md`](./docs/RELEASE_LOG.md) | リリース記録 |
 | [`docs/PUBLIC_DESCRIPTION.md`](./docs/PUBLIC_DESCRIPTION.md) | 公開用の説明文 |
 | [`docs/PORTFOLIO_NOTE.md`](./docs/PORTFOLIO_NOTE.md) | ポートフォリオ用のまとめ |
+| [`docs/ACCESSIBILITY_AUDIT.md`](./docs/ACCESSIBILITY_AUDIT.md) | WCAG 2.2 Level A監査・修正・検証記録 |
 
 > **`CLAUDE.md` と `STYLE_GUIDE.md` はこのリポジトリには置いていない。**
 > AIの作業ルールとデザイントークン（配色・フォント・余白）は、ワークスペース側の
