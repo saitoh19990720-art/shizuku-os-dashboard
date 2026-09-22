@@ -83,7 +83,7 @@ export default function TaskCard() {
                   checked={task.done}
                   onChange={() => toggle(task.id)}
                   aria-labelledby={titleId}
-                  className="h-4 w-4 shrink-0 accent-accent-500"
+                  className="h-6 w-6 shrink-0 accent-accent-500"
                 />
                 <span id={titleId} className={`grow text-sm ${task.done ? "text-neutral2-500 line-through" : "text-ink"}`}>
                   {task.title}
@@ -106,7 +106,7 @@ export default function TaskCard() {
                 <button
                   onClick={() => cycleStatus(task.id)}
                   aria-label={`${task.title} の状態：${STATUS_LABEL[st]}（押すと次の状態へ）`}
-                  className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors ${STATUS_STYLE[st]}`}
+                  className={`inline-flex min-h-6 items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors ${STATUS_STYLE[st]}`}
                 >
                   {STATUS_LABEL[st]}
                 </button>
@@ -139,6 +139,7 @@ export default function TaskCard() {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && addTask()}
+          aria-label="制作候補名"
           placeholder="今日作るものを書く…"
           className="rounded-xl border border-main-200 bg-white px-3 py-2 text-sm outline-none focus:border-accent-300"
         />

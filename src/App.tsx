@@ -35,10 +35,10 @@ function useHashRoute() {
 }
 
 const NAV = [
-  { id: "today", label: "Today" },
-  { id: "log", label: "Log" },
-  { id: "gate", label: "Gate" },
-  { id: "more", label: "More" },
+  { id: "today", label: "Today", accessibleLabel: "Today：今日の制作候補へ移動" },
+  { id: "log", label: "Log", accessibleLabel: "Log：夜タスク3行ログへ移動" },
+  { id: "gate", label: "Gate", accessibleLabel: "Gate：Quality Gateへ移動" },
+  { id: "more", label: "More", accessibleLabel: "More：その他のカードへ移動" },
 ] as const;
 
 // ハッシュルーティング（#/dashboard）を壊さないよう、location.hash は変えずにスクロールする。
@@ -81,6 +81,7 @@ function Dashboard() {
               <button
                 type="button"
                 onClick={() => scrollToSection(item.id)}
+                aria-label={item.accessibleLabel}
                 className="flex min-h-[40px] w-full items-center justify-center rounded-xl text-xs font-semibold text-accent-600 transition-colors hover:bg-main-100"
               >
                 {item.label}

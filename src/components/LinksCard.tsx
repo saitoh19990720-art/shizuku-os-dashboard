@@ -61,6 +61,7 @@ export default function LinksCard() {
               <input
                 value={link.label}
                 onChange={(e) => update(link.id, { label: e.target.value })}
+                aria-label={`${link.label || "制作リンク"} の表示名`}
                 className="grow bg-transparent text-xs font-semibold text-accent-600 outline-none"
               />
               <div className="flex shrink-0 items-center gap-2">
@@ -69,6 +70,7 @@ export default function LinksCard() {
                     href={link.url}
                     target="_blank"
                     rel="noreferrer"
+                    aria-label={`${link.label || "制作リンク"} を開く`}
                     className="text-[11px] text-accent-500 underline-offset-2 hover:underline"
                   >
                     開く
@@ -87,14 +89,16 @@ export default function LinksCard() {
             <input
               value={link.url}
               onChange={(e) => update(link.id, { url: e.target.value })}
+              aria-label={`${link.label || "制作リンク"} のURLまたはメモ`}
               placeholder="URL またはメモを入力…"
               aria-invalid={urlKind(link.url) === "invalid"}
+              aria-describedby={urlKind(link.url) === "invalid" ? `link-url-error-${link.id}` : undefined}
               className={`w-full rounded-xl border bg-white px-3 py-1.5 text-sm outline-none focus:border-accent-300 ${
                 urlKind(link.url) === "invalid" ? "border-accent-400" : "border-main-200"
               }`}
             />
             {urlKind(link.url) === "invalid" && (
-              <p className="mt-1 text-[11px] leading-relaxed text-accent-600" role="alert">
+              <p id={`link-url-error-${link.id}`} className="mt-1 text-[11px] leading-relaxed text-accent-600" role="alert">
                 URL形式が正しくありません。https:// から始まるURLか、メモ文として入力してください。
               </p>
             )}
@@ -118,11 +122,13 @@ export default function LinksCard() {
           value={newLabel}
           onChange={(e) => setNewLabel(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && add()}
+          aria-label="追加する制作リンクの表示名"
           placeholder="ラベル名（例: 参考サイト）"
           className="min-w-0 grow rounded-xl border border-main-200 bg-white px-3 py-2 text-sm outline-none focus:border-accent-300"
         />
         <button
           onClick={add}
+          aria-label="制作リンクを追加"
           className="min-h-[44px] shrink-0 rounded-xl bg-accent-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-600"
         >
           追加

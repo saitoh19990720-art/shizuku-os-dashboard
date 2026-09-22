@@ -51,7 +51,7 @@ export default function StartHereBanner() {
               onClick={() =>
                 document.getElementById("today")?.scrollIntoView({ behavior: "smooth", block: "start" })
               }
-              className="font-medium text-accent-600 underline-offset-2 hover:underline"
+              className="inline-flex min-h-6 items-center font-medium text-accent-600 underline-offset-2 hover:underline"
             >
               制作候補を1つ追加
             </button>
@@ -73,7 +73,7 @@ export default function StartHereBanner() {
               onClick={() =>
                 document.getElementById("log")?.scrollIntoView({ behavior: "smooth", block: "start" })
               }
-              className="font-medium text-accent-600 underline-offset-2 hover:underline"
+              className="inline-flex min-h-6 items-center font-medium text-accent-600 underline-offset-2 hover:underline"
             >
               夜ログを1行
             </button>

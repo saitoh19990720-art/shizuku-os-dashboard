@@ -380,6 +380,7 @@ export default function DataBridgeCard() {
           value={out}
           readOnly
           rows={5}
+          aria-label="書き出したJSON"
           className="mt-3 w-full resize-none rounded-xl border border-main-200 bg-main-50 px-3 py-2 font-mono text-[11px] text-ink outline-none"
         />
       )}
@@ -393,6 +394,7 @@ export default function DataBridgeCard() {
             if (error) setError("");
           }}
           rows={3}
+          aria-label="読み込むJSON"
           placeholder="エクスポートしたJSONを貼り付け…"
           className="w-full resize-none rounded-xl border border-main-200 bg-white px-3 py-2 font-mono text-[11px] text-ink outline-none focus:border-accent-300"
         />

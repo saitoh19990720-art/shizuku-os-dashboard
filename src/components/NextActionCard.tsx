@@ -19,11 +19,12 @@ export default function NextActionCard() {
           checked={na.done}
           onChange={(e) => setNa({ ...na, done: e.target.checked })}
           aria-label={na.text ? `${na.text} を完了にする` : "今日の次アクションを完了にする"}
-          className="h-5 w-5 shrink-0 accent-accent-500"
+          className="h-6 w-6 shrink-0 accent-accent-500"
         />
         <input
           value={na.text}
           onChange={(e) => setNa({ ...na, text: e.target.value })}
+          aria-label="今日の次アクション"
           placeholder="今日やる1つを書く…（例：Figmaで1カード整える）"
           className={`grow rounded-xl border border-main-200 bg-white px-3 py-2.5 text-[15px] outline-none focus:border-accent-300 ${
             na.done ? "text-neutral2-500 line-through" : "text-ink"

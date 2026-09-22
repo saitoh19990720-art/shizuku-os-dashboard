@@ -196,6 +196,7 @@ export default function QualityGateCard() {
       <input
         value={gate.name}
         onChange={(e) => setGate({ ...gate, name: e.target.value })}
+        aria-label="案・制作物の名前"
         placeholder="案・制作物の名前…"
         className="w-full rounded-xl border border-main-200 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-accent-300"
       />
