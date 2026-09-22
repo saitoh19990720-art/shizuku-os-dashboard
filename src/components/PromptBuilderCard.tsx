@@ -122,7 +122,7 @@ export default function PromptBuilderCard() {
           </button>
         </div>
         {prompt ? (
-          <textarea value={prompt} readOnly rows={5}
+          <textarea value={prompt} readOnly rows={5} aria-label="生成したプロンプト"
             className="w-full resize-none rounded-xl border border-main-200 bg-main-50 px-3 py-2 text-xs text-ink outline-none" />
         ) : (
           <p className="rounded-xl border border-dashed border-main-300 bg-main-50 px-3 py-3 text-xs leading-relaxed text-neutral2-500">
@@ -136,18 +136,21 @@ export default function PromptBuilderCard() {
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
+              aria-label="保存するプロンプト名"
               placeholder="プロンプト名"
               className="min-w-0 flex-1 rounded-xl border border-main-200 bg-white px-3 py-2 text-sm outline-none focus:border-accent-300"
             />
             <select
               value={targetAI}
               onChange={(e) => setTargetAI(e.target.value)}
+              aria-label="保存するプロンプトの対象AI"
               className="rounded-xl border border-main-200 bg-white px-2 py-2 text-sm outline-none focus:border-accent-300"
             >
               {TARGET_AIS.map((a) => <option key={a} value={a}>{a}</option>)}
             </select>
             <button
               onClick={saveToVault}
+              aria-label="プロンプトを保存"
               className="min-h-[44px] rounded-xl bg-accent-500 px-4 text-sm font-medium text-white transition-colors hover:bg-accent-600"
             >
               保存
@@ -165,6 +168,7 @@ export default function PromptBuilderCard() {
               <select
                 value={filterAI}
                 onChange={(e) => setFilterAI(e.target.value)}
+                aria-label="対象AIでプロンプトを絞り込む"
                 className="rounded-lg border border-main-300 bg-white px-2 py-1 text-[11px] text-accent-600 outline-none"
               >
                 {["すべて", ...TARGET_AIS].map((a) => <option key={a} value={a}>{a}</option>)}
