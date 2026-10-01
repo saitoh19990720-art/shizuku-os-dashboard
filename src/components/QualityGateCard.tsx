@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import Card from "./Card";
 import type { QualityGate, QualityGateRecord, Verdict } from "../types";
 import { makeId, useLocalStorage } from "../hooks/useLocalStorage";
@@ -6,7 +6,7 @@ import { makeId, useLocalStorage } from "../hooks/useLocalStorage";
 // 採用判定の4観点（部下 / 消費者 / 勝算 / 安全）。各3項目。
 const GROUPS: { title: string; items: { key: string; label: string }[] }[] = [
   {
-    title: "部下視点",
+    title: "実装・運用",
     items: [
       { key: "canBuild", label: "実装できる" },
       { key: "lightOps", label: "運用が重すぎない" },
@@ -14,7 +14,7 @@ const GROUPS: { title: string; items: { key: string; label: string }[] }[] = [
     ],
   },
   {
-    title: "消費者視点",
+    title: "使う人の視点",
     items: [
       { key: "clear", label: "分かりやすい" },
       { key: "wanted", label: "欲しいと思える" },
@@ -22,7 +22,7 @@ const GROUPS: { title: string; items: { key: string; label: string }[] }[] = [
     ],
   },
   {
-    title: "勝算",
+    title: "強み・再利用",
     items: [
       { key: "strength", label: "強みがある" },
       { key: "brandFit", label: "Shizuku Studio に合う" },
@@ -32,22 +32,22 @@ const GROUPS: { title: string; items: { key: string; label: string }[] }[] = [
   {
     title: "安全",
     items: [
-      { key: "privacy", label: "個人情報OK" },
-      { key: "rights", label: "権利OK" },
+      { key: "privacy", label: "個人情報の扱いを確認した" },
+      { key: "rights", label: "利用権利を確認した" },
       { key: "revertible", label: "戻せる" },
     ],
   },
 ];
 
-// 判定ボタン（採用 / 保留 / 捨てる）
+// 判定ボタン（採用 / 保留 / 見送る）。保存値 drop は据え置き、表示だけ「見送る」。
 const VERDICTS: { value: Verdict; label: string }[] = [
   { value: "adopt", label: "採用" },
   { value: "hold", label: "保留" },
-  { value: "drop", label: "捨てる" },
+  { value: "drop", label: "見送る" },
 ];
 
-const VERDICT_LABEL: Record<Verdict, string> = { adopt: "採用", hold: "保留", drop: "捨てる" };
-// 履歴の判定バッジ色（採用＝氷色 / 保留＝水色 / 捨てる＝灰）
+const VERDICT_LABEL: Record<Verdict, string> = { adopt: "採用", hold: "保留", drop: "見送る" };
+// 履歴の判定バッジ色（採用＝氷色 / 保留＝水色 / 見送る＝灰）
 const VERDICT_TAG: Record<Verdict, string> = {
   adopt: "bg-crystal-200 text-accent-600",
   hold: "bg-main-200 text-accent-600",
@@ -115,6 +115,7 @@ export default function QualityGateCard() {
   const [copied, setCopied] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | Verdict>("all");
+  const nameId = useId();
 
   const total = GROUPS.reduce((n, g) => n + g.items.length, 0);
   const passed = Object.values(gate.checks).filter(Boolean).length;
@@ -132,7 +133,7 @@ export default function QualityGateCard() {
       return;
     }
     if (!gate.verdict) {
-      alert("採用 / 保留 / 捨てる のいずれかを選んでください。");
+      alert("採用 / 保留 / 見送る のいずれかを選んでください。");
       return;
     }
     const record: QualityGateRecord = {
@@ -186,32 +187,35 @@ export default function QualityGateCard() {
     { value: "all", label: "すべて" },
     { value: "adopt", label: "採用" },
     { value: "hold", label: "保留" },
-    { value: "drop", label: "捨てる" },
+    { value: "drop", label: "見送る" },
   ];
   const shown =
     filter === "all" ? history : history.filter((r) => r.verdict === filter);
 
   return (
-    <Card eyebrow="Quality Gate" title="採用していい？を判定">
+    <Card eyebrow="Quality Gate" title="この案を採用する？" storageTitle="採用していい？を判定" defaultOpen={false}>
+      <label htmlFor={nameId} className="mb-1 block text-sm text-neutral2-500">
+        案・制作物の名前
+      </label>
       <input
+        id={nameId}
         value={gate.name}
         onChange={(e) => setGate({ ...gate, name: e.target.value })}
-        aria-label="案・制作物の名前"
         placeholder="案・制作物の名前…"
-        className="w-full rounded-xl border border-main-200 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-accent-300"
+        className="min-h-[44px] w-full rounded-xl border border-[#767676] bg-white px-3 py-2 text-sm text-ink placeholder:text-neutral2-500 placeholder:opacity-100 outline-none focus:border-accent-600"
       />
 
       <div className="mt-4 flex flex-col gap-4">
         {GROUPS.map((group) => (
           <fieldset key={group.title}>
-            <legend className="mb-2 text-xs font-medium text-accent-500">
+            <legend className="mb-2 text-sm font-medium text-neutral2-500">
               {group.title}
             </legend>
             <div className="flex flex-col gap-1.5">
               {group.items.map((item) => (
                 <label
                   key={item.key}
-                  className="flex items-center gap-3 rounded-2xl bg-main-50 px-3 py-2 text-sm text-ink"
+                  className="flex min-h-[44px] items-center gap-3 rounded-2xl bg-main-50 px-3 py-2 text-sm text-ink"
                 >
                   <input
                     type="checkbox"
@@ -227,8 +231,12 @@ export default function QualityGateCard() {
         ))}
       </div>
 
-      <p className="mt-4 text-xs text-accent-600">
-        満たした項目：{passed} / {total}
+      {/* 件数は確認状況の目安。自動で採用を決める基準にはしない。 */}
+      <p className="mt-4 flex flex-wrap gap-x-3 text-sm text-accent-600">
+        <span>
+          確認済み：{passed} / {total}
+        </span>
+        <span>判断は自分で決める</span>
       </p>
 
       <div className="mt-2 grid grid-cols-3 gap-2">
@@ -253,21 +261,21 @@ export default function QualityGateCard() {
       </div>
 
       <label className="mt-4 block">
-        <span className="mb-1 block text-xs font-medium text-accent-500">
+        <span className="mb-1 block text-sm font-medium text-neutral2-500">
           次の一手
         </span>
         <textarea
           value={gate.next}
           onChange={(e) => setGate({ ...gate, next: e.target.value })}
           rows={2}
-          placeholder="採用・保留・捨てる、の次にやること…"
-          className="w-full resize-none rounded-xl border border-main-200 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-accent-300"
+          placeholder="例：対象を一つに絞って試す"
+          className="min-h-[44px] w-full resize-none rounded-xl border border-[#767676] bg-white px-3 py-2 text-sm text-ink placeholder:text-neutral2-500 placeholder:opacity-100 outline-none focus:border-accent-600"
         />
       </label>
 
       <button
         onClick={saveToHistory}
-        className="mt-3 min-h-[44px] w-full rounded-xl bg-accent-500 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-600"
+        className="mt-3 min-h-[44px] w-full rounded-xl bg-accent-600 py-2 text-sm font-medium text-white transition-colors hover:bg-[#3f65a6]"
       >
         履歴に保存
       </button>
@@ -275,7 +283,7 @@ export default function QualityGateCard() {
       {/* Quality Gate 履歴（v0.2）＋ Obsidian出力（v0.3） */}
       <div className="mt-6 border-t border-neutral2-200 pt-4">
         <div className="mb-2 flex items-center justify-between gap-2">
-          <p className="text-xs font-medium text-accent-500">判定履歴</p>
+          <p className="text-sm font-medium text-neutral2-500">判定履歴</p>
           {history.length > 0 && (
             <button
               onClick={copyMarkdown}
@@ -305,13 +313,13 @@ export default function QualityGateCard() {
           </div>
         )}
         {history.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-main-300 bg-main-50 px-3 py-3 text-xs leading-relaxed text-neutral2-500">
-            まだ判定履歴がありません。
+          <p className="rounded-xl border border-dashed border-main-300 bg-main-50 px-3 py-3 text-sm leading-relaxed text-neutral2-500">
+            判断と次の一手を保存すると、
             <br />
-            案を判定して「履歴に保存」を押すと、過去の採用・保留・捨てるが残ります。
+            ここで振り返れます。
           </p>
         ) : shown.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-main-300 bg-main-50 px-3 py-3 text-xs text-neutral2-500">
+          <p className="rounded-xl border border-dashed border-main-300 bg-main-50 px-3 py-3 text-sm text-neutral2-500">
             この判定の履歴はまだありません。
           </p>
         ) : (

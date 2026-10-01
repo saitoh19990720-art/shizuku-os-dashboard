@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import Card from "./Card";
 import type { Priority, Task, TaskStatus } from "../types";
 import { makeId, useLocalStorage } from "../hooks/useLocalStorage";
@@ -31,6 +31,7 @@ export default function TaskCard() {
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState<Priority>("B");
   const [status, setStatus] = useState<TaskStatus>("today");
+  const inputId = useId();
 
   const addTask = () => {
     const text = title.trim();
@@ -128,20 +129,23 @@ export default function TaskCard() {
         <button
           type="button"
           onClick={clearDemo}
-          className="mt-3 min-h-[40px] w-full rounded-xl border border-main-300 bg-white text-xs font-medium text-accent-600 transition-colors hover:bg-main-100"
+          className="mt-2 min-h-[44px] w-full rounded-xl text-xs text-neutral2-500 underline-offset-2 transition-colors hover:bg-main-50 hover:text-accent-600 hover:underline"
         >
           デモ候補を消す
         </button>
       )}
 
       <div className="mt-4 flex flex-col gap-2">
+        <label htmlFor={inputId} className="text-sm text-neutral2-500">
+          制作候補
+        </label>
         <input
+          id={inputId}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && addTask()}
-          aria-label="制作候補名"
-          placeholder="今日作るものを書く…"
-          className="rounded-xl border border-main-200 bg-white px-3 py-2 text-sm outline-none focus:border-accent-300"
+          placeholder="例：作品紹介の文章を整える"
+          className="-mt-1 min-h-[44px] rounded-xl border border-[#767676] bg-white px-3 py-2 text-sm text-ink placeholder:text-neutral2-500 placeholder:opacity-100 outline-none focus:border-accent-600"
         />
         <div className="flex gap-2">
           <label className="flex grow flex-col gap-1">
@@ -149,7 +153,7 @@ export default function TaskCard() {
             <select
               value={priority}
               onChange={(e) => setPriority(e.target.value as Priority)}
-              className="min-h-[40px] rounded-xl border border-main-200 bg-white px-2 text-sm outline-none focus:border-accent-300"
+              className="min-h-[44px] rounded-xl border border-[#767676] bg-white px-2 text-sm text-ink outline-none focus:border-accent-600"
             >
               <option value="A">高</option>
               <option value="B">中</option>
@@ -161,7 +165,7 @@ export default function TaskCard() {
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as TaskStatus)}
-              className="min-h-[40px] rounded-xl border border-main-200 bg-white px-2 text-sm outline-none focus:border-accent-300"
+              className="min-h-[44px] rounded-xl border border-[#767676] bg-white px-2 text-sm text-ink outline-none focus:border-accent-600"
             >
               <option value="today">今日</option>
               <option value="tomorrow">明日</option>
@@ -171,7 +175,7 @@ export default function TaskCard() {
         </div>
         <button
           onClick={addTask}
-          className="min-h-[44px] rounded-xl bg-accent-500 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-600"
+          className="min-h-[44px] rounded-xl bg-accent-600 py-2 text-sm font-medium text-white transition-colors hover:bg-[#3f65a6]"
         >
           候補を追加
         </button>

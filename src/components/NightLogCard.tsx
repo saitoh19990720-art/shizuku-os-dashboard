@@ -44,32 +44,32 @@ export default function NightLogCard() {
   ];
 
   return (
-    <Card eyebrow="Night log" title="夜タスク3行ログ">
+    <Card eyebrow="Night log" title="夜の振り返り" storageTitle="夜タスク3行ログ">
       <div className="flex flex-col gap-2.5">
         {fields.map((f) => (
           <label key={f.label} className="flex flex-col gap-1">
-            <span className="text-xs font-medium text-accent-600">{f.label}</span>
+            <span className="text-sm font-medium text-accent-600">{f.label}</span>
             <input
               value={f.value}
               onChange={(e) => f.set(e.target.value)}
               placeholder={f.placeholder}
-              className="rounded-xl border border-main-200 bg-white px-3 py-2 text-sm outline-none focus:border-accent-300"
+              className="min-h-[44px] rounded-xl border border-[#767676] bg-white px-3 py-2 text-sm text-ink placeholder:text-neutral2-500 placeholder:opacity-100 outline-none focus:border-accent-600"
             />
           </label>
         ))}
         <button
           onClick={save}
-          className="mt-1 min-h-[44px] rounded-xl bg-accent-500 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-600"
+          className="mt-1 min-h-[44px] rounded-xl bg-accent-600 py-2 text-sm font-medium text-white transition-colors hover:bg-[#3f65a6]"
         >
           ログを記録
         </button>
       </div>
 
       {logs.length === 0 ? (
-        <p className="mt-4 rounded-xl border border-dashed border-main-300 bg-main-50 px-3 py-3 text-xs leading-relaxed text-neutral2-500">
-          まだ夜ログがありません。
+        <p className="mt-4 rounded-xl border border-dashed border-main-300 bg-main-50 px-3 py-3 text-sm leading-relaxed text-neutral2-500">
+          一行からで大丈夫。
           <br />
-          1日の終わりに「やった／学び／次やる」を残すと、明日ここから再開できます。
+          今日の記録を、明日の一手につなげる。
         </p>
       ) : (
         <ul className="mt-4 flex flex-col gap-2">
