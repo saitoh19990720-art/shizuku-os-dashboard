@@ -1,8 +1,8 @@
-import { useLocalStorage } from "../hooks/useLocalStorage";
+import { useStoredValue } from "../hooks/useLocalStorage";
 import { scrollToSection } from "../lib/scrollToSection";
 import type { NightLog, Task } from "../types";
 
-// TaskCard と同じ初期シード（キー衝突時に先マウント側が中身を潰さないよう一致させる）
+// TaskCard と同じ初期シード。案内は読み取りだけ行い、候補を保存しない。
 const DEFAULT_TASKS: Task[] = [
   { id: "seed-demo-1", title: "ポートフォリオLPの文言を整える", priority: "A", status: "today", done: false, demo: true },
   { id: "seed-demo-2", title: "Figmaの3カードを微調整", priority: "B", status: "tomorrow", done: false, demo: true },
@@ -12,10 +12,10 @@ const DEFAULT_TASKS: Task[] = [
 // 初回導線：制作候補1つ → 夜の振り返り1行。主WF以外は畳む前提で、上部に1ステップだけ置く。
 // デモ候補の削除は制作候補カード側に1つだけ置く（ここでは重複させない）。
 export default function StartHereBanner() {
-  const [tasks] = useLocalStorage<Task[]>("shizuku.tasks", DEFAULT_TASKS);
-  const [logs] = useLocalStorage<NightLog[]>("shizuku.nightLogs", []);
+  const tasks = useStoredValue<Task[]>("shizuku.tasks", DEFAULT_TASKS);
+  const logs = useStoredValue<NightLog[]>("shizuku.nightLogs", []);
   // 以前「あとで」で閉じた人には再表示しない（閉じる操作自体は今回の改善案で非表示）。
-  const [dismissed] = useLocalStorage<boolean>("shizuku.startHere.dismissed", false);
+  const dismissed = useStoredValue<boolean>("shizuku.startHere.dismissed", false);
 
   const step1Done = tasks.some((t) => !t.demo);
   const step2Done = logs.length > 0;
