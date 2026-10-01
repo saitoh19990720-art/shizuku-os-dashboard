@@ -103,6 +103,32 @@ export function useLastSavedAt(): number | null {
   return useSyncExternalStore(subscribeSave, getLastSavedSnapshot, getLastSavedSnapshot);
 }
 
+// 案内表示用の購読。保存側の状態や初期値は書き戻さない。
+function subscribeStoredValue(listener: () => void) {
+  const unsubscribeSave = subscribeSave(listener);
+  const unsubscribeProject = subscribeActiveProject(listener);
+  return () => {
+    unsubscribeSave();
+    unsubscribeProject();
+  };
+}
+
+/** 保存成功・プロジェクト切替に追従する、読み取り専用の値。 */
+export function useStoredValue<T>(key: string, initialValue: T): T {
+  const getRawSnapshot = useCallback(() => {
+    const read = tryReadLogicalRaw(key);
+    return read.ok ? read.raw : undefined;
+  }, [key]);
+  // JSON文字列をスナップショットにして、同じ内容なら再描画しない。
+  const raw = useSyncExternalStore(subscribeStoredValue, getRawSnapshot, getRawSnapshot);
+  if (raw == null) return initialValue;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return initialValue;
+  }
+}
+
 // 文字列のまま書き戻す（インポート失敗時に元の値へ戻すため）。
 // raw が null のときはキーごと消す（元々未保存だった状態に戻す）。
 export function safeSetRawItem(key: string, raw: string | null): boolean {
