@@ -27,7 +27,7 @@ function urlKind(s: string): UrlKind {
     }
   }
   // スキーム無しのドメインっぽい／他スキーム → 形式エラーとして案内
-  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(t) || /^[\w.-]+\.[a-z]{2,}([\/:].*)?$/i.test(t)) {
+  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(t) || /^[\w.-]+\.[a-z]{2,}([/:].*)?$/i.test(t)) {
     return "invalid";
   }
   return "memo";

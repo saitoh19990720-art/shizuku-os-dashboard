@@ -11,12 +11,14 @@ function formatTime(ms: number): string {
 
 export default function SaveToast() {
   const lastSavedAt = useLastSavedAt();
-  const [flash, setFlash] = useState(false);
+  // 「保存しました」を出し終えた保存時刻。新しい保存が来た瞬間は一致しないので点灯し、
+  // 1.6秒後にこの値を追いつかせて消灯する（effect 内で同期的に setState しない）。
+  const [settledAt, setSettledAt] = useState<number | null>(null);
+  const flash = lastSavedAt !== null && lastSavedAt !== settledAt;
 
   useEffect(() => {
     if (lastSavedAt === null) return;
-    setFlash(true);
-    const t = window.setTimeout(() => setFlash(false), 1600);
+    const t = window.setTimeout(() => setSettledAt(lastSavedAt), 1600);
     return () => window.clearTimeout(t);
   }, [lastSavedAt]);
 

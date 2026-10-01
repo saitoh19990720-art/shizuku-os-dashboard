@@ -93,7 +93,7 @@ export default function PromptBuilderCard() {
     .filter((s) => !favOnly || s.favorite);
 
   return (
-    <Card eyebrow="Prompt Builder" title="プロンプトを組む・貯める" defaultOpen={false}>
+    <Card eyebrow="Prompt Builder" title="依頼文を組む・残す" storageTitle="プロンプトを組む・貯める" defaultOpen={false}>
       <div className="flex flex-col gap-2.5">
         {FIELDS.map((f) => (
           <label key={f.key} className="flex flex-col gap-1">

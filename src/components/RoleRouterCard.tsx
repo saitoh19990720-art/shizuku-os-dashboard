@@ -17,7 +17,7 @@ const ROUTES: { task: string; tool: string }[] = [
 
 export default function RoleRouterCard() {
   return (
-    <Card eyebrow="AI reference（参考）" title="どのAIに投げるか" defaultOpen={false}>
+    <Card eyebrow="AI reference（参考）" title="AIの使い分けを見る" storageTitle="どのAIに投げるか" defaultOpen={false}>
       <p className="mb-3 text-xs text-neutral2-500">
         参考表です（自動ルーティングはしません）。迷ったら Opus 5。Fable 5 は最難関だけ（料金が高い）。
       </p>
