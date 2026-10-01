@@ -26,7 +26,7 @@ export default function NextActionCard() {
           onChange={(e) => setNa({ ...na, text: e.target.value })}
           aria-label="今日の次アクション"
           placeholder="今日やる1つを書く…（例：Figmaで1カード整える）"
-          className={`grow rounded-xl border border-main-200 bg-white px-3 py-2.5 text-[15px] outline-none focus:border-accent-300 ${
+          className={`grow rounded-xl border border-[#767676] bg-white px-3 py-2.5 text-[15px] placeholder:text-neutral2-500 placeholder:opacity-100 outline-none focus:border-accent-300 ${
             na.done ? "text-neutral2-500 line-through" : "text-ink"
           }`}
         />
