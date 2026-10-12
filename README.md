@@ -48,7 +48,7 @@ Shizuku OS は、その「判断」と「再開」を支えるための小型OS�
 | Semantics / Forms | カード見出し、入力目的、操作名、URLエラーとの関連を明示 | h1は1件、カードを含むh2は13件、主要ランドマークを確認 |
 | Mobile | 小さい操作対象を24px以上へ調整 | 320px幅で横スクロールなし（`clientWidth = scrollWidth = 305`） |
 
-- [Figmaケーススタディ](https://www.figma.com/design/koKE3FNUcGw7MAq3325bbG/%E7%84%A1%E9%A1%8C?node-id=2-4)
+- [Figmaケーススタディ](https://www.figma.com/design/FCy5RRpXsRhXs44WcoPuZt/?node-id=3-2)
 - [WCAG 2.2 Level A 監査・修正ログ](./docs/ACCESSIBILITY_AUDIT.md)
 - [公開ダッシュボード](https://shizuku-os-dashboard.vercel.app/#/dashboard)
 
@@ -77,12 +77,13 @@ Shizuku OS は、その「判断」と「再開」を支えるための小型OS�
 
 ## ページ構成
 
-依存を増やさない**軽量ハッシュルーティング**で2画面を切り替えます。
+依存を増やさない**軽量ハッシュルーティング**で3画面を切り替えます。
 
 | URL | 内容 |
 |---|---|
 | `/`（既定） | Landing（Shizuku OS の紹介） |
 | `/#/dashboard` | Dashboard（12カード＋折りたたみ） |
+| `/#/case-study` | Case Study（制作背景・判断・実装・QA） |
 
 - Landing の「Dashboardを見る」→ Dashboard へ
 - Dashboard の「← Aboutに戻る」→ Landing へ

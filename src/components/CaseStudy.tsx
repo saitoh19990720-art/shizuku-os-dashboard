@@ -1,19 +1,111 @@
-const problemMap = ['今日やること', '制作途中の状態', 'AIへ任せる作業', '再開地点'];
-const workflow = ['OBSERVE', 'DECIDE', 'DESIGN', 'BUILD', 'QA', 'RECORD'];
-const outcomes = ['課題定義', '情報設計', 'UI / UX', '実装', '独立QA'];
+/// <reference types="vite/client" />
+import type { CSSProperties, ReactNode } from "react";
+import landingSource from "../assets/case-study/landing-source.png";
+import qualityGateSource from "../assets/case-study/quality-gate-source.png";
+import dashboardSource from "../assets/case-study/dashboard-source.png";
+import "./CaseStudy.css";
 
-function Section({ eyebrow, title, children }: { eyebrow: string; title: string; children: React.ReactNode }) {
-  return <section className="rounded-[32px] border border-[#dbe8f2] bg-white p-6 shadow-soft sm:p-12"><p className="text-xs font-medium tracking-[0.08em] text-[#296eab]">{eyebrow}</p><h2 className="mt-4 font-mincho text-2xl font-semibold leading-snug text-ink sm:text-[38px]">{title}</h2>{children}</section>
+// ローカルレビュー用の表示構成：Figmaの6節（Hero / Challenge / Quality Gate /
+// Information Design / Boundary / Closing）を本文の基準にした移植案。
+// 旧Human × AI Workflow、problemMap、QA一覧、outcomes、装飾文はこの案の表示から外している。
+// 旧全文は handoff/legacy/CaseStudy.before.tsx に保存済みで、公開・削除の承認ではない。
+
+// Case Studyだけで使う書体。index.htmlの共通フォント読込は変更しない。
+const FONT_HREF =
+  "https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Outfit:wght@600&display=swap";
+
+// 主要3カードの元画面抜粋。比率と画像位置はFigma（PC/モバイル共通）の値。
+const dashboardCrops: { alt: string; ratio: string; img: CSSProperties }[] = [
+  {
+    alt: "制作時点の「今日の制作候補」カード",
+    ratio: "282 / 403.094",
+    img: { width: "330.59%", height: "842.8%", left: "-115.29%", top: "-178.6%" },
+  },
+  {
+    alt: "制作時点の「夜タスク3行ログ」カード",
+    ratio: "282 / 340.059",
+    img: { width: "330.59%", height: "999.02%", left: "-115.29%", top: "-380%" },
+  },
+  {
+    alt: "制作時点の「制作中リンク」カード上部",
+    ratio: "282 / 381.529",
+    img: { width: "330.59%", height: "890.43%", left: "-115.29%", top: "-430.43%" },
+  },
+];
+
+function Section({ variant, eyebrow, title, children }: { variant: string; eyebrow: string; title: string; children: ReactNode }) {
+  return (
+    <section className={`cs-section cs-section--${variant}`}>
+      <p className="cs-eyebrow">{eyebrow}</p>
+      <h2 className="cs-title">{title}</h2>
+      {children}
+    </section>
+  );
 }
 
 export default function CaseStudy() {
-  return <main className="bg-[#f6fafc] px-4 py-10 sm:px-8 sm:py-16 lg:px-12"><div className="mx-auto flex max-w-[1200px] flex-col gap-10 sm:gap-16">
-    <section className="rounded-[32px] border border-[#dbe8f2] bg-white p-6 shadow-soft sm:p-12"><p className="text-sm font-medium tracking-[0.08em] text-[#296eab]">SHIZUKU STUDIO / CASE STUDY</p><h1 className="mt-4 font-mincho text-4xl font-semibold leading-tight text-ink sm:text-[64px]">Shizuku OS Dashboard</h1><p className="mt-5 max-w-4xl text-lg leading-relaxed text-neutral2-500 sm:text-[26px]">AIと一人で制作するときの「判断・再開・優先順位」を、1画面に整理する個人向け制作OS。</p><div className="mt-6 flex flex-wrap gap-3">{['React','TypeScript','Tailwind CSS','Vite','Vercel'].map(x => <span key={x} className="rounded-full bg-[#edf7ff] px-4 py-2 text-sm font-medium text-[#296eab]">{x}</span>)}</div></section>
-    <Section eyebrow="01 Challenge" title="問題は「情報不足」ではなく、情報が多すぎて次の1手が見えなくなること。"><p className="mt-5 max-w-4xl text-base leading-relaxed text-neutral2-500 sm:text-lg">AIを使った制作では、アイデア・参考情報・途中判断が短時間で増えます。複数の場所に分散すると、制作より先に「今どこまで進めたか」を思い出すコストが発生します。</p><div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{problemMap.map((x,i) => <div key={x} className="rounded-[20px] bg-[#f2faff] p-5"><p className="text-xs text-[#296eab]">0{i+1}</p><p className="mt-3 font-medium text-ink">{x}</p></div>)}</div></Section>
-    <Section eyebrow="02 Human × AI Workflow" title="AIは万能役ではなく、工程ごとに役割を分ける。"><p className="mt-5 max-w-4xl text-base leading-relaxed text-neutral2-500 sm:text-lg">調査・要件整理・UI設計・実装・レビュー・記録を分離し、人間側には「採用」「作らない」「完成条件」の判断を残します。</p><div className="mt-7 grid gap-3 sm:grid-cols-3 lg:grid-cols-6">{workflow.map(x => <div key={x} className="rounded-[18px] border border-[#d1e3f0] bg-[#f2faff] px-4 py-5 text-sm font-medium text-[#296eab]">{x}</div>)}</div><div className="mt-4 grid gap-4 sm:grid-cols-3">{[['NOW','今やる1本'],['NEXT','次に進める'],['BACKLOG','新案を隔離']].map(([a,b]) => <div key={a} className="rounded-[18px] border border-[#d1e3f0] p-5"><p className="text-sm text-[#296eab]">{a}</p><p className="mt-2 font-medium text-ink">{b}</p></div>)}</div></Section>
-    <Section eyebrow="03 Quality Gate" title="生成する工程と、決定する工程を分離する。"><p className="mt-5 max-w-4xl text-base leading-relaxed text-neutral2-500 sm:text-lg">AIは判断材料を増やす。最終的な採否は、人間が目的・文脈・美学を踏まえて決定します。</p><div className="mt-7 grid gap-4 sm:grid-cols-3">{[['採用','目的と完成条件に合う'],['保留','価値はあるが今ではない'],['捨てる','目的から外れる']].map(([a,b]) => <div key={a} className="rounded-[22px] border border-[#d1e3f0] bg-[#f2faff] p-6"><p className="text-2xl font-semibold text-ink">{a}</p><p className="mt-3 text-sm text-neutral2-500">{b}</p></div>)}</div><p className="mt-5 rounded-[18px] bg-[#ebf6ff] px-6 py-5 text-[#296eab]">AI = 候補を作る ／ Human = 文脈を理解して最終判断する</p><img className="mt-5 w-full max-w-[520px] rounded-[24px] border border-[#d1e3f0] object-cover" src="./docs/images/screenshot-quality-gate.png" alt="Quality Gateの実画面" /></Section>
-    <Section eyebrow="04 Implementation + QA" title="小さく成立させ、壊れやすい部分を独立QAする。"><p className="mt-5 max-w-4xl text-base leading-relaxed text-neutral2-500 sm:text-lg">localStorage + JSON export / importで核となる体験を先に成立。外部API・ログイン・本格DB・複雑な自動化は初期スコープから外しました。</p><div className="mt-7 grid gap-5 sm:grid-cols-2">{[['IMPLEMENTATION',['React / TypeScript','Tailwind CSS / Vite','localStorage','JSON export / import']],['QA',['保存・読み込み失敗','不正JSON / URL欠損','320px responsive','keyboard / reduced motion','build / typecheck / lint / test']]].map(([title,items]) => <div key={title as string} className="rounded-[22px] border border-[#d1e3f0] bg-[#f2faff] p-6"><p className="text-sm text-[#296eab]">{title as string}</p><ul className="mt-4 space-y-3 text-sm text-ink">{(items as string[]).map(x => <li key={x}>• {x}</li>)}</ul></div>)}</div><div className="mt-6 flex flex-wrap gap-3">{['Figma','Claude Code','Codex QA','Fix','Re-check'].map(x => <span key={x} className="rounded-full border border-[#d1e3f0] px-5 py-3 text-sm text-[#296eab]">{x}</span>)}</div><div className="mt-6 grid gap-5 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]"><img className="w-full rounded-[24px] border border-[#d1e3f0] object-cover" src="./docs/images/screenshot-dashboard-desktop.png" alt="Desktop Dashboardの実画面" /><img className="mx-auto h-full max-h-[560px] rounded-[24px] border border-[#d1e3f0] object-cover" src="./docs/images/screenshot-dashboard-mobile.png" alt="Mobile Dashboardの実画面" /></div></Section>
-    <Section eyebrow="05 Result" title="「考える → 選ぶ → 作る → 中断する → 戻る → 完成させる」を支える制作OSへ。"><p className="mt-5 max-w-4xl text-base leading-relaxed text-neutral2-500 sm:text-lg">完成画面だけではなく、制作プロセスそのものを構造化。AIを多く使うからこそ「AIに何を任せ、人間が何を決め続けるか」を設計しました。</p><a href="https://shizuku-os-dashboard.vercel.app/" target="_blank" rel="noreferrer" className="mt-7 block rounded-[22px] bg-[#ebf6ff] p-6"><p className="text-xs text-[#296eab]">LIVE PRODUCT</p><p className="mt-2 font-semibold text-ink">shizuku-os-dashboard.vercel.app</p><p className="mt-2 text-sm text-neutral2-500">公開中の実装をケーススタディの証拠として接続</p></a><div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-5">{outcomes.map((x,i) => <div key={x} className="rounded-[18px] border border-[#d1e3f0] bg-[#f2faff] p-4"><p className="text-xs text-[#296eab]">0{i+1}</p><p className="mt-2 text-sm font-medium text-ink">{x}</p></div>)}</div><div className="mt-6 rounded-[22px] bg-[#172b3d] p-7"><p className="text-sm text-[#8fc7f2]">Complexity, quietly structured.</p><p className="mt-2 font-mincho text-2xl font-semibold text-white">複雑なものを、静かに、わかる形へ。</p></div></Section>
-    <a href="#/" className="self-start text-sm text-[#296eab]">← Shizuku OSについて戻る</a>
-  </div></main>
+  return (
+    <main className="cs-page">
+      <link rel="stylesheet" href={FONT_HREF} />
+
+      <section className="cs-section cs-section--hero">
+        <span className="cs-hero-mark" aria-hidden="true" />
+        <p className="cs-eyebrow">SHIZUKU OS DASHBOARD</p>
+        <h1 className="cs-title">AIの案を、人が次の一手へ変える個人制作OS</h1>
+        <p className="cs-body">AI出力を「採用 / 保留 / 見送る」で判断し、再開地点と次の行動を残すためのReact製ダッシュボード。</p>
+        <figure className="cs-figure">
+          <div className="cs-frame cs-frame--landing">
+            <img className="cs-frame__img" src={landingSource} alt="制作時点のShizuku OS紹介ページ" />
+          </div>
+          <figcaption className="cs-caption">制作時点の紹介ページ。現行版とは一部表記が異なります。</figcaption>
+        </figure>
+      </section>
+
+      <Section variant="challenge" eyebrow="CHALLENGE" title="案を増やすだけで、止まらないために">
+        <p className="cs-body">実装・運用・安全性まで含めて今やることを決めるのは人。判断を比較可能な観点と次の行動へ変換した。</p>
+      </Section>
+
+      <Section variant="gate" eyebrow="QUALITY GATE" title="人が判断するためのQuality Gate">
+        <p className="cs-body">実装・運用、使う人の視点、強み・再利用、安全の4観点を各3項目確認し、結論と次の一手を記録する。</p>
+        <figure className="cs-figure">
+          <div className="cs-frame cs-frame--gate">
+            <img className="cs-frame__img" src={qualityGateSource} alt="制作時点のQuality Gateカード" />
+          </div>
+          <figcaption className="cs-caption">制作時点のQuality Gate。現行の観点名・判定名は本文の表記に対応します。</figcaption>
+        </figure>
+      </Section>
+
+      <Section variant="info" eyebrow="INFORMATION DESIGN" title="散らばる制作情報を、再開できる12カードへ">
+        <p className="cs-body">目的、次の行動、判断履歴を一画面に整理し、中断時の再開地点を残せるようにした。</p>
+        <figure className="cs-figure">
+          <div className="cs-frame cs-frame--cards">
+            <div className="cs-cards">
+              {dashboardCrops.map((crop) => (
+                <div key={crop.alt} className="cs-crop" style={{ aspectRatio: crop.ratio }}>
+                  <img className="cs-crop__img" src={dashboardSource} alt={crop.alt} style={crop.img} />
+                </div>
+              ))}
+              <div className="cs-overview">
+                <img className="cs-overview__img" src={dashboardSource} alt="制作時点の12カード全体像（縮小）" />
+              </div>
+            </div>
+          </div>
+          <figcaption className="cs-caption">全12カードのうち主要3カードを抜粋。制作時点の画面です。</figcaption>
+        </figure>
+      </Section>
+
+      <Section variant="boundary" eyebrow="IMPLEMENTATION & SAFETY" title="人が最終判断し、入力はブラウザ内に保存する">
+        <p className="cs-body">React / TypeScript / Vite / Tailwind CSSで実装。端末間同期、外部API連携、ログイン、AIによる自動実行は含めない。</p>
+      </Section>
+
+      <Section variant="closing" eyebrow="SUMMARY" title="このケーススタディは、人の判断を安全に支える構造を示す">
+        <p className="cs-body">AI案に対する人の判断と、次の行動を記録するための制作OS。</p>
+      </Section>
+
+      <nav className="cs-links" aria-label="関連リンク">
+        <a href="https://shizuku-os-dashboard.vercel.app/" target="_blank" rel="noreferrer" className="cs-link">Live Product：shizuku-os-dashboard.vercel.app</a>
+        <a href="#/" className="cs-link">← Shizuku OSについて戻る</a>
+      </nav>
+    </main>
+  );
 }
