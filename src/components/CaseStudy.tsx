@@ -163,7 +163,7 @@ export default function CaseStudy() {
         <p className="cs-label">SOURCE REFERENCES / 設計・実装・監査の参照先</p>
         <ul className="cs-refs__list">
           {REFS.map((ref) => (
-            <li key={ref.href}>
+            <li key={ref.label}>
               <a className="cs-ref cs-ref--link cs-pre" href={ref.href} target="_blank" rel="noreferrer">
                 {ref.label}
               </a>
