@@ -1,165 +1,153 @@
-/* Case Study専用スタイル。
-   値はFigma FCy5RRpXsRhXs44WcoPuZt の PC 3:2（1440）/ 375px 133:2 / 320px 133:3 から写す。
+/* Case Study v1専用スタイル。
+   値はFigma FCy5RRpXsRhXs44WcoPuZt の PC 163:699（1200）/ 375px 163:1092 / 320px 168:768 から写す。
    書体BIZ UDPGothic / Outfitは .cs-page 内だけで使い、Dashboard・Landingのテーマは変えない。
-   既定はモバイル（375/320）の1列、1232px以上でPCフレームの寸法に切り替える。 */
+   既定はSP（375/320）の縦積み。768pxの専用フレームは無いので流動の縦積みのまま扱い、
+   固定幅1200のPCフレームが収まる1232px以上でだけ横並びに切り替える。 */
 
 .cs-page {
   display: flex;
   flex-direction: column;
   gap: 32px;
-  padding: 32px 16px;
+  padding: 32px 24px;
   background: #f8faff;
   color: #2f3b48;
   font-family: "BIZ UDPGothic", sans-serif;
-}
-
-/* 節：Figmaの線は内側線なので、寸法に影響しない inset shadow で描く */
-.cs-section {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  width: 100%;
-  overflow: hidden;
-  padding: 24px 16px;
-  border-radius: 28px;
-  box-shadow: inset 0 0 0 1px #dce9ff;
   overflow-wrap: break-word;
 }
 
-.cs-section--hero {
-  background: #f2f9ff;
-  box-shadow: none;
-}
-.cs-section--challenge {
-  background: #f7fbff;
-}
-.cs-section--gate {
-  background: #edf6ff;
-}
-.cs-section--info {
-  background: #f7fbff;
-}
-.cs-section--boundary {
-  background: #f6fbff;
-}
-.cs-section--closing {
-  background: #f2faff;
+/* 原稿の改行と「  /  」の空白をそのまま表示する */
+.cs-pre {
+  white-space: pre-wrap;
 }
 
-/* PCフレームにだけある 3×14 の小片（node 32:2）。モバイルフレームには無い */
-.cs-hero-mark {
-  display: none;
+/* 紹介・各ブロック・参照先 */
+.cs-intro,
+.cs-block,
+.cs-refs {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
 }
 
-.cs-eyebrow {
+.cs-refs {
+  gap: 10px;
+}
+
+.cs-block {
+  gap: 18px;
+}
+
+/* 英語ラベル（Eyebrow / Block / References label） */
+.cs-label {
   font-family: "Outfit", sans-serif;
   font-weight: 600;
-  font-size: 12px;
-  line-height: 15px;
-  letter-spacing: 0.96px;
+  font-size: 13px;
+  line-height: 21px;
+  letter-spacing: 0;
   color: #2f5f8a;
-}
-.cs-section--gate .cs-eyebrow {
-  font-size: 16px;
-  line-height: 20px;
-  letter-spacing: 1.28px;
-  color: #5a84c9;
 }
 
 .cs-title {
   font-weight: 700;
-  font-size: 24px;
-  line-height: 1.35;
+  font-size: 28px;
+  line-height: 46px;
   color: #1e2a38;
 }
-.cs-section--hero .cs-title {
-  font-size: 28px;
-  line-height: 1.25;
+
+.cs-lead {
+  font-size: 17px;
+  line-height: 28px;
 }
-.cs-section--gate .cs-title {
-  color: #243247;
+
+.cs-heading {
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 36px;
+  color: #1e2a38;
 }
 
 .cs-body,
-.cs-caption {
-  font-weight: 400;
+.cs-note {
   font-size: 16px;
   line-height: 26px;
 }
 
-/* 画像＋注記 */
+/* Scope / Evidence / Caption / Historical note / Publication state */
+.cs-small,
+.cs-evidence,
+.cs-caption {
+  font-size: 13px;
+  line-height: 21px;
+}
+.cs-evidence {
+  color: #2f3b48;
+}
+
+/* Quality Gate図：ラベル・注記・参照はEvidence E02と同じ書体。
+   画像は原寸368pxを上限に中央寄せし、拡大・切り抜きはしない（全体を表示） */
 .cs-figure {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   width: 100%;
 }
 
-.cs-frame {
-  position: relative;
-  width: 100%;
-  overflow: hidden;
-  border-radius: 12px;
-}
-.cs-frame::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border: 1px solid #d5e3ef;
-  border-radius: inherit;
-  pointer-events: none;
-}
-
-/* Landing・Quality Gateは同一画像の中央抜粋（cover / center） */
-.cs-frame__img {
+.cs-figure__img {
   display: block;
-  width: 100%;
-  height: 100%;
-  max-width: none;
-  object-fit: cover;
-  object-position: center;
-}
-.cs-frame--landing {
-  aspect-ratio: 311 / 300.024;
-}
-.cs-frame--gate {
-  aspect-ratio: 311 / 510.04;
+  width: min(368px, 100%);
+  height: auto;
+  margin: 0 auto;
 }
 
-/* 主要3カード＋12カード全体像。モバイルは縦積み */
-.cs-cards {
+.cs-live-evidence {
+  display: block;
+  width: min(328px, 100%);
+  height: auto;
+  margin: 0 auto;
+}
+
+.cs-figure__caption {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 16px;
+  align-items: flex-start;
+  gap: 12px;
 }
 
-.cs-crop {
-  position: relative;
-  flex-shrink: 0;
-  width: 100%;
-  max-width: 311px;
-  overflow: hidden;
-}
-.cs-crop__img {
-  position: absolute;
-  max-width: none;
+/* 本文中のリンク。周囲のEvidenceと同じ書体・色のまま、下線でリンクと分かるようにする */
+.cs-inline-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
-.cs-overview {
-  flex-shrink: 0;
-  width: 122px;
-  height: 404px;
+/* 参照先 */
+.cs-refs__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  list-style: none;
+  padding: 0;
 }
-.cs-overview__img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  max-width: none;
-  object-fit: contain;
+.cs-ref {
+  font-family: "Outfit", "BIZ UDPGothic", sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 21px;
+  color: #2f5f8a;
+}
+.cs-ref--link {
+  color: #2f5f8a;
 }
 
-/* 既存の作品・戻る導線（Figma 6節の外に保持） */
+.cs-ref--link:focus-visible,
+.cs-inline-link:focus-visible,
+.cs-link:focus-visible {
+  outline: 2px solid #2f5f8a;
+  outline-offset: 3px;
+}
+
+/* 既存の作品・戻る導線（Figmaの4ブロックの外に保持） */
 .cs-links {
   display: flex;
   flex-direction: column;
@@ -177,97 +165,48 @@
   text-underline-offset: 4px;
 }
 
+/* 1200枠＋縦スクロールバー分の余裕を見て1232px以上（旧版と同じ切替幅） */
 @media (min-width: 1232px) {
   .cs-page {
-    align-items: center;
-    gap: 0;
-    padding: 120px 0;
-  }
-
-  .cs-section,
-  .cs-links {
     width: 1200px;
+    margin: 0 auto;
+    gap: 40px;
+    padding: 64px;
   }
 
-  /* 節の上端位置 120 / 1230 / 1530 / 2378 / 3197 / 3513 に合わせた間隔 */
-  .cs-section--challenge {
-    margin-top: 120px;
-    padding: 64px 64px 57px;
-  }
-  .cs-section--gate {
-    margin-top: 80px;
-    padding: 72px 40px;
-  }
-  .cs-section--info {
-    margin-top: 96px;
-    padding: 72px 64px;
-  }
-  .cs-section--boundary {
-    margin-top: 72px;
-    padding: 72px 64px 59px;
-  }
-  .cs-section--closing {
-    margin-top: 96px;
-    padding: 72px 64px 59px;
-  }
-  .cs-links {
-    margin-top: 32px;
-  }
-
-  /* Heroは高さ990の固定枠。内容の下端965から下余白25 */
-  .cs-section--hero {
-    gap: 80px;
-    min-height: 990px;
-    padding: 72px 64px 25px;
-  }
-  .cs-hero-mark {
-    display: block;
-    flex-shrink: 0;
-    width: 3px;
-    height: 14px;
-    background: #d9d9d9;
+  .cs-block {
+    gap: 18px;
   }
 
   .cs-title {
+    font-size: 44px;
+    line-height: 73px;
+  }
+  .cs-lead {
+    font-size: 20px;
+    line-height: 33px;
+  }
+  .cs-heading {
     font-size: 30px;
+    line-height: 50px;
+  }
+  .cs-body {
+    font-size: 18px;
     line-height: 30px;
   }
-  .cs-section--hero .cs-title {
-    font-size: 48px;
-    line-height: 1.15;
+  .cs-small,
+  .cs-evidence,
+  .cs-caption {
+    font-size: 14px;
+    line-height: 23px;
   }
 
-  .cs-body {
-    max-width: 960px;
-    line-height: 1;
+  .cs-refs__list {
+    flex-direction: column;
+    gap: 10px;
   }
-  .cs-section--hero .cs-body {
-    font-size: 18px;
-    line-height: 29px;
-  }
-  .cs-section--challenge .cs-body {
-    line-height: 26px;
-  }
-
-  .cs-frame--landing {
-    aspect-ratio: 1072 / 420;
-  }
-  .cs-frame--gate {
-    aspect-ratio: 1120 / 460;
-  }
-  .cs-frame--gate .cs-frame__img {
-    object-fit: contain;
-  }
-
-  .cs-frame--cards {
-    padding: 28px;
-  }
-  .cs-cards {
-    flex-direction: row;
-    align-items: flex-start;
-  }
-  .cs-crop {
-    width: 282px;
-    max-width: none;
+  .cs-ref {
+    font-size: 15px;
+    line-height: 25px;
   }
 }

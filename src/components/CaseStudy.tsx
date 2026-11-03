@@ -1,43 +1,52 @@
 /// <reference types="vite/client" />
-import type { CSSProperties, ReactNode } from "react";
-import landingSource from "../assets/case-study/landing-source.png";
-import qualityGateSource from "../assets/case-study/quality-gate-source.png";
-import dashboardSource from "../assets/case-study/dashboard-source.png";
+import type { ReactNode } from "react";
+import qualityGateEvidence from "../assets/case-study/v1-quality-gate-evidence.png";
+import liveQualityGate from "../assets/case-study/live-quality-gate-2026-11-03.jpg";
 import "./CaseStudy.css";
 
-// ローカルレビュー用の表示構成：Figmaの6節（Hero / Challenge / Quality Gate /
-// Information Design / Boundary / Closing）を本文の基準にした移植案。
-// 旧Human × AI Workflow、problemMap、QA一覧、outcomes、装飾文はこの案の表示から外している。
-// 旧全文は handoff/legacy/CaseStudy.before.tsx に保存済みで、公開・削除の承認ではない。
+// Case Study v1：Figma FCy5RRpXsRhXs44WcoPuZt の紹介＋4ブロック＋参照先（PC 163:699 / 375px 163:1092 / 320px 168:768）。
+// 本文は adopted-implementation-2026-10-15/figma-reference.json の texts（36要素・表示順）が正本。
+// 旧PC/SP画面素材（v1-pc-evidence / v1-sp-evidence）は表示から外しただけで、ファイルは残している。
+// 変更前の2ファイルは adopted-implementation-2026-10-15 の *.before に保存済み。
 
 // Case Studyだけで使う書体。index.htmlの共通フォント読込は変更しない。
 const FONT_HREF =
   "https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Outfit:wght@600&display=swap";
 
-// 主要3カードの元画面抜粋。比率と画像位置はFigma（PC/モバイル共通）の値。
-const dashboardCrops: { alt: string; ratio: string; img: CSSProperties }[] = [
+// 参照先4件（References のラベルとURLの対応）。GitHubは固定commitのまま、mainへ置き換えない。
+const REFS = [
   {
-    alt: "制作時点の「今日の制作候補」カード",
-    ratio: "282 / 403.094",
-    img: { width: "330.59%", height: "842.8%", left: "-115.29%", top: "-178.6%" },
+    label: "背景・12カードの設計記録  ↗",
+    href: "https://github.com/saitoh19990720-art/shizuku-os-dashboard/blob/59bceb3db8cfd8daaed08af5d49d5d68c54b61f7/README.md",
   },
   {
-    alt: "制作時点の「夜タスク3行ログ」カード",
-    ratio: "282 / 340.059",
-    img: { width: "330.59%", height: "999.02%", left: "-115.29%", top: "-380%" },
+    label: "Quality Gateの実装（4観点・3判定）  ↗",
+    href: "https://github.com/saitoh19990720-art/shizuku-os-dashboard/blob/59bceb3db8cfd8daaed08af5d49d5d68c54b61f7/src/components/QualityGateCard.tsx",
   },
   {
-    alt: "制作時点の「制作中リンク」カード上部",
-    ratio: "282 / 381.529",
-    img: { width: "330.59%", height: "890.43%", left: "-115.29%", top: "-430.43%" },
+    label: "Dashboard本体のアクセシビリティ監査（2026-09-22）  ↗",
+    href: "https://github.com/saitoh19990720-art/shizuku-os-dashboard/blob/59bceb3db8cfd8daaed08af5d49d5d68c54b61f7/docs/ACCESSIBILITY_AUDIT.md",
+  },
+  {
+    label: "制作時点のPC/SP画面抜粋（GitHub）  ↗",
+    href: "https://github.com/saitoh19990720-art/shizuku-os-dashboard/blob/59bceb3db8cfd8daaed08af5d49d5d68c54b61f7/README.md",
   },
 ];
 
-function Section({ variant, eyebrow, title, children }: { variant: string; eyebrow: string; title: string; children: ReactNode }) {
+// 本文中と参照先末尾の2か所で使う、本体の制作記録（固定commit）
+const PORTFOLIO_NOTE_HREF =
+  "https://github.com/saitoh19990720-art/shizuku-os-dashboard/blob/59bceb3db8cfd8daaed08af5d49d5d68c54b61f7/docs/PORTFOLIO_NOTE.md";
+
+const QUALITY_GATE_SCREENSHOT_HREF =
+  "https://github.com/saitoh19990720-art/shizuku-os-dashboard/blob/59bceb3db8cfd8daaed08af5d49d5d68c54b61f7/docs/images/screenshot-quality-gate.png";
+
+function Section({ id, eyebrow, title, children }: { id: string; eyebrow: string; title: string; children: ReactNode }) {
   return (
-    <section className={`cs-section cs-section--${variant}`}>
-      <p className="cs-eyebrow">{eyebrow}</p>
-      <h2 className="cs-title">{title}</h2>
+    <section className="cs-block" aria-labelledby={`cs-${id}`}>
+      <p className="cs-label">{eyebrow}</p>
+      <h2 className="cs-heading" id={`cs-${id}`}>
+        {title}
+      </h2>
       {children}
     </section>
   );
@@ -48,59 +57,129 @@ export default function CaseStudy() {
     <main className="cs-page">
       <link rel="stylesheet" href={FONT_HREF} />
 
-      <section className="cs-section cs-section--hero">
-        <span className="cs-hero-mark" aria-hidden="true" />
-        <p className="cs-eyebrow">SHIZUKU OS DASHBOARD</p>
-        <h1 className="cs-title">AIの案を、人が次の一手へ変える個人制作OS</h1>
-        <p className="cs-body">AI出力を「採用 / 保留 / 見送る」で判断し、再開地点と次の行動を残すためのReact製ダッシュボード。</p>
+      <header className="cs-intro">
+        <p className="cs-label">SHIZUKU OS DASHBOARD / CASE STUDY v1</p>
+        <h1 className="cs-title">AIの案を、人が次の一手へ変える</h1>
+        <p className="cs-lead cs-pre">
+          {"採用・保留・見送るの判断と、次の行動を残す個人用ダッシュボード。\n12カードの情報設計、実装の分担、確認した範囲をまとめました。"}
+        </p>
+        <p className="cs-small cs-pre">{"個人制作  /  React・TypeScript・Vite・Tailwind CSS"}</p>
+      </header>
+
+      <Section id="challenge" eyebrow="01 / CHALLENGE" title="案が増えても、判断と再開地点が残らない">
+        <p className="cs-body">
+          {"AIで案や文章を作っても、どれを採用するか、なぜ使えるか、安全か、次に何をするかは人が決める必要がある。目的・判断履歴・次の行動を、一画面で参照できる形に整理した。"}
+        </p>
+        <p className="cs-evidence">
+          {"参照：公開リポジトリの背景説明。利用者調査ではなく、個人制作で整理した課題です。"}
+        </p>
+      </Section>
+
+      <Section id="decisions" eyebrow="02 / DESIGN DECISIONS" title="判断の観点を揃え、次の一手を残す">
+        <p className="cs-body">
+          {"Quality Gateは、4観点・各3項目で案を確認し、人が採否と次の一手を残す。チェック数だけで自動採否しない。判断の材料と、採否を選ぶ操作を分けている。"}
+        </p>
+        <p className="cs-body">
+          {"本体の制作記録では、しずくが中核価値とFigmaの情報設計、12カードで機能追加を止める範囲を判断したと記載。採用・方向の最終判断を人に残す設計と対応する。"}
+        </p>
+        <p className="cs-evidence">
+          {"根拠：本体制作記録 §6-4・§7とQualityGateCard.tsx。4観点・手動判定・次の一手の保存は実装ソースで確認。利用効果は未測定。"}
+        </p>
+
+        {/* Quality Gate図：ラベル → 画像 → 注記 → 記録済み実画面への参照（Figma 164:1164 / 164:1254 / 168:1142） */}
         <figure className="cs-figure">
-          <div className="cs-frame cs-frame--landing">
-            <img className="cs-frame__img" src={landingSource} alt="制作時点のShizuku OS紹介ページ" />
-          </div>
-          <figcaption className="cs-caption">制作時点の紹介ページ。現行版とは一部表記が異なります。</figcaption>
+          <p className="cs-evidence">{"QUALITY GATE / 4観点 → 人が判定 → 次の一手 → 履歴"}</p>
+          <img
+            className="cs-figure__img"
+            src={qualityGateEvidence}
+            width={368}
+            height={1179}
+            alt="2026-09-30の初期デモをFigmaで再構成したQuality Gate画面（当時の再構成で、現行アプリの撮影ではない）。4つの観点グループのチェック項目、人が手動で選ぶ3つの判定、次の一手の入力と保存、空の判定履歴を示す。"
+          />
+          <figcaption className="cs-figure__caption">
+            <span className="cs-caption">
+              {"4観点、手動の採否、次の一手、履歴の位置を示す。操作の成功や利用成果の証拠にはしない。"}
+            </span>
+            <a className="cs-evidence cs-inline-link" href={QUALITY_GATE_SCREENSHOT_HREF} target="_blank" rel="noreferrer">
+              {"記録済み実画面：Quality Gate画像（旧表記・下部は抜粋） ↗"}
+            </a>
+          </figcaption>
         </figure>
-      </section>
 
-      <Section variant="challenge" eyebrow="CHALLENGE" title="案を増やすだけで、止まらないために">
-        <p className="cs-body">実装・運用・安全性まで含めて今やることを決めるのは人。判断を比較可能な観点と次の行動へ変換した。</p>
+        <p className="cs-evidence">
+          {"画面は2026-09-30の初期デモをFigmaで再構成した既存素材。旧表記「部下視点・消費者視点・勝算」「捨てる」を保持。現在の観点名・「見送る」は実装参照で確認。現行アプリの撮影ではなく、判定・入力は空の状態です。"}
+        </p>
+        <img
+          className="cs-live-evidence"
+          src={liveQualityGate}
+          width={328}
+          height={1313}
+          alt="公開DashboardのQuality Gate。4観点のチェック項目と、採用・保留・見送る、次の一手、判定履歴を表示。"
+        />
+        <p className="cs-evidence">
+          {"公開DashboardのQuality Gate（2026年11月3日・375px撮影）。判定と入力は空の状態です。"}
+        </p>
       </Section>
 
-      <Section variant="gate" eyebrow="QUALITY GATE" title="人が判断するためのQuality Gate">
-        <p className="cs-body">実装・運用、使う人の視点、強み・再利用、安全の4観点を各3項目確認し、結論と次の一手を記録する。</p>
-        <figure className="cs-figure">
-          <div className="cs-frame cs-frame--gate">
-            <img className="cs-frame__img" src={qualityGateSource} alt="制作時点のQuality Gateカード" />
-          </div>
-          <figcaption className="cs-caption">制作時点のQuality Gate。現行の観点名・判定名は本文の表記に対応します。</figcaption>
-        </figure>
+      <Section id="implementation" eyebrow="03 / IMPLEMENTATION" title="本体で決めたことと、AIに任せたこと">
+        <p className="cs-body cs-pre">
+          {"しずく：中核価値、Figmaの情報設計、12カードで止める範囲、レビュー指摘の採否。\n制作記録上、Claude Codeが本体実装、Codexがレビューを担当。個別改修の実装者までは推測しない。"}
+        </p>
+        <p className="cs-note">
+          {"設計判断：AIは案と実装を支援し、採否・方向の最終判断を人が持つ。Quality Gateでは確認項目の数と手動判定を分離する。"}
+        </p>
+        <p className="cs-evidence">
+          <a className="cs-inline-link" href={PORTFOLIO_NOTE_HREF} target="_blank" rel="noreferrer">
+            {"本体の担当・判断の制作記録（2026-09-08・§7） ↗"}
+          </a>
+        </p>
+        <p className="cs-note">
+          {"掲載版制作は別記録：Claude Codeが4ブロック実装、CodexがFigma照合とローカルQA。採用した修正案は今回の限定移植・独立QAの対象です。"}
+        </p>
       </Section>
 
-      <Section variant="info" eyebrow="INFORMATION DESIGN" title="散らばる制作情報を、再開できる12カードへ">
-        <p className="cs-body">目的、次の行動、判断履歴を一画面に整理し、中断時の再開地点を残せるようにした。</p>
-        <figure className="cs-figure">
-          <div className="cs-frame cs-frame--cards">
-            <div className="cs-cards">
-              {dashboardCrops.map((crop) => (
-                <div key={crop.alt} className="cs-crop" style={{ aspectRatio: crop.ratio }}>
-                  <img className="cs-crop__img" src={dashboardSource} alt={crop.alt} style={crop.img} />
-                </div>
-              ))}
-              <div className="cs-overview">
-                <img className="cs-overview__img" src={dashboardSource} alt="制作時点の12カード全体像（縮小）" />
-              </div>
-            </div>
-          </div>
-          <figcaption className="cs-caption">全12カードのうち主要3カードを抜粋。制作時点の画面です。</figcaption>
-        </figure>
+      <Section id="verification" eyebrow="04 / VERIFICATION" title="確認した範囲と、まだ確かめていない範囲">
+        <p className="cs-body cs-pre">
+          {"2026-10-16の採用掲載版で、型チェック・対象lint・buildを確認。\n320 / 375 / 768 / 1440pxで本文36要素の一致、9リンク、横はみ出し・重なりなしを確認しました。"}
+        </p>
+        <p className="cs-note">
+          {"4幅で9リンクのTab・Shift+Tab巡回と可視フォーカスを確認。戻るリンクはEnterで遷移し、直接URLと再読込でも見出しを確認しました。"}
+        </p>
+        <p className="cs-note">
+          {"公開Dashboardは2026年11月3日、320 / 375 / 768 / 1440pxの確認した表示状態で横方向のはみ出しがないことを確認しました。Quality Gateは12項目をすべてチェックしても判定が自動選択されず、0項目でも人が保留を選べました。"}
+        </p>
+        <p className="cs-note">
+          {"375pxで判定ボタン間のTab移動とフォーカス表示を1か所確認しました。履歴の保存後の永続化、すべての操作、実機での確認は行っていません。"}
+        </p>
+        <p className="cs-note">
+          {"未確認：実ブラウザ200%ズーム、実スクリーンリーダー、WCAG 2.2 AA完全監査。利用者数・時間削減率・商用成果は未測定です。"}
+        </p>
+        <p className="cs-evidence">
+          {"検証ログはローカルに保存。公開リポジトリのDashboard本体監査は2026-09-22の別記録であり、今回の掲載版QAとは区別しています。"}
+        </p>
       </Section>
 
-      <Section variant="boundary" eyebrow="IMPLEMENTATION & SAFETY" title="人が最終判断し、入力はブラウザ内に保存する">
-        <p className="cs-body">React / TypeScript / Vite / Tailwind CSSで実装。端末間同期、外部API連携、ログイン、AIによる自動実行は含めない。</p>
-      </Section>
-
-      <Section variant="closing" eyebrow="SUMMARY" title="このケーススタディは、人の判断を安全に支える構造を示す">
-        <p className="cs-body">AI案に対する人の判断と、次の行動を記録するための制作OS。</p>
-      </Section>
+      <footer className="cs-refs">
+        <p className="cs-label">SOURCE REFERENCES / 設計・実装・監査の参照先</p>
+        <ul className="cs-refs__list">
+          {REFS.map((ref) => (
+            <li key={ref.href}>
+              <a className="cs-ref cs-ref--link cs-pre" href={ref.href} target="_blank" rel="noreferrer">
+                {ref.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+        <p className="cs-small cs-pre">
+          {"ローカル採用掲載版の検証は2026-10-16時点、公開Dashboardの確認は2026-11-03時点です。\n確認した範囲と、未確認の範囲を分けて記載しています。"}
+        </p>
+        {/* Figmaの順序どおり、Publication stateの後に置く */}
+        <p>
+          <a className="cs-ref cs-ref--link cs-pre" href={PORTFOLIO_NOTE_HREF} target="_blank" rel="noreferrer">
+            {"本体の担当・設計判断の制作記録（2026-09-08） ↗"}
+          </a>
+        </p>
+      </footer>
 
       <nav className="cs-links" aria-label="関連リンク">
         <a href="https://shizuku-os-dashboard.vercel.app/" target="_blank" rel="noreferrer" className="cs-link">Live Product：shizuku-os-dashboard.vercel.app</a>
