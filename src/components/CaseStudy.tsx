@@ -5,7 +5,7 @@ import liveQualityGate from "../assets/case-study/live-quality-gate-2026-11-03.j
 import "./CaseStudy.css";
 
 // Case Study v1：Figma FCy5RRpXsRhXs44WcoPuZt の紹介＋4ブロック＋参照先（PC 163:699 / 375px 163:1092 / 320px 168:768）。
-// 本文は adopted-implementation-2026-10-15/figma-reference.json の texts（36要素・表示順）が正本。
+// 構成は adopted-implementation-2026-10-15/figma-reference.json に準拠。本文は2026-11-06に既存制作記録を根拠に最小更新。
 // 旧PC/SP画面素材（v1-pc-evidence / v1-sp-evidence）は表示から外しただけで、ファイルは残している。
 // 変更前の2ファイルは adopted-implementation-2026-10-15 の *.before に保存済み。
 
@@ -80,7 +80,7 @@ export default function CaseStudy() {
           {"Quality Gateは、4観点・各3項目で案を確認し、人が採否と次の一手を残す。チェック数だけで自動採否しない。判断の材料と、採否を選ぶ操作を分けている。"}
         </p>
         <p className="cs-body">
-          {"本体の制作記録では、しずくが中核価値とFigmaの情報設計、12カードで機能追加を止める範囲を判断したと記載。採用・方向の最終判断を人に残す設計と対応する。"}
+          {"しずくは中核価値とFigmaの情報設計を決め、機能追加は12カードで止めた。制作記録に残るこの判断と同じく、Quality Gateでも採否と次の行動を人が決める。"}
         </p>
         <p className="cs-evidence">
           {"根拠：本体制作記録 §6-4・§7とQualityGateCard.tsx。4観点・手動判定・次の一手の保存は実装ソースで確認。利用効果は未測定。"}
@@ -123,7 +123,7 @@ export default function CaseStudy() {
 
       <Section id="implementation" eyebrow="03 / IMPLEMENTATION" title="本体で決めたことと、AIに任せたこと">
         <p className="cs-body cs-pre">
-          {"しずく：中核価値、Figmaの情報設計、12カードで止める範囲、レビュー指摘の採否。\n制作記録上、Claude Codeが本体実装、Codexがレビューを担当。個別改修の実装者までは推測しない。"}
+          {"しずく：中核価値、Figmaの情報設計、12カードで止める範囲、レビュー指摘の採否。\n本体の制作記録では、Claude Codeが実装、Codexがレビューを担当。個別改修の担当は、記録で確認できる範囲に限って記載しています。"}
         </p>
         <p className="cs-note">
           {"設計判断：AIは案と実装を支援し、採否・方向の最終判断を人が持つ。Quality Gateでは確認項目の数と手動判定を分離する。"}
@@ -134,13 +134,13 @@ export default function CaseStudy() {
           </a>
         </p>
         <p className="cs-note">
-          {"掲載版制作は別記録：Claude Codeが4ブロック実装、CodexがFigma照合とローカルQA。採用した修正案は今回の限定移植・独立QAの対象です。"}
+          {"ケーススタディの制作は本体とは別に記録しています。Claude Codeが4ブロックを実装し、CodexがFigma照合とローカルQAを担当しました。掲載版の検証範囲は、以下に日付とともに記載しています。"}
         </p>
       </Section>
 
       <Section id="verification" eyebrow="04 / VERIFICATION" title="確認した範囲と、まだ確かめていない範囲">
         <p className="cs-body cs-pre">
-          {"2026-10-16の採用掲載版で、型チェック・対象lint・buildを確認。\n320 / 375 / 768 / 1440pxで本文36要素の一致、9リンク、横はみ出し・重なりなしを確認しました。"}
+          {"2026-10-16時点の掲載版では、型チェック・対象lint・buildを確認。\n当時の本文36要素の一致、9リンク、横はみ出し・重なりなしを320 / 375 / 768 / 1440pxで確認しました。"}
         </p>
         <p className="cs-note">
           {"4幅で9リンクのTab・Shift+Tab巡回と可視フォーカスを確認。戻るリンクはEnterで遷移し、直接URLと再読込でも見出しを確認しました。"}
