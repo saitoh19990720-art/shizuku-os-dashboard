@@ -4,8 +4,8 @@ import qualityGateEvidence from "../assets/case-study/v1-quality-gate-evidence.p
 import liveQualityGate from "../assets/case-study/live-quality-gate-2026-11-03.jpg";
 import "./CaseStudy.css";
 
-// Case Study v1：Figma FCy5RRpXsRhXs44WcoPuZt の紹介＋4ブロック＋参照先（PC 163:699 / 375px 163:1092 / 320px 168:768）。
-// 構成は adopted-implementation-2026-10-15/figma-reference.json に準拠。本文は2026-11-06に既存制作記録を根拠に最小更新。
+// 2026-11-07採用原稿の6節を反映。既存Figma由来のスタイル・画像・参照先は維持。
+// 本文の正本：outputs/dashboard-case-study-review-2026-11-07/case-study-final.txt。
 // 旧PC/SP画面素材（v1-pc-evidence / v1-sp-evidence）は表示から外しただけで、ファイルは残している。
 // 変更前の2ファイルは adopted-implementation-2026-10-15 の *.before に保存済み。
 
@@ -58,32 +58,30 @@ export default function CaseStudy() {
       <link rel="stylesheet" href={FONT_HREF} />
 
       <header className="cs-intro">
-        <p className="cs-label">SHIZUKU OS DASHBOARD / CASE STUDY v1</p>
-        <h1 className="cs-title">AIの案を、人が次の一手へ変える</h1>
-        <p className="cs-lead cs-pre">
-          {"採用・保留・見送るの判断と、次の行動を残す個人用ダッシュボード。\n12カードの情報設計、実装の分担、確認した範囲をまとめました。"}
-        </p>
-        <p className="cs-small cs-pre">{"個人制作  /  React・TypeScript・Vite・Tailwind CSS"}</p>
+        <p className="cs-label">SHIZUKU OS DASHBOARD / CASE STUDY</p>
+        <h1 className="cs-title">Shizuku OS Dashboard</h1>
+        <p className="cs-lead">AIの案を、人が判断し、次の一手へつなげる個人用ダッシュボード</p>
+        <p className="cs-small">React / TypeScript / Tailwind CSS / Vite</p>
       </header>
 
-      <Section id="challenge" eyebrow="01 / CHALLENGE" title="案が増えても、判断と再開地点が残らない">
+      <Section id="overview" eyebrow="01" title="Overview">
         <p className="cs-body">
-          {"AIで案や文章を作っても、どれを採用するか、なぜ使えるか、安全か、次に何をするかは人が決める必要がある。目的・判断履歴・次の行動を、一画面で参照できる形に整理した。"}
-        </p>
-        <p className="cs-evidence">
-          {"参照：公開リポジトリの背景説明。利用者調査ではなく、個人制作で整理した課題です。"}
+          {"制作候補、振り返り、関連リンク、案の採否を12カードに整理したWebアプリケーションです。今日取り組むことを決め、判断と次の行動を残して、制作を再開しやすくすることを目的に設計・開発しました。"}
         </p>
       </Section>
 
-      <Section id="decisions" eyebrow="02 / DESIGN DECISIONS" title="判断の観点を揃え、次の一手を残す">
+      <Section id="problem" eyebrow="02" title="Problem">
         <p className="cs-body">
-          {"Quality Gateは、4観点・各3項目で案を確認し、人が採否と次の一手を残す。チェック数だけで自動採否しない。判断の材料と、採否を選ぶ操作を分けている。"}
+          {"AIで案や文章を増やせても、どれを採用するか、安全に使えるか、次に何をするかは人が判断する必要があります。制作情報や判断の経緯が散らばると、再開時に探し直す負担も生まれます。個人制作で整理したこれらの課題を、設計の出発点にしました。"}
+        </p>
+      </Section>
+
+      <Section id="solution" eyebrow="03" title="Solution">
+        <p className="cs-body">
+          {"「今日の制作候補」「夜の振り返り」「制作中リンク」「Quality Gate」を中心に、12カードを縦に配置しました。カードの折りたたみと「今日・夜ログ・採用判定・道具」のナビゲーションで、必要な場所へ移動できます。"}
         </p>
         <p className="cs-body">
-          {"しずくは中核価値とFigmaの情報設計を決め、機能追加は12カードで止めた。制作記録に残るこの判断と同じく、Quality Gateでも採否と次の行動を人が決める。"}
-        </p>
-        <p className="cs-evidence">
-          {"根拠：本体制作記録 §6-4・§7とQualityGateCard.tsx。4観点・手動判定・次の一手の保存は実装ソースで確認。利用効果は未測定。"}
+          {"Quality Gateでは「実装・運用」「使う人の視点」「強み・再利用」「安全」の4観点・12項目を確認し、人が「採用・保留・見送る」と次の一手を決めます。チェック数だけでは採否を自動選択しない構成です。"}
         </p>
 
         {/* Quality Gate図：ラベル → 画像 → 注記 → 記録済み実画面への参照（Figma 164:1164 / 164:1254 / 168:1142） */}
@@ -121,41 +119,27 @@ export default function CaseStudy() {
         </p>
       </Section>
 
-      <Section id="implementation" eyebrow="03 / IMPLEMENTATION" title="本体で決めたことと、AIに任せたこと">
-        <p className="cs-body cs-pre">
-          {"しずく：中核価値、Figmaの情報設計、12カードで止める範囲、レビュー指摘の採否。\n本体の制作記録では、Claude Codeが実装、Codexがレビューを担当。個別改修の担当は、記録で確認できる範囲に限って記載しています。"}
+      <Section id="implementation" eyebrow="04" title="Design &amp; Development">
+        <p className="cs-body">
+          {"水色・白・薄いグレーを基調に、PCでもスマートフォンでも1カラムで読む構成にしました。React・TypeScript・Tailwind CSS・Viteで実装し、データ保存にはlocalStorageを使用しています。端末間の同期はありません。"}
         </p>
-        <p className="cs-note">
-          {"設計判断：AIは案と実装を支援し、採否・方向の最終判断を人が持つ。Quality Gateでは確認項目の数と手動判定を分離する。"}
-        </p>
-        <p className="cs-evidence">
-          <a className="cs-inline-link" href={PORTFOLIO_NOTE_HREF} target="_blank" rel="noreferrer">
-            {"本体の担当・判断の制作記録（2026-09-08・§7） ↗"}
-          </a>
-        </p>
-        <p className="cs-note">
-          {"ケーススタディの制作は本体とは別に記録しています。Claude Codeが4ブロックを実装し、CodexがFigma照合とローカルQAを担当しました。掲載版の検証範囲は、以下に日付とともに記載しています。"}
+        <p className="cs-body">
+          {"制作記録では、しずくが中核価値、Figmaの情報設計、12カードで止める範囲、レビュー指摘の採否を担当し、Claude Codeが実装、Codexがレビューを担当しました。"}
         </p>
       </Section>
 
-      <Section id="verification" eyebrow="04 / VERIFICATION" title="確認した範囲と、まだ確かめていない範囲">
-        <p className="cs-body cs-pre">
-          {"2026-10-16時点の掲載版では、型チェック・対象lint・buildを確認。\n当時の本文36要素の一致、9リンク、横はみ出し・重なりなしを320 / 375 / 768 / 1440pxで確認しました。"}
+      <Section id="verification" eyebrow="05" title="Validation">
+        <p className="cs-body">
+          {"2026年11月7日、公開Dashboardをブラウザの1440・390・320px幅で確認し、確認した表示状態では横方向のはみ出しはありませんでした。390px幅では、Quality Gateの12項目をすべてチェックしても採否が自動選択されず、0項目でも人が「保留」を選べることを確認しました。"}
         </p>
-        <p className="cs-note">
-          {"4幅で9リンクのTab・Shift+Tab巡回と可視フォーカスを確認。戻るリンクはEnterで遷移し、直接URLと再読込でも見出しを確認しました。"}
+        <p className="cs-body">
+          {"2026年9月22日のDashboard本体監査記録には、WCAG 2.2レベルAを中心とした入力ラベル・見出し・操作名などの修正と、型チェック・ビルドの成功が残っています。今回の確認は実機試験や全操作の検証、WCAG適合の認定を意味しません。履歴の永続化とFigmaとの再照合は、今回の確認対象に含めていません。"}
         </p>
-        <p className="cs-note">
-          {"公開Dashboardは2026年11月3日、320 / 375 / 768 / 1440pxの確認した表示状態で横方向のはみ出しがないことを確認しました。Quality Gateは12項目をすべてチェックしても判定が自動選択されず、0項目でも人が保留を選べました。"}
-        </p>
-        <p className="cs-note">
-          {"375pxで判定ボタン間のTab移動とフォーカス表示を1か所確認しました。履歴の保存後の永続化、すべての操作、実機での確認は行っていません。"}
-        </p>
-        <p className="cs-note">
-          {"公開ケーススタディの200%ズームとWindowsナレーターは本人が確認し、問題なしと報告。確認した操作の詳細は未記録です。WCAG 2.2 AA完全監査、利用者数・時間削減率・商用成果は未確認・未測定です。"}
-        </p>
-        <p className="cs-evidence">
-          {"検証ログはローカルに保存。公開リポジトリのDashboard本体監査は2026-09-22の別記録であり、今回の掲載版QAとは区別しています。"}
+      </Section>
+
+      <Section id="outcome" eyebrow="06" title="Outcome">
+        <p className="cs-body">
+          {"12カードのDashboardと、制作背景・設計判断・検証範囲を説明するケーススタディを公開しました。AIの案を人が判断し、次の行動を残すための構成を、動くWebアプリケーションとして示しています。利用者数、作業時間の削減率、商用成果は未測定です。"}
         </p>
       </Section>
 
@@ -171,9 +155,8 @@ export default function CaseStudy() {
           ))}
         </ul>
         <p className="cs-small cs-pre">
-          {"ローカル採用掲載版の検証は2026-10-16時点、公開Dashboardの確認は2026-11-03時点です。\n確認した範囲と、未確認の範囲を分けて記載しています。"}
+          {"本文は2026年11月7日の採用原稿を反映。過去の監査記録と、今回確認した範囲を分けて記載しています。"}
         </p>
-        {/* Figmaの順序どおり、Publication stateの後に置く */}
         <p>
           <a className="cs-ref cs-ref--link cs-pre" href={PORTFOLIO_NOTE_HREF} target="_blank" rel="noreferrer">
             {"本体の担当・設計判断の制作記録（2026-09-08） ↗"}
@@ -182,7 +165,7 @@ export default function CaseStudy() {
       </footer>
 
       <nav className="cs-links" aria-label="関連リンク">
-        <a href="https://shizuku-os-dashboard.vercel.app/" target="_blank" rel="noreferrer" className="cs-link">Live Product：shizuku-os-dashboard.vercel.app</a>
+        <a href="https://shizuku-os-dashboard.vercel.app/#/dashboard" target="_blank" rel="noreferrer" className="cs-link">Live Product：shizuku-os-dashboard.vercel.app</a>
         <a href="#/" className="cs-link">← Shizuku OSについて戻る</a>
       </nav>
     </main>
