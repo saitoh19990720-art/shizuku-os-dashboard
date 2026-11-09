@@ -2,6 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+.card-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 180ms ease-out, opacity 180ms ease-out;
+}
+
+.card-panel-open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.card-panel-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
 :root {
   color-scheme: light;
 }

@@ -1,4 +1,4 @@
-import { type ReactNode, useId } from "react";
+import { type ReactNode, useEffect, useId, useState } from "react";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { cardOpenKey } from "../lib/cardOpenKey";
 
@@ -30,12 +30,21 @@ export default function Card({
     defaultOpen,
   );
   const panelId = useId();
+  const [rendered, setRendered] = useState(open);
+  useEffect(() => {
+    if (open) return;
+    const timer = window.setTimeout(() => setRendered(false), 180);
+    return () => window.clearTimeout(timer);
+  }, [open]);
   return (
     <section className="rounded-card border border-white/70 bg-white/80 p-5 shadow-soft backdrop-blur-sm">
       <h2>
         <button
           type="button"
-          onClick={() => setOpen((o) => !o)}
+          onClick={() => {
+            if (!open) setRendered(true);
+            setOpen(!open);
+          }}
           aria-expanded={open}
           aria-controls={panelId}
           className="flex min-h-[44px] w-full items-start justify-between gap-3 text-left"
@@ -56,8 +65,15 @@ export default function Card({
           </span>
         </button>
       </h2>
-      <div id={panelId} hidden={!open} className="mt-4">
-        {open && children}
+      <div
+        id={panelId}
+        className={`card-panel ${open ? "card-panel-open" : ""}`}
+        aria-hidden={!open}
+        ref={(node) => { if (node) node.inert = !open; }}
+      >
+        <div className="card-panel-inner">
+          {rendered && <div className="mt-4">{children}</div>}
+        </div>
       </div>
     </section>
   );
