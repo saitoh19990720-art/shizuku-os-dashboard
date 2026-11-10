@@ -7,7 +7,7 @@ const CORE = [
   { ic: "🩵", title: "今日の制作候補", desc: "今日いちばん進める1つを決め、見失わない。優先度バッジ付き。" },
   { ic: "🌙", title: "夜タスク3行ログ", desc: "やった／学び／次やる。1日を3行で沈殿させる。" },
   { ic: "🔗", title: "制作中リンク", desc: "Figma・GitHub・メモ・公開URLを置いて、再開を速くする。" },
-  { ic: "💎", title: "Quality Gate", desc: "案・制作物を「採用／保留／捨てる」で判定する。" },
+  { ic: "💎", title: "Quality Gate", desc: "案・制作物を「採用／保留／見送る」で判定する。" },
 ];
 
 const GITHUB = "https://github.com/saitoh19990720-art/shizuku-os-dashboard";
@@ -105,7 +105,7 @@ export default function Landing() {
             4つの視点でAIの案・制作物・改善提案を見て、雑なまま前に進めない。
           </p>
           <div className="mt-3.5 flex flex-wrap gap-2">
-            {["部下視点", "消費者視点", "勝算", "安全"].map((l) => (
+            {["実装・運用", "使う人の視点", "強み・再利用", "安全"].map((l) => (
               <span
                 key={l}
                 className="rounded-full border border-main-300 bg-white px-3.5 py-1.5 text-[13px] text-accent-600"
@@ -117,7 +117,7 @@ export default function Landing() {
           <div className="mt-4 flex flex-wrap gap-2">
             <span className="rounded-xl bg-crystal-200 px-4 py-2 text-[13px] text-accent-600">採用</span>
             <span className="rounded-xl bg-main-200 px-4 py-2 text-[13px] text-accent-600">保留</span>
-            <span className="rounded-xl bg-neutral2-100 px-4 py-2 text-[13px] text-neutral2-500">捨てる</span>
+            <span className="rounded-xl bg-neutral2-100 px-4 py-2 text-[13px] text-neutral2-500">見送る</span>
           </div>
           <p className="mt-4 text-sm text-neutral2-500">
             合言葉：雑案を増やすな。<strong className="text-ink">最終判断は人間。</strong>
