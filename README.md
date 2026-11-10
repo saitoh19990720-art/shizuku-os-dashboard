@@ -127,17 +127,16 @@ npm run preview
 ```bash
 npm run typecheck   # 型の食い違いを見る（tsc --noEmit）
 npm run lint        # 書き間違い・React の規約違反を見る（ESLint 10系・フラット設定）
-npm test            # 保存まわりの自動テスト（Vitest + jsdom・91件）
+npm test            # 自動テスト（Vitest + jsdom・112件／2026-11-11 実測）
 ```
 
 `npm run lint` は**整形（インデント・引用符）は見ない**。
 見るのは「動かす前に気づける間違い」だけ——未使用の変数、`useEffect` の依存漏れ、`any` の放置など。
 既存コードの書き方を後から一括で書き換えないための線引き。
 
-> 現在 **error 0件・warning 4件**。内訳は `DataBridgeCard.tsx` に3件（部品と関数を同じファイルから出しているため、
-> 開発中の自動リロードが効きにくいという指摘。テストから呼べるようにするため意図的にそうしている）と、
-> `useLocalStorage.ts` に1件（レンダー中の ref 書き換え）。後者は**別PRで直す前提で warning として残している**。
-> どちらも「分かったうえで残している」状態で、無視設定にはしていない。
+> 2026-11-10 の実測で **error 0件・warning 3件**。3件とも `DataBridgeCard.tsx`（部品と関数を同じファイルから出しているため、
+> 開発中の自動リロードが効きにくいという指摘。テストから呼べるようにするため意図的にそうしている）。
+> 「分かったうえで残している」状態で、無視設定にはしていない。
 
 ## デプロイ（Vercel・公開済み）
 - Framework Preset：**Vite** ／ Build Command：`npm run build` ／ Output Directory：`dist` ／ Environment Variables：**なし**
@@ -168,7 +167,7 @@ npm test            # 保存まわりの自動テスト（Vitest + jsdom・91件
 - [x] localStorage のみ・外部API接続なし
 - [x] `.gitignore` で node_modules / dist / .env / .vercel を除外
 - [x] `npm run build` が通る
-- [x] `npm run typecheck` / `npm run lint`（error 0件）/ `npm test`（91件）が通る
+- [x] `npm run typecheck` / `npm run lint`（error 0件）/ `npm test`（112件／2026-11-11 実測）が通る
 - [x] README がポートフォリオ用に読める
 - [x] GitHub 公開済み＋Vercel 公開済み
 

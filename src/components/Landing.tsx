@@ -15,6 +15,8 @@ const GITHUB = "https://github.com/saitoh19990720-art/shizuku-os-dashboard";
 export default function Landing() {
   return (
     <div className="mx-auto w-full max-w-[680px] px-5">
+      {/* 本文のまとまり。見た目は変えず、読み上げソフトが本文へ移動できるようにする（字下げは差分を小さく保つため据え置き） */}
+      <main>
       {/* Hero */}
       <section className="pb-12 pt-16">
         <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-accent-500">
@@ -158,6 +160,7 @@ export default function Landing() {
           </a>
         </div>
       </section>
+      </main>
 
       <footer className="pb-12 pt-4 text-center font-ui text-[11px] text-neutral2-500">
         © Shizuku Studio — Shizuku OS

@@ -79,13 +79,16 @@ export default function TaskCard() {
           return (
             <li key={task.id} className="rounded-2xl bg-main-50 px-3 py-2.5">
               <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  checked={task.done}
-                  onChange={() => toggle(task.id)}
-                  aria-labelledby={titleId}
-                  className="h-6 w-6 shrink-0 accent-accent-500"
-                />
+                {/* 見た目は24pxのまま、押せる範囲だけ44pxに広げる（外側へ10pxずつ。負の余白で配置は変えない） */}
+                <label className="-m-2.5 flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center">
+                  <input
+                    type="checkbox"
+                    checked={task.done}
+                    onChange={() => toggle(task.id)}
+                    aria-labelledby={titleId}
+                    className="h-6 w-6 shrink-0 accent-accent-500"
+                  />
+                </label>
                 <span id={titleId} className={`grow text-sm ${task.done ? "text-neutral2-500 line-through" : "text-ink"}`}>
                   {task.title}
                   {task.demo && (
@@ -107,7 +110,8 @@ export default function TaskCard() {
                 <button
                   onClick={() => cycleStatus(task.id)}
                   aria-label={`${task.title} の状態：${STATUS_LABEL[st]}（押すと次の状態へ）`}
-                  className={`inline-flex min-h-6 items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors ${STATUS_STYLE[st]}`}
+                  /* before: は透明な当たり判定。見た目は24pxのまま、押せる範囲を44px四方以上にする */
+                  className={`relative inline-flex min-h-6 items-center before:absolute before:-inset-x-0.5 before:-inset-y-2.5 before:content-[''] rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors ${STATUS_STYLE[st]}`}
                 >
                   {STATUS_LABEL[st]}
                 </button>
