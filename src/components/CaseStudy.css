@@ -1,5 +1,8 @@
-/* Case Study v1専用スタイル。
-   値はFigma FCy5RRpXsRhXs44WcoPuZt の PC 163:699（1200）/ 375px 163:1092 / 320px 168:768 から写す。
+/* Case Study専用スタイル。
+   書体・色・余白の値はFigma FCy5RRpXsRhXs44WcoPuZt の旧4ブロック版
+   （PC 163:699 / 375px 163:1092 / 320px 168:768）から写し、6節正本
+   （PC 228:1258 / 375px 228:1823 / 320px 228:2386・2026-11-10 本人承認）でも同じ値を使っている。
+   参照リンクの操作領域とフォーカス枠は仕様 228:2949 に合わせる。
    書体BIZ UDPGothic / Outfitは .cs-page 内だけで使い、Dashboard・Landingのテーマは変えない。
    既定はSP（375/320）の縦積み。768pxの専用フレームは無いので流動の縦積みのまま扱い、
    固定幅1200のPCフレームが収まる1232px以上でだけ横並びに切り替える。 */
@@ -84,6 +87,32 @@
   color: #2f3b48;
 }
 
+.cs-archive, .cs-archive__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.cs-archive__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+.cs-archive__image { flex: 0 0 80px; }
+.cs-archive__image img { display: block; width: 100%; height: auto; }
+/* 資料欄の文字リンク。参照先と同じく1件44pxの操作領域・間隔0。押せる範囲は文字の幅まで */
+.cs-archive__links {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.cs-archive__links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  max-width: 100%;
+}
+
 /* Quality Gate図：ラベル・注記・参照はEvidence E02と同じ書体。
    画像は原寸368pxを上限に中央寄せし、拡大・切り抜きはしない（全体を表示） */
 .cs-figure {
@@ -121,11 +150,11 @@
   text-underline-offset: 4px;
 }
 
-/* 参照先 */
+/* 参照先。リンク1件ごとに44pxの操作領域を持たせるので、リンク同士の間隔は0にする */
 .cs-refs__list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0;
   list-style: none;
   padding: 0;
 }
@@ -136,18 +165,25 @@
   line-height: 21px;
   color: #2f5f8a;
 }
+/* inline-flexだと2行に折り返した行で親の高さが2px増える（320pxで46px）ため、
+   ブロックのflexにして幅だけ文字に合わせる */
 .cs-ref--link {
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 44px;
+  max-width: 100%;
   color: #2f5f8a;
 }
 
-.cs-ref--link:focus-visible,
-.cs-inline-link:focus-visible,
-.cs-link:focus-visible {
-  outline: 2px solid #2f5f8a;
+/* Case Study内のフォーカス枠。index.cssの全体指定（#5a84c9・!important）より
+   詳細度を上げて、このページの中だけ色と離れ幅を変える。Dashboard・Landingには影響しない */
+.cs-page :focus-visible {
+  outline: 2px solid #2f5f8a !important;
   outline-offset: 3px;
 }
 
-/* 既存の作品・戻る導線（Figmaの4ブロックの外に保持） */
+/* 作品・戻る導線（Figma 6節正本の「関連リンク」。6節と参照先の後ろに置く） */
 .cs-links {
   display: flex;
   flex-direction: column;
@@ -158,6 +194,7 @@
   display: inline-flex;
   align-items: center;
   min-height: 44px;
+  scroll-margin-block: 6px;
   font-size: 16px;
   line-height: 26px;
   color: #2f5f8a;
@@ -167,6 +204,7 @@
 
 /* 1200枠＋縦スクロールバー分の余裕を見て1232px以上（旧版と同じ切替幅） */
 @media (min-width: 1232px) {
+  .cs-archive__image { flex-basis: 96px; }
   .cs-page {
     width: 1200px;
     margin: 0 auto;
@@ -203,7 +241,7 @@
 
   .cs-refs__list {
     flex-direction: column;
-    gap: 10px;
+    gap: 0;
   }
   .cs-ref {
     font-size: 15px;

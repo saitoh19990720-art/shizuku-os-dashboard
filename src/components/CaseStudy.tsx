@@ -29,7 +29,8 @@ const REFS = [
   },
   {
     label: "制作時点のPC/SP画面抜粋（GitHub）  ↗",
-    href: "https://github.com/saitoh19990720-art/shizuku-os-dashboard/blob/59bceb3db8cfd8daaed08af5d49d5d68c54b61f7/README.md",
+    // 1件目と同じREADME（固定commit）。画像が並ぶ「スクリーンショット」の見出しへ直接移動する。
+    href: "https://github.com/saitoh19990720-art/shizuku-os-dashboard/blob/59bceb3db8cfd8daaed08af5d49d5d68c54b61f7/README.md#スクリーンショット",
   },
 ];
 
@@ -84,29 +85,7 @@ export default function CaseStudy() {
           {"Quality Gateでは「実装・運用」「使う人の視点」「強み・再利用」「安全」の4観点・12項目を確認し、人が「採用・保留・見送る」と次の一手を決めます。チェック数だけでは採否を自動選択しない構成です。"}
         </p>
 
-        {/* Quality Gate図：ラベル → 画像 → 注記 → 記録済み実画面への参照（Figma 164:1164 / 164:1254 / 168:1142） */}
-        <figure className="cs-figure">
-          <p className="cs-evidence">{"QUALITY GATE / 4観点 → 人が判定 → 次の一手 → 履歴"}</p>
-          <img
-            className="cs-figure__img"
-            src={qualityGateEvidence}
-            width={368}
-            height={1179}
-            alt="2026-09-30の初期デモをFigmaで再構成したQuality Gate画面（当時の再構成で、現行アプリの撮影ではない）。4つの観点グループのチェック項目、人が手動で選ぶ3つの判定、次の一手の入力と保存、空の判定履歴を示す。"
-          />
-          <figcaption className="cs-figure__caption">
-            <span className="cs-caption">
-              {"4観点、手動の採否、次の一手、履歴の位置を示す。操作の成功や利用成果の証拠にはしない。"}
-            </span>
-            <a className="cs-evidence cs-inline-link" href={QUALITY_GATE_SCREENSHOT_HREF} target="_blank" rel="noreferrer">
-              {"記録済み実画面：Quality Gate画像（旧表記・下部は抜粋） ↗"}
-            </a>
-          </figcaption>
-        </figure>
-
-        <p className="cs-evidence">
-          {"画面は2026-09-30の初期デモをFigmaで再構成した既存素材。旧表記「部下視点・消費者視点・勝算」「捨てる」を保持。現在の観点名・「見送る」は実装参照で確認。現行アプリの撮影ではなく、判定・入力は空の状態です。"}
-        </p>
+        <p className="cs-evidence">{"QUALITY GATE / 4観点 → 人が判定 → 次の一手 → 履歴"}</p>
         <img
           className="cs-live-evidence"
           src={liveQualityGate}
@@ -142,6 +121,24 @@ export default function CaseStudy() {
           {"12カードのDashboardと、制作背景・設計判断・検証範囲を説明するケーススタディを公開しました。AIの案を人が判断し、次の行動を残すための構成を、動くWebアプリケーションとして示しています。利用者数、作業時間の削減率、商用成果は未測定です。"}
         </p>
       </Section>
+
+      <aside className="cs-archive" aria-label="制作時の資料">
+        <p className="cs-evidence">制作時の資料</p>
+        <div className="cs-archive__row">
+          {/* サムネイルはリンクにしない。原寸への入口は下の文字リンク1本（Figma 228:2949） */}
+          <div className="cs-archive__image">
+            <img src={qualityGateEvidence} width={368} height={1179} alt="2026-09-30の初期デモをFigmaで再構成したQuality Gate画面（当時の再構成で、現行アプリの撮影ではない）。4つの観点、人が選ぶ判定、次の一手と空の判定履歴。" />
+          </div>
+          <div className="cs-archive__copy">
+            <p className="cs-evidence">{"画面は2026-09-30の初期デモをFigmaで再構成した既存素材。旧表記「部下視点・消費者視点・勝算」「捨てる」を保持。現在の観点名・「見送る」は実装参照で確認。現行アプリの撮影ではなく、判定・入力は空の状態です。"}</p>
+            <p className="cs-caption">{"4観点、手動の採否、次の一手、履歴の位置を示す。操作の成功や利用成果の証拠にはしない。"}</p>
+            <div className="cs-archive__links">
+              <a className="cs-evidence cs-inline-link" href={QUALITY_GATE_SCREENSHOT_HREF} target="_blank" rel="noreferrer">{"記録済み実画面：Quality Gate画像（旧表記・下部は抜粋） ↗"}</a>
+              <a className="cs-evidence cs-inline-link" href={qualityGateEvidence} target="_blank" rel="noreferrer">旧再構成画面の原寸資料 ↗</a>
+            </div>
+          </div>
+        </div>
+      </aside>
 
       <footer className="cs-refs">
         <p className="cs-label">SOURCE REFERENCES / 設計・実装・監査の参照先</p>
