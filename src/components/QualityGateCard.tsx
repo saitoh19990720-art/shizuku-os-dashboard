@@ -193,7 +193,7 @@ export default function QualityGateCard() {
     filter === "all" ? history : history.filter((r) => r.verdict === filter);
 
   return (
-    <Card eyebrow="Quality Gate" title="この案を採用する？" storageTitle="採用していい？を判定" defaultOpen={false}>
+    <Card eyebrow="Quality Gate" title="この案を採用する？" storageTitle="採用していい？を判定" defaultOpen={false} slowMotion>
       <label htmlFor={nameId} className="mb-1 block text-sm text-neutral2-500">
         案・制作物の名前
       </label>

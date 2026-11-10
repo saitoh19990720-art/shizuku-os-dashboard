@@ -52,7 +52,7 @@ export default function RetireCard() {
   );
 
   return (
-    <Card eyebrow="Retire OK" title="今日はここまででOK" defaultOpen={false}>
+    <Card eyebrow="Retire OK" title="今日はここまででOK" defaultOpen={false} slowMotion>
       <p className="mb-4 text-xs text-neutral2-500">途中で止めても、次に戻れる形で残す。</p>
 
       <label className="mb-4 block">

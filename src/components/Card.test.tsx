@@ -2,7 +2,7 @@
 // 見出しを変えても、以前保存した開閉状態（shizuku.cardOpen.v2.<旧見出し>）を引き継ぐことを固定する。
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { afterEach, beforeAll, describe, expect, it } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import Card from "./Card";
 import { cardOpenKey } from "../lib/cardOpenKey";
 import QualityGateCard from "./QualityGateCard";
@@ -24,6 +24,7 @@ function render(ui: React.ReactNode) {
 
 afterEach(() => {
   act(() => root?.unmount());
+  vi.useRealTimers();
   host?.remove();
   root = null;
   host = null;
@@ -35,6 +36,32 @@ function toggleButton(container: HTMLElement) {
 }
 
 describe("Card の開閉状態", () => {
+  it("長いカードは閉じる動きの終了まで内容を維持し、その後に取り除く", () => {
+    vi.useFakeTimers();
+    const c = render(<Card title="長いカード" slowMotion><p>中身</p></Card>);
+    const button = toggleButton(c);
+    const panel = c.querySelector('.card-panel') as HTMLElement;
+    expect(panel.style.transitionDuration).toBe('280ms');
+    act(() => button.click());
+    expect(panel.getAttribute('aria-hidden')).toBe('true');
+    act(() => vi.advanceTimersByTime(180));
+    expect(c.textContent).toContain('中身');
+    act(() => vi.advanceTimersByTime(100));
+    expect(c.textContent).not.toContain('中身');
+  });
+
+  it("閉じる途中に開き直すと、タイマーで内容が消えない", () => {
+    vi.useFakeTimers();
+    const c = render(<Card title="長いカード" slowMotion><p>中身</p></Card>);
+    const button = toggleButton(c);
+    act(() => button.click());
+    act(() => vi.advanceTimersByTime(100));
+    act(() => button.click());
+    act(() => vi.advanceTimersByTime(300));
+    expect(button.getAttribute('aria-expanded')).toBe('true');
+    expect(c.textContent).toContain('中身');
+  });
+
   it("旧見出しで閉じて保存していたカードは、新しい見出しでも閉じたまま", () => {
     localStorage.setItem(cardOpenKey("夜タスク3行ログ"), "false");
 

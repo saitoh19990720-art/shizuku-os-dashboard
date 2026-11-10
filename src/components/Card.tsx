@@ -14,6 +14,8 @@ interface CardProps {
   storageTitle?: string;
   /** 保存済みの開閉状態が無いときだけ使う初期値。 */
   defaultOpen?: boolean;
+  /** 縦に長いカードは少しゆっくり開閉する。 */
+  slowMotion?: boolean;
   children: ReactNode;
 }
 
@@ -22,6 +24,7 @@ export default function Card({
   title,
   storageTitle,
   defaultOpen = true,
+  slowMotion = false,
   children,
 }: CardProps) {
   // v2: 主カード／二次カードの既定開閉をリセット（must-fix 2）
@@ -30,12 +33,13 @@ export default function Card({
     defaultOpen,
   );
   const panelId = useId();
+  const motionDuration = slowMotion ? 280 : 180;
   const [rendered, setRendered] = useState(open);
   useEffect(() => {
     if (open) return;
-    const timer = window.setTimeout(() => setRendered(false), 180);
+    const timer = window.setTimeout(() => setRendered(false), motionDuration);
     return () => window.clearTimeout(timer);
-  }, [open]);
+  }, [open, motionDuration]);
   return (
     <section className="rounded-card border border-white/70 bg-white/80 p-5 shadow-soft backdrop-blur-sm">
       <h2>
@@ -68,6 +72,7 @@ export default function Card({
       <div
         id={panelId}
         className={`card-panel ${open ? "card-panel-open" : ""}`}
+        style={{ transitionDuration: `${motionDuration}ms` }}
         aria-hidden={!open}
         ref={(node) => { if (node) node.inert = !open; }}
       >
