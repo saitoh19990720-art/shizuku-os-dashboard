@@ -111,6 +111,7 @@
   align-items: center;
   min-height: 44px;
   max-width: 100%;
+  scroll-margin-block: 6px;
 }
 
 /* Quality Gate図：ラベル・注記・参照はEvidence E02と同じ書体。
@@ -174,6 +175,7 @@
   min-height: 44px;
   max-width: 100%;
   color: #2f5f8a;
+  scroll-margin-block: 6px;
 }
 
 /* Case Study内のフォーカス枠。index.cssの全体指定（#5a84c9・!important）より
