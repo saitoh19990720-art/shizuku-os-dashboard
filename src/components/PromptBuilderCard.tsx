@@ -216,7 +216,7 @@ export default function PromptBuilderCard() {
                   <div className="flex shrink-0 items-center gap-1">
                     <button
                       onClick={() => copyText(s.body, () => { setCopiedId(s.id); setTimeout(() => setCopiedId(null), 1600); })}
-                      className="min-h-[32px] rounded-md border border-main-300 px-2 text-[11px] text-accent-600 transition-colors hover:bg-main-100"
+                      className="min-h-[32px] rounded-md border border-main-300 px-2 text-[11px] text-ink transition-colors hover:bg-main-100"
                     >
                       {copiedId === s.id ? "済" : "コピー"}
                     </button>

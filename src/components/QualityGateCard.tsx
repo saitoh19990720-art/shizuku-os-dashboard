@@ -334,7 +334,7 @@ export default function QualityGateCard() {
                     </span>
                     <button
                       onClick={() => copyRecord(r)}
-                      className="rounded-md border border-main-300 px-2 py-1 text-[11px] text-accent-600 transition-colors hover:bg-main-100"
+                      className="rounded-md border border-main-300 px-2 py-1 text-[11px] text-ink transition-colors hover:bg-main-100"
                     >
                       {copiedId === r.id ? "済" : "MD"}
                     </button>

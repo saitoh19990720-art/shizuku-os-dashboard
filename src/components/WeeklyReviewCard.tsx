@@ -126,7 +126,7 @@ export default function WeeklyReviewCard() {
                   <div className="flex shrink-0 items-center gap-1">
                     <button
                       onClick={() => copyMd(r)}
-                      className="min-h-[32px] rounded-md border border-main-300 px-2 text-[11px] text-accent-600 transition-colors hover:bg-main-100"
+                      className="min-h-[32px] rounded-md border border-main-300 px-2 text-[11px] text-ink transition-colors hover:bg-main-100"
                     >
                       {copiedId === r.id ? "済" : "MD"}
                     </button>
@@ -140,7 +140,7 @@ export default function WeeklyReviewCard() {
                   </div>
                 </div>
                 {r.did && <p className="text-xs text-ink">🌙 {r.did}</p>}
-                {r.focus && <p className="text-xs text-accent-600">→ 来週：{r.focus}</p>}
+                {r.focus && <p className="text-xs text-ink">→ 来週：{r.focus}</p>}
                 <p className="mt-1 text-[10px] text-neutral2-500">{r.savedAt}</p>
               </li>
             ))}

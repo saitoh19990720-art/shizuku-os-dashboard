@@ -76,7 +76,7 @@ export default function NightLogCard() {
           {logs.map((log) => (
             <li key={log.id} className="rounded-2xl bg-crystal-300 px-3 py-2.5 text-sm">
               <div className="mb-1 flex items-center justify-between">
-                <span className="text-[11px] font-semibold text-accent-600">{log.date}</span>
+                <span className="text-[11px] font-semibold text-ink">{log.date}</span>
                 <button
                   type="button"
                   onClick={() => remove(log.id)}

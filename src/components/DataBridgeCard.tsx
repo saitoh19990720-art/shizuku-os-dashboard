@@ -410,7 +410,7 @@ export default function DataBridgeCard() {
             role="alert"
             className="mt-2 rounded-xl border border-accent-400 bg-crystal-100 px-3 py-2.5 text-xs leading-relaxed text-ink"
           >
-            <span className="mb-0.5 block font-semibold text-accent-600">読み込みできませんでした</span>
+            <span className="mb-0.5 block font-semibold text-ink">読み込みできませんでした</span>
             {error}
           </p>
         )}

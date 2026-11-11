@@ -12,7 +12,7 @@ export default function StorageAlert() {
       role="alert"
       className="rounded-2xl border border-accent-300 bg-crystal-100 px-4 py-3 text-xs leading-relaxed text-ink"
     >
-      <p className="mb-1 font-medium text-accent-600">
+      <p className="mb-1 font-medium text-ink">
         この端末に保存できていません（{failures.length}件）
       </p>
       <p className="text-ink">

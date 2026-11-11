@@ -62,7 +62,7 @@ export default function LinksCard() {
                 value={link.label}
                 onChange={(e) => update(link.id, { label: e.target.value })}
                 aria-label={`${link.label || "制作リンク"} の表示名`}
-                className="grow bg-transparent text-xs font-semibold text-accent-600 outline-none"
+                className="grow bg-transparent text-xs font-semibold text-ink outline-none"
               />
               <div className="flex shrink-0 items-center gap-2">
                 {urlKind(link.url) === "valid" && (
@@ -71,7 +71,7 @@ export default function LinksCard() {
                     target="_blank"
                     rel="noreferrer"
                     aria-label={`${link.label || "制作リンク"} を開く`}
-                    className="text-[11px] text-accent-600 underline-offset-2 hover:underline"
+                    className="text-[11px] text-ink underline-offset-2 hover:underline"
                   >
                     開く
                   </a>
@@ -98,7 +98,7 @@ export default function LinksCard() {
               }`}
             />
             {urlKind(link.url) === "invalid" && (
-              <p id={`link-url-error-${link.id}`} className="mt-1 text-[11px] leading-relaxed text-accent-600" role="alert">
+              <p id={`link-url-error-${link.id}`} className="mt-1 text-[11px] leading-relaxed text-ink" role="alert">
                 URL形式が正しくありません。https:// から始まるURLか、メモ文として入力してください。
               </p>
             )}
