@@ -12,3 +12,6 @@ vite.config.d.ts
 
 .env
 .env.local
+
+# ブラウザ（Chromium）が自動で書き出すエラーログ
+debug.log
