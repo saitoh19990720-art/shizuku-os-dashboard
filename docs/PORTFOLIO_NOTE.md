@@ -142,17 +142,17 @@ React 18 / TypeScript（strict）/ Tailwind CSS / Vite / localStorage / Vercel
 - 公開URL：https://shizuku-os-dashboard.vercel.app/
 - GitHub：https://github.com/saitoh19990720-art/shizuku-os-dashboard
 
-## スクリーンショット（`docs/images/` の実物・2026-09-01 時点）
+## スクリーンショット（`docs/images/` の実物・2026-11-12 時点）
 
 | ファイル名 | 撮った場所 | サイズ | 状態 |
 |---|---|---|---|
-| `screenshot-landing.png` | `/`（Landing 全体） | 1440×2151 | **README 掲載中**（PR #6 でマージ済み） |
-| `screenshot-dashboard-desktop.png` | `#/dashboard`（デスクトップ幅で表示し、読める範囲を切り出し） | 900×1560 | **README 掲載中**（PR #8 でマージ済み） |
-| `screenshot-dashboard-mobile.png` | `#/dashboard`（モバイル幅） | 390×1332 | **README 掲載中**（PR #9 でマージ済み） |
-| `screenshot-quality-gate.png` | Quality Gate 部分 | 800×900 | **README 掲載中** |
-| `screenshot-dashboard.png` | `#/dashboard` ページ全体（12カード） | 1440×4610 | リポジトリに残っているが、PR #8 でデスクトップ版へ差し替えたため **README からは未参照** |
+| `screenshot-landing.png` | `/`（Landing 全体） | 1440×2151 | **README 掲載中**（初回は PR #6。2026-11-12 に撮り直し） |
+| `screenshot-dashboard-desktop.png` | `#/dashboard`（デスクトップ幅で表示し、読める範囲を切り出し） | 900×1560 | **README 掲載中**（初回は PR #8。2026-11-12 に撮り直し） |
+| `screenshot-dashboard-mobile.png` | `#/dashboard`（モバイル幅） | 390×1332 | **README 掲載中**（初回は PR #9。2026-11-12 に撮り直し） |
+| `screenshot-quality-gate.png` | Quality Gate 部分（カードを開いた状態） | 800×900 | **README 掲載中**（2026-11-12 に撮り直し） |
+| `screenshot-dashboard.png` | `#/dashboard` ページ全体（12カード。初期表示で閉じているカードは閉じたまま） | 1440×2774 | リポジトリに残っているが、PR #8 でデスクトップ版へ差し替えたため **README からは未参照**（2026-11-12 に撮り直し。以前は 1440×4610） |
 
-> モバイル撮影は、localStorage が空の状態で行い、**今日のコンディションは畳んだ状態**で撮っている（健康情報に見える文言を作品画像に写さないため）。画像内に個人データはない。
+> 2026-11-12 の撮り直し（commit `30dd8f7`）は、5枚とも公開サイトを localStorage が空の状態（初期表示のデモデータ）で開いて行った。**今日のコンディションは畳んだ状態**で撮っている（初期表示がこの状態。健康情報に見える文言を作品画像に写さないため）。Quality Gate だけ、カードを開いてから撮っている。画像内に個人データはない。画面下の「最終保存」の表示には、撮影した時刻が写っている。
 
 ## 応募での一言（コピペ用）
 > Shizuku OS Dashboard｜AIの速さを人間の判断で仕事品質へ戻す制作OS。コンディション・次アクション・制作候補・夜ログ・リンク・Quality Gate など12カードを1画面に統合し、AI案を「採用/保留/捨てる」で判定できる個人ツール。React/TypeScript/Tailwind/Vite、外部依存は react と react-dom のみ。320px対応・WCAG AAコントラスト・localStorage/JSON入出力の安全策まで含め、設計から公開まで一人で担当（実装はClaude Code、レビューはCodex、採否と公開判断は自分）。
