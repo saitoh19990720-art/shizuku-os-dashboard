@@ -91,7 +91,7 @@ function Dashboard() {
       <header className="mb-1 px-1">
         <a
           href="#/"
-          className="mb-3 inline-flex min-h-[44px] items-center text-sm text-accent-600 transition-colors hover:text-accent-500"
+          className="mb-3 inline-flex min-h-[44px] items-center text-sm text-ink transition-colors hover:text-accent-600"
         >
           ← Shizuku OS について
         </a>
@@ -125,7 +125,7 @@ function Dashboard() {
                   className={`flex min-h-[44px] w-full items-center justify-center rounded-xl border px-1 text-xs transition-colors ${
                     selected
                       ? "border-accent-300/60 bg-crystal-100 font-semibold text-ink"
-                      : "border-transparent font-medium text-accent-600 hover:bg-main-100"
+                      : "border-transparent font-medium text-ink hover:bg-main-100"
                   }`}
                 >
                   {item.label}

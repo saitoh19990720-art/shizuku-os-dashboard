@@ -70,7 +70,7 @@ export default function ConditionCard() {
             aria-label={`痛みレベル ${n}`}
             className={`min-h-[40px] flex-1 rounded-xl border text-sm transition-colors ${
               c.pain === n
-                ? "border-transparent bg-accent-400 text-white"
+                ? "border-transparent bg-accent-600 text-white"
                 : "border-main-200 bg-white text-ink hover:border-accent-300"
             }`}
           >

@@ -68,3 +68,10 @@ textarea,
 .text-accent-400 {
   color: #4a73b8 !important;
 }
+
+/* 入力欄の例文も本文と同じ基準（4.5:1）で読めるように。すでに個別指定している入力欄と同じ色 */
+input::placeholder,
+textarea::placeholder {
+  color: #3d4a5c;
+  opacity: 1;
+}

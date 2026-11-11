@@ -19,7 +19,7 @@ export default function Landing() {
       <main>
       {/* Hero */}
       <section className="pb-12 pt-16">
-        <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-accent-600">
+        <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-ink">
           Shizuku OS
         </p>
         <h1 className="font-mincho text-3xl font-semibold leading-snug tracking-wide text-ink">
@@ -29,7 +29,7 @@ export default function Landing() {
           <br />
           仕事品質へ戻す制作OS。
         </h1>
-        <p className="mt-4 font-ui text-base font-medium text-accent-600">
+        <p className="mt-4 font-ui text-base font-medium text-ink">
           制作候補・夜ログ・制作リンク・Quality Gate を、1画面に。
         </p>
         <p className="mt-3 max-w-[540px] text-sm text-neutral2-500">
@@ -46,17 +46,17 @@ export default function Landing() {
             href={GITHUB}
             target="_blank"
             rel="noopener"
-            className="inline-flex min-h-[48px] items-center rounded-2xl border border-main-300 px-6 text-sm font-medium text-accent-600 transition-colors hover:bg-main-100"
+            className="inline-flex min-h-[48px] items-center rounded-2xl border border-main-300 px-6 text-sm font-medium text-ink transition-colors hover:bg-main-100"
           >
             GitHubを見る
           </a>
-          <a href="#/case-study" className="inline-flex min-h-[48px] items-center rounded-2xl border border-main-300 px-6 text-sm font-medium text-accent-600 transition-colors hover:bg-main-100">Case Studyを見る</a>
+          <a href="#/case-study" className="inline-flex min-h-[48px] items-center rounded-2xl border border-main-300 px-6 text-sm font-medium text-ink transition-colors hover:bg-main-100">Case Studyを見る</a>
         </div>
       </section>
 
       {/* Problem */}
       <section className="border-y border-neutral2-200 bg-white/60 py-12">
-        <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-accent-600">Problem</p>
+        <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-ink">Problem</p>
         <h2 className="mb-3 font-mincho text-xl font-semibold text-ink">
           AIで「案」は増えた。でも難しいのは、その先。
         </h2>
@@ -68,7 +68,7 @@ export default function Landing() {
 
       {/* Solution */}
       <section className="py-12">
-        <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-accent-600">Solution</p>
+        <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-ink">Solution</p>
         <h2 className="mb-3 font-mincho text-xl font-semibold text-ink">
           制作・記録・再開・判断を、1つの流れに。
         </h2>
@@ -79,7 +79,7 @@ export default function Landing() {
 
       {/* Core */}
       <section className="border-y border-neutral2-200 bg-white/60 py-12">
-        <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-accent-600">Core</p>
+        <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-ink">Core</p>
         <h2 className="mb-2 font-mincho text-xl font-semibold text-ink">核になる4カード</h2>
         <p className="mb-4 text-sm text-neutral2-500">Dashboard は全12カード。ここでは中心の4つだけ紹介します。</p>
         <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
@@ -100,7 +100,7 @@ export default function Landing() {
 
       {/* Quality Gate */}
       <section className="py-12">
-        <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-accent-600">Quality Gate</p>
+        <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-ink">Quality Gate</p>
         <h2 className="mb-4 font-mincho text-xl font-semibold text-ink">AI案を、そのまま通さない。</h2>
         <div className="rounded-card border border-main-200 bg-gradient-to-b from-crystal-300 to-main-100 p-6">
           <p className="text-sm text-neutral2-500">
@@ -129,7 +129,7 @@ export default function Landing() {
 
       {/* Philosophy */}
       <section className="border-y border-neutral2-200 bg-white/60 py-14">
-        <p className="mb-3 text-center text-[11px] font-medium uppercase tracking-[0.18em] text-accent-600">
+        <p className="mb-3 text-center text-[11px] font-medium uppercase tracking-[0.18em] text-ink">
           Philosophy
         </p>
         <p className="mx-auto max-w-[540px] text-center font-mincho text-xl leading-relaxed text-ink">
@@ -154,7 +154,7 @@ export default function Landing() {
             href={GITHUB}
             target="_blank"
             rel="noopener"
-            className="inline-flex min-h-[48px] items-center rounded-2xl border border-main-300 px-6 text-sm font-medium text-accent-600 transition-colors hover:bg-main-100"
+            className="inline-flex min-h-[48px] items-center rounded-2xl border border-main-300 px-6 text-sm font-medium text-ink transition-colors hover:bg-main-100"
           >
             GitHubを見る
           </a>
