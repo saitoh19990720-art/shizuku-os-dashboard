@@ -91,7 +91,7 @@ export default function WeeklyReviewCard() {
       <div className="flex flex-col gap-2.5">
         {FIELDS.map((f) => (
           <label key={f.key} className="flex flex-col gap-1">
-            <span className="text-xs font-medium text-accent-500">{f.label}</span>
+            <span className="text-xs font-medium text-accent-600">{f.label}</span>
             <textarea
               value={form[f.key]}
               onChange={(e) => set(f.key, e.target.value)}
@@ -103,14 +103,14 @@ export default function WeeklyReviewCard() {
         ))}
         <button
           onClick={save}
-          className="mt-1 min-h-[44px] rounded-xl bg-accent-500 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-600"
+          className="mt-1 min-h-[44px] rounded-xl bg-accent-600 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-600"
         >
           今週分を保存
         </button>
       </div>
 
       <div className="mt-5 border-t border-neutral2-200 pt-4">
-        <p className="mb-2 text-xs font-medium text-accent-500">これまでの振り返り</p>
+        <p className="mb-2 text-xs font-medium text-accent-600">これまでの振り返り</p>
         {reviews.length === 0 ? (
           <p className="rounded-xl border border-dashed border-main-300 bg-main-50 px-3 py-3 text-xs leading-relaxed text-neutral2-500">
             まだ週次レビューがありません。

@@ -49,8 +49,8 @@ const VERDICTS: { value: Verdict; label: string }[] = [
 const VERDICT_LABEL: Record<Verdict, string> = { adopt: "採用", hold: "保留", drop: "見送る" };
 // 履歴の判定バッジ色（採用＝氷色 / 保留＝水色 / 見送る＝灰）
 const VERDICT_TAG: Record<Verdict, string> = {
-  adopt: "bg-crystal-200 text-accent-600",
-  hold: "bg-main-200 text-accent-600",
+  adopt: "bg-crystal-200 text-ink",
+  hold: "bg-main-200 text-ink",
   drop: "bg-neutral2-100 text-neutral2-500",
 };
 
@@ -250,7 +250,7 @@ export default function QualityGateCard() {
               aria-label={`判定：${v.label}`}
               className={`min-h-[44px] rounded-xl border py-2 text-sm font-medium transition-colors ${
                 active
-                  ? "border-transparent bg-accent-500 text-white"
+                  ? "border-transparent bg-accent-600 text-white"
                   : "border-main-200 bg-white text-ink hover:border-accent-300"
               }`}
             >
@@ -303,7 +303,7 @@ export default function QualityGateCard() {
                 aria-label={`判定で絞り込み：${f.label}`}
                 className={`min-h-[36px] rounded-lg border px-3 text-xs transition-colors ${
                   filter === f.value
-                    ? "border-transparent bg-accent-500 text-white"
+                    ? "border-transparent bg-accent-600 text-white"
                     : "border-main-300 bg-white text-accent-600 hover:bg-main-100"
                 }`}
               >

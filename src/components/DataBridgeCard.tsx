@@ -363,7 +363,7 @@ export default function DataBridgeCard() {
       <div className="flex flex-wrap gap-2">
         <button
           onClick={doCopy}
-          className="min-h-[44px] rounded-xl bg-accent-500 px-4 text-sm font-medium text-white transition-colors hover:bg-accent-600"
+          className="min-h-[44px] rounded-xl bg-accent-600 px-4 text-sm font-medium text-white transition-colors hover:bg-accent-600"
         >
           {copied ? "コピーしました" : "JSONをコピー"}
         </button>
@@ -386,7 +386,7 @@ export default function DataBridgeCard() {
       )}
 
       <div className="mt-4 border-t border-neutral2-200 pt-4">
-        <p className="mb-2 text-xs font-medium text-accent-500">読み込み（インポート）</p>
+        <p className="mb-2 text-xs font-medium text-accent-600">読み込み（インポート）</p>
         <textarea
           value={imp}
           onChange={(e) => {

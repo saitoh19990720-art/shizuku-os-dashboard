@@ -55,7 +55,7 @@ export default function Card({
         >
           <span>
             {eyebrow && (
-              <span className="mb-1 block text-[11px] font-medium uppercase tracking-[0.18em] text-accent-500">
+              <span className="mb-1 block text-[11px] font-medium uppercase tracking-[0.18em] text-accent-600">
                 {eyebrow}
               </span>
             )}
@@ -63,7 +63,7 @@ export default function Card({
           </span>
           <span
             aria-hidden
-            className={`mt-1 shrink-0 text-accent-500 transition-transform ${open ? "" : "-rotate-90"}`}
+            className={`mt-1 shrink-0 text-accent-600 transition-transform ${open ? "" : "-rotate-90"}`}
           >
             ▾
           </span>

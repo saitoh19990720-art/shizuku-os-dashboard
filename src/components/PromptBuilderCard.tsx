@@ -97,7 +97,7 @@ export default function PromptBuilderCard() {
       <div className="flex flex-col gap-2.5">
         {FIELDS.map((f) => (
           <label key={f.key} className="flex flex-col gap-1">
-            <span className="text-xs font-medium text-accent-500">{f.label}</span>
+            <span className="text-xs font-medium text-accent-600">{f.label}</span>
             <textarea
               value={fields[f.key]}
               onChange={(e) => set(f.key, e.target.value)}
@@ -112,7 +112,7 @@ export default function PromptBuilderCard() {
       {/* 生成 */}
       <div className="mt-4 border-t border-neutral2-200 pt-4">
         <div className="mb-2 flex items-center justify-between gap-2">
-          <p className="text-xs font-medium text-accent-500">生成プロンプト</p>
+          <p className="text-xs font-medium text-accent-600">生成プロンプト</p>
           <button
             onClick={() => copyText(prompt, () => { setCopied(true); setTimeout(() => setCopied(false), 1600); })}
             disabled={!prompt}
@@ -151,7 +151,7 @@ export default function PromptBuilderCard() {
             <button
               onClick={saveToVault}
               aria-label="プロンプトを保存"
-              className="min-h-[44px] rounded-xl bg-accent-500 px-4 text-sm font-medium text-white transition-colors hover:bg-accent-600"
+              className="min-h-[44px] rounded-xl bg-accent-600 px-4 text-sm font-medium text-white transition-colors hover:bg-accent-600"
             >
               保存
             </button>
@@ -162,7 +162,7 @@ export default function PromptBuilderCard() {
       {/* Vault（保管庫） */}
       <div className="mt-6 border-t border-neutral2-200 pt-4">
         <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-xs font-medium text-accent-500">保存したプロンプト</p>
+          <p className="text-xs font-medium text-accent-600">保存したプロンプト</p>
           {saved.length > 0 && (
             <div className="flex items-center gap-1.5">
               <select
@@ -178,7 +178,7 @@ export default function PromptBuilderCard() {
                 aria-pressed={favOnly}
                 aria-label="お気に入りだけ表示"
                 className={`min-h-[28px] rounded-lg border px-2 text-[11px] transition-colors ${
-                  favOnly ? "border-transparent bg-accent-500 text-white" : "border-main-300 bg-white text-accent-600"
+                  favOnly ? "border-transparent bg-accent-600 text-white" : "border-main-300 bg-white text-accent-600"
                 }`}
               >
                 ★のみ
@@ -206,12 +206,12 @@ export default function PromptBuilderCard() {
                       onClick={() => toggleFav(s.id)}
                       aria-pressed={s.favorite}
                       aria-label={`${s.name} をお気に入りにする`}
-                      className={`shrink-0 text-sm ${s.favorite ? "text-accent-500" : "text-neutral2-500"}`}
+                      className={`shrink-0 text-sm ${s.favorite ? "text-accent-600" : "text-neutral2-500"}`}
                     >
                       ★
                     </button>
                     <span className="truncate font-medium text-ink">{s.name}</span>
-                    <span className="shrink-0 rounded-full bg-crystal-200 px-2 py-0.5 text-[10px] text-accent-600">{s.targetAI}</span>
+                    <span className="shrink-0 rounded-full bg-crystal-200 px-2 py-0.5 text-[10px] text-ink">{s.targetAI}</span>
                   </div>
                   <div className="flex shrink-0 items-center gap-1">
                     <button

@@ -15,7 +15,7 @@ export default function BrandPanelCard() {
   return (
     <Card eyebrow="Brand Panel" title="世界観トークン" defaultOpen={false}>
       {/* 配色 */}
-      <p className="mb-2 text-xs font-medium text-accent-500">配色</p>
+      <p className="mb-2 text-xs font-medium text-accent-600">配色</p>
       <div className="flex flex-col gap-2.5">
         {PALETTE.map((g) => (
           <div key={g.name}>
@@ -40,7 +40,7 @@ export default function BrandPanelCard() {
       </div>
 
       {/* フォント */}
-      <p className="mb-2 mt-4 text-xs font-medium text-accent-500">フォント</p>
+      <p className="mb-2 mt-4 text-xs font-medium text-accent-600">フォント</p>
       <div className="flex flex-col gap-1.5 rounded-2xl bg-main-50 px-3 py-3">
         <p className="font-mincho text-base text-ink">見出し — Shippori Mincho（明朝）</p>
         <p className="font-ui text-sm text-ink">UI — Zen Kaku Gothic New</p>
@@ -48,12 +48,12 @@ export default function BrandPanelCard() {
       </div>
 
       {/* キーワード */}
-      <p className="mb-2 mt-4 text-xs font-medium text-accent-500">世界観キーワード</p>
+      <p className="mb-2 mt-4 text-xs font-medium text-accent-600">世界観キーワード</p>
       <div className="flex flex-wrap gap-1.5">
         {KEYWORDS.map((k) => (
           <span
             key={k}
-            className="rounded-full bg-crystal-200 px-3 py-1 text-[11px] text-accent-600"
+            className="rounded-full bg-crystal-200 px-3 py-1 text-[11px] text-ink"
           >
             {k}
           </span>

@@ -71,7 +71,7 @@ export default function LinksCard() {
                     target="_blank"
                     rel="noreferrer"
                     aria-label={`${link.label || "制作リンク"} を開く`}
-                    className="text-[11px] text-accent-500 underline-offset-2 hover:underline"
+                    className="text-[11px] text-accent-600 underline-offset-2 hover:underline"
                   >
                     開く
                   </a>
@@ -129,7 +129,7 @@ export default function LinksCard() {
         <button
           onClick={add}
           aria-label="制作リンクを追加"
-          className="min-h-[44px] shrink-0 rounded-xl bg-accent-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-600"
+          className="min-h-[44px] shrink-0 rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-600"
         >
           追加
         </button>

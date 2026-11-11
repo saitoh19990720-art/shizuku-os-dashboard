@@ -56,7 +56,7 @@ export default function RetireCard() {
       <p className="mb-4 text-xs text-neutral2-500">途中で止めても、次に戻れる形で残す。</p>
 
       <label className="mb-4 block">
-        <span className="mb-1.5 block text-xs font-medium text-accent-500">今日やったこと</span>
+        <span className="mb-1.5 block text-xs font-medium text-accent-600">今日やったこと</span>
         <textarea
           value={r.did}
           onChange={(e) => set("did", e.target.value)}
@@ -66,18 +66,18 @@ export default function RetireCard() {
         />
       </label>
 
-      <p className="mb-1.5 text-xs font-medium text-accent-500">今できている状態</p>
+      <p className="mb-1.5 text-xs font-medium text-accent-600">今できている状態</p>
       <div className="mb-4 flex flex-col gap-1.5">
         {STAGES.map((s) => row(s, r.stage === s, () => set("stage", r.stage === s ? "" : s)))}
       </div>
 
-      <p className="mb-1.5 text-xs font-medium text-accent-500">やめる理由</p>
+      <p className="mb-1.5 text-xs font-medium text-accent-600">やめる理由</p>
       <div className="mb-4 flex flex-col gap-1.5">
         {REASONS.map((x) => row(x, r.reasons.includes(x), () => toggleReason(x)))}
       </div>
 
       <label className="mb-4 block">
-        <span className="mb-1.5 block text-xs font-medium text-accent-500">次に戻る場所</span>
+        <span className="mb-1.5 block text-xs font-medium text-accent-600">次に戻る場所</span>
         <input
           value={r.returnTo}
           onChange={(e) => set("returnTo", e.target.value)}
@@ -87,7 +87,7 @@ export default function RetireCard() {
       </label>
 
       <label className="mb-5 block">
-        <span className="mb-1.5 block text-xs font-medium text-accent-500">次の一手</span>
+        <span className="mb-1.5 block text-xs font-medium text-accent-600">次の一手</span>
         <input
           value={r.next}
           onChange={(e) => set("next", e.target.value)}
@@ -98,7 +98,7 @@ export default function RetireCard() {
 
       <button
         onClick={onSave}
-        className="min-h-[48px] w-full rounded-xl bg-accent-500 text-sm font-medium text-white transition-colors hover:bg-accent-600"
+        className="min-h-[48px] w-full rounded-xl bg-accent-600 text-sm font-medium text-white transition-colors hover:bg-accent-600"
       >
         {saved && storageOk ? "保存しました 🌙 おつかれさま" : "保存して終了する"}
       </button>

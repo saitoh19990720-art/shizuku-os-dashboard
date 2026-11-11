@@ -19,7 +19,7 @@ export default function Landing() {
       <main>
       {/* Hero */}
       <section className="pb-12 pt-16">
-        <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-accent-500">
+        <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-accent-600">
           Shizuku OS
         </p>
         <h1 className="font-mincho text-3xl font-semibold leading-snug tracking-wide text-ink">
@@ -38,7 +38,7 @@ export default function Landing() {
         <div className="mt-7 flex flex-wrap gap-3">
           <a
             href="#/dashboard"
-            className="inline-flex min-h-[48px] items-center rounded-2xl bg-accent-500 px-6 text-sm font-medium text-white transition-colors hover:bg-accent-600"
+            className="inline-flex min-h-[48px] items-center rounded-2xl bg-accent-600 px-6 text-sm font-medium text-white transition-colors hover:bg-accent-600"
           >
             Dashboardを見る
           </a>
@@ -56,7 +56,7 @@ export default function Landing() {
 
       {/* Problem */}
       <section className="border-y border-neutral2-200 bg-white/60 py-12">
-        <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-accent-500">Problem</p>
+        <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-accent-600">Problem</p>
         <h2 className="mb-3 font-mincho text-xl font-semibold text-ink">
           AIで「案」は増えた。でも難しいのは、その先。
         </h2>
@@ -68,7 +68,7 @@ export default function Landing() {
 
       {/* Solution */}
       <section className="py-12">
-        <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-accent-500">Solution</p>
+        <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-accent-600">Solution</p>
         <h2 className="mb-3 font-mincho text-xl font-semibold text-ink">
           制作・記録・再開・判断を、1つの流れに。
         </h2>
@@ -79,7 +79,7 @@ export default function Landing() {
 
       {/* Core */}
       <section className="border-y border-neutral2-200 bg-white/60 py-12">
-        <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-accent-500">Core</p>
+        <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-accent-600">Core</p>
         <h2 className="mb-2 font-mincho text-xl font-semibold text-ink">核になる4カード</h2>
         <p className="mb-4 text-sm text-neutral2-500">Dashboard は全12カード。ここでは中心の4つだけ紹介します。</p>
         <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
@@ -100,7 +100,7 @@ export default function Landing() {
 
       {/* Quality Gate */}
       <section className="py-12">
-        <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-accent-500">Quality Gate</p>
+        <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-accent-600">Quality Gate</p>
         <h2 className="mb-4 font-mincho text-xl font-semibold text-ink">AI案を、そのまま通さない。</h2>
         <div className="rounded-card border border-main-200 bg-gradient-to-b from-crystal-300 to-main-100 p-6">
           <p className="text-sm text-neutral2-500">
@@ -117,8 +117,8 @@ export default function Landing() {
             ))}
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
-            <span className="rounded-xl bg-crystal-200 px-4 py-2 text-[13px] text-accent-600">採用</span>
-            <span className="rounded-xl bg-main-200 px-4 py-2 text-[13px] text-accent-600">保留</span>
+            <span className="rounded-xl bg-crystal-200 px-4 py-2 text-[13px] text-ink">採用</span>
+            <span className="rounded-xl bg-main-200 px-4 py-2 text-[13px] text-ink">保留</span>
             <span className="rounded-xl bg-neutral2-100 px-4 py-2 text-[13px] text-neutral2-500">見送る</span>
           </div>
           <p className="mt-4 text-sm text-neutral2-500">
@@ -129,7 +129,7 @@ export default function Landing() {
 
       {/* Philosophy */}
       <section className="border-y border-neutral2-200 bg-white/60 py-14">
-        <p className="mb-3 text-center text-[11px] font-medium uppercase tracking-[0.18em] text-accent-500">
+        <p className="mb-3 text-center text-[11px] font-medium uppercase tracking-[0.18em] text-accent-600">
           Philosophy
         </p>
         <p className="mx-auto max-w-[540px] text-center font-mincho text-xl leading-relaxed text-ink">
@@ -146,7 +146,7 @@ export default function Landing() {
         <div className="flex flex-wrap justify-center gap-3">
           <a
             href="#/dashboard"
-            className="inline-flex min-h-[48px] items-center rounded-2xl bg-accent-500 px-6 text-sm font-medium text-white transition-colors hover:bg-accent-600"
+            className="inline-flex min-h-[48px] items-center rounded-2xl bg-accent-600 px-6 text-sm font-medium text-white transition-colors hover:bg-accent-600"
           >
             Dashboardを見る
           </a>

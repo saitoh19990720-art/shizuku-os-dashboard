@@ -6,16 +6,16 @@ import { makeId, useLocalStorage } from "../hooks/useLocalStorage";
 // 優先度の表示ラベルと色（A=高 / B=中 / C=低）
 const PRIORITY_LABEL: Record<Priority, string> = { A: "高", B: "中", C: "低" };
 const PRIORITY_STYLE: Record<Priority, string> = {
-  A: "bg-accent-500 text-white",
-  B: "bg-accent-300 text-white",
-  C: "bg-main-200 text-accent-600",
+  A: "bg-accent-600 text-white",
+  B: "bg-accent-300 text-ink",
+  C: "bg-main-200 text-ink",
 };
 
 // 状態（Figma準拠：今日/明日/保留）。バッジをタップで巡回。
 const STATUS_LABEL: Record<TaskStatus, string> = { today: "今日", tomorrow: "明日", hold: "保留" };
 const STATUS_STYLE: Record<TaskStatus, string> = {
-  today: "bg-crystal-200 text-accent-600",
-  tomorrow: "bg-main-200 text-accent-600",
+  today: "bg-crystal-200 text-ink",
+  tomorrow: "bg-main-200 text-ink",
   hold: "bg-neutral2-100 text-neutral2-500",
 };
 const STATUS_ORDER: TaskStatus[] = ["today", "tomorrow", "hold"];
@@ -92,7 +92,7 @@ export default function TaskCard() {
                 <span id={titleId} className={`grow text-sm ${task.done ? "text-neutral2-500 line-through" : "text-ink"}`}>
                   {task.title}
                   {task.demo && (
-                    <span className="ml-2 inline-block rounded-full bg-main-200 px-2 py-0.5 text-[10px] font-semibold text-accent-600">
+                    <span className="ml-2 inline-block rounded-full bg-main-200 px-2 py-0.5 text-[10px] font-semibold text-ink">
                       デモ
                     </span>
                   )}

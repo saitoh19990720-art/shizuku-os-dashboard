@@ -28,7 +28,7 @@ export default function RoleRouterCard() {
             className="flex items-center justify-between gap-3 rounded-2xl bg-main-50 px-3 py-2 text-sm"
           >
             <span className="text-ink">{r.task}</span>
-            <span className="shrink-0 rounded-full bg-crystal-200 px-2.5 py-0.5 text-[11px] font-semibold text-accent-600">
+            <span className="shrink-0 rounded-full bg-crystal-200 px-2.5 py-0.5 text-[11px] font-semibold text-ink">
               {r.tool}
             </span>
           </li>

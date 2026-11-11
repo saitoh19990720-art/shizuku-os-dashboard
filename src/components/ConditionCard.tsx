@@ -40,7 +40,7 @@ export default function ConditionCard() {
       </p>
 
       {/* 体力 */}
-      <p className="mb-1.5 text-xs font-medium text-accent-500">今日の体力</p>
+      <p className="mb-1.5 text-xs font-medium text-accent-600">今日の体力</p>
       <div className="mb-3 flex gap-2">
         {ENERGY.map((e) => (
           <button
@@ -50,7 +50,7 @@ export default function ConditionCard() {
             aria-label={`今日の体力：${e.label}`}
             className={`min-h-[40px] flex-1 rounded-xl border text-sm font-medium transition-colors ${
               c.energy === e.v
-                ? "border-transparent bg-accent-500 text-white"
+                ? "border-transparent bg-accent-600 text-white"
                 : "border-main-200 bg-white text-ink hover:border-accent-300"
             }`}
           >
@@ -60,7 +60,7 @@ export default function ConditionCard() {
       </div>
 
       {/* 痛み */}
-      <p className="mb-1.5 text-xs font-medium text-accent-500">痛みレベル（0〜5）</p>
+      <p className="mb-1.5 text-xs font-medium text-accent-600">痛みレベル（0〜5）</p>
       <div className="mb-3 flex gap-1.5">
         {[0, 1, 2, 3, 4, 5].map((n) => (
           <button
@@ -80,7 +80,7 @@ export default function ConditionCard() {
       </div>
 
       {/* 制作モード */}
-      <p className="mb-1.5 text-xs font-medium text-accent-500">今日の制作モード</p>
+      <p className="mb-1.5 text-xs font-medium text-accent-600">今日の制作モード</p>
       <div className="mb-3 flex flex-wrap gap-2">
         {MODES.map((m) => (
           <button
@@ -90,7 +90,7 @@ export default function ConditionCard() {
             aria-label={`今日の制作モード：${m}`}
             className={`min-h-[40px] rounded-xl border px-4 text-sm transition-colors ${
               c.mode === m
-                ? "border-transparent bg-accent-500 text-white"
+                ? "border-transparent bg-accent-600 text-white"
                 : "border-main-200 bg-white text-ink hover:border-accent-300"
             }`}
           >
@@ -101,7 +101,7 @@ export default function ConditionCard() {
 
       {/* テキスト系 */}
       <label className="mb-3 block">
-        <span className="mb-1 block text-xs font-medium text-accent-500">今日やらないこと</span>
+        <span className="mb-1 block text-xs font-medium text-accent-600">今日やらないこと</span>
         <textarea
           value={c.avoid}
           onChange={(e) => set("avoid", e.target.value)}
@@ -110,7 +110,7 @@ export default function ConditionCard() {
         />
       </label>
       <label className="mb-3 block">
-        <span className="mb-1 block text-xs font-medium text-accent-500">次の一手（15〜30分で終わる1つ）</span>
+        <span className="mb-1 block text-xs font-medium text-accent-600">次の一手（15〜30分で終わる1つ）</span>
         <input
           value={c.next}
           onChange={(e) => set("next", e.target.value)}
@@ -119,7 +119,7 @@ export default function ConditionCard() {
         />
       </label>
       <label className="block">
-        <span className="mb-1 block text-xs font-medium text-accent-500">休憩する条件</span>
+        <span className="mb-1 block text-xs font-medium text-accent-600">休憩する条件</span>
         <input
           value={c.restWhen}
           onChange={(e) => set("restWhen", e.target.value)}

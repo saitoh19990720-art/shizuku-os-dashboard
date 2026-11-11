@@ -31,7 +31,7 @@ export default function StartHereBanner() {
       aria-labelledby="start-here-title"
       className="rounded-card border border-accent-300/70 bg-crystal-100 p-4 shadow-soft"
     >
-      <p className="mb-1 text-[11px] font-medium tracking-[0.18em] text-accent-600">はじめに</p>
+      <p className="mb-1 text-[11px] font-medium tracking-[0.18em] text-ink">はじめに</p>
       <h2 id="start-here-title" className="font-mincho text-base font-semibold text-ink">
         今日の一つを決める
       </h2>
@@ -41,12 +41,12 @@ export default function StartHereBanner() {
             <button
               type="button"
               onClick={() => scrollToSection(s.target)}
-              className="flex min-h-[44px] w-full items-center gap-2 text-left font-medium text-accent-600 underline-offset-2 hover:underline"
+              className="flex min-h-[44px] w-full items-center gap-2 text-left font-medium text-ink underline-offset-2 hover:underline"
             >
               <span
                 aria-hidden
                 className={`inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold ${
-                  s.done ? "bg-accent-500 text-white" : "bg-white text-accent-600 ring-1 ring-accent-300"
+                  s.done ? "bg-accent-600 text-white" : "bg-white text-accent-600 ring-1 ring-accent-300"
                 }`}
               >
                 {s.done ? "✓" : i + 1}

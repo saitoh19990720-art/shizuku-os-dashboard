@@ -124,7 +124,7 @@ function Dashboard() {
                   aria-current={selected ? "location" : undefined}
                   className={`flex min-h-[44px] w-full items-center justify-center rounded-xl border px-1 text-xs transition-colors ${
                     selected
-                      ? "border-accent-300/60 bg-crystal-100 font-semibold text-accent-600"
+                      ? "border-accent-300/60 bg-crystal-100 font-semibold text-ink"
                       : "border-transparent font-medium text-accent-600 hover:bg-main-100"
                   }`}
                 >
