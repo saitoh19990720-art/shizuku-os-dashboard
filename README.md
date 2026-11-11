@@ -13,7 +13,7 @@
 ![Shizuku OS — Dashboard（カード一覧）](docs/images/screenshot-dashboard-desktop.png)
 ![Shizuku OS — Dashboard（モバイル表示）](docs/images/screenshot-dashboard-mobile.png)
 
-> スクリーンショットは 2026-08-31 に差し替え済み。デスクトップ幅（1440px）とモバイル幅（390px）で表示し、ファーストビューと主要カードが読める範囲を切り出しています（実装は全12カード）。
+> スクリーンショットは 2026-11-12 に撮り直し済み（公開サイトを、保存データが空の初期表示で撮影）。デスクトップ幅（1440px）とモバイル幅（390px）で表示し、ファーストビューと主要カードが読める範囲を切り出しています（実装は全12カード）。
 ![Shizuku OS — Quality Gate](docs/images/screenshot-quality-gate.png)
 
 ---
