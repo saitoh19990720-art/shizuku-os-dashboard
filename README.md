@@ -127,7 +127,7 @@ npm run preview
 ```bash
 npm run typecheck   # 型の食い違いを見る（tsc --noEmit）
 npm run lint        # 書き間違い・React の規約違反を見る（ESLint 10系・フラット設定）
-npm test            # 自動テスト（Vitest + jsdom・112件／2026-11-11 実測）
+npm test            # 自動テスト（Vitest + jsdom・112件／2026-11-12 実測）
 ```
 
 `npm run lint` は**整形（インデント・引用符）は見ない**。
@@ -167,7 +167,7 @@ npm test            # 自動テスト（Vitest + jsdom・112件／2026-11-11 実
 - [x] localStorage のみ・外部API接続なし
 - [x] `.gitignore` で node_modules / dist / .env / .vercel を除外
 - [x] `npm run build` が通る
-- [x] `npm run typecheck` / `npm run lint`（error 0件）/ `npm test`（112件／2026-11-11 実測）が通る
+- [x] `npm run typecheck` / `npm run lint`（error 0件）/ `npm test`（112件／2026-11-12 実測）が通る
 - [x] README がポートフォリオ用に読める
 - [x] GitHub 公開済み＋Vercel 公開済み
 
