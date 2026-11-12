@@ -98,7 +98,7 @@ export default function RetireCard() {
 
       <button
         onClick={onSave}
-        className="min-h-[48px] w-full rounded-xl bg-accent-600 text-sm font-medium text-white transition-colors hover:bg-accent-600"
+        className="min-h-[48px] w-full rounded-xl bg-accent-600 text-sm font-medium text-white transition-colors hover:bg-[#3f65a6]"
       >
         {saved && storageOk ? "保存しました 🌙 おつかれさま" : "保存して終了する"}
       </button>

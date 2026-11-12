@@ -103,7 +103,7 @@ export default function WeeklyReviewCard() {
         ))}
         <button
           onClick={save}
-          className="mt-1 min-h-[44px] rounded-xl bg-accent-600 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-600"
+          className="mt-1 min-h-[44px] rounded-xl bg-accent-600 py-2 text-sm font-medium text-white transition-colors hover:bg-[#3f65a6]"
         >
           今週分を保存
         </button>

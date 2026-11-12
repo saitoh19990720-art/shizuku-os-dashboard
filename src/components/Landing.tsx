@@ -38,7 +38,7 @@ export default function Landing() {
         <div className="mt-7 flex flex-wrap gap-3">
           <a
             href="#/dashboard"
-            className="inline-flex min-h-[48px] items-center rounded-2xl bg-accent-600 px-6 text-sm font-medium text-white transition-colors hover:bg-accent-600"
+            className="inline-flex min-h-[48px] items-center rounded-2xl bg-accent-600 px-6 text-sm font-medium text-white transition-colors hover:bg-[#3f65a6]"
           >
             Dashboardを見る
           </a>
@@ -146,7 +146,7 @@ export default function Landing() {
         <div className="flex flex-wrap justify-center gap-3">
           <a
             href="#/dashboard"
-            className="inline-flex min-h-[48px] items-center rounded-2xl bg-accent-600 px-6 text-sm font-medium text-white transition-colors hover:bg-accent-600"
+            className="inline-flex min-h-[48px] items-center rounded-2xl bg-accent-600 px-6 text-sm font-medium text-white transition-colors hover:bg-[#3f65a6]"
           >
             Dashboardを見る
           </a>

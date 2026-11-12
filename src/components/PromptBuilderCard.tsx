@@ -151,7 +151,7 @@ export default function PromptBuilderCard() {
             <button
               onClick={saveToVault}
               aria-label="プロンプトを保存"
-              className="min-h-[44px] rounded-xl bg-accent-600 px-4 text-sm font-medium text-white transition-colors hover:bg-accent-600"
+              className="min-h-[44px] rounded-xl bg-accent-600 px-4 text-sm font-medium text-white transition-colors hover:bg-[#3f65a6]"
             >
               保存
             </button>

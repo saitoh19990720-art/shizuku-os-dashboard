@@ -129,7 +129,7 @@ export default function LinksCard() {
         <button
           onClick={add}
           aria-label="制作リンクを追加"
-          className="min-h-[44px] shrink-0 rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-600"
+          className="min-h-[44px] shrink-0 rounded-xl bg-accent-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#3f65a6]"
         >
           追加
         </button>

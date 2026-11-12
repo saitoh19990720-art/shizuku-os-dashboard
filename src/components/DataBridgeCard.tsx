@@ -363,7 +363,7 @@ export default function DataBridgeCard() {
       <div className="flex flex-wrap gap-2">
         <button
           onClick={doCopy}
-          className="min-h-[44px] rounded-xl bg-accent-600 px-4 text-sm font-medium text-white transition-colors hover:bg-accent-600"
+          className="min-h-[44px] rounded-xl bg-accent-600 px-4 text-sm font-medium text-white transition-colors hover:bg-[#3f65a6]"
         >
           {copied ? "コピーしました" : "JSONをコピー"}
         </button>
