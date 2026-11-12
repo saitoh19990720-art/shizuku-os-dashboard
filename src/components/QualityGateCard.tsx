@@ -287,7 +287,7 @@ export default function QualityGateCard() {
           {history.length > 0 && (
             <button
               onClick={copyMarkdown}
-              className="min-h-[36px] rounded-lg border border-main-300 px-3 text-xs text-accent-600 transition-colors hover:bg-main-100"
+              className="min-h-[36px] rounded-lg border border-main-300 px-3 text-xs text-accent-600 transition-colors hover:bg-main-100 hover:text-ink"
             >
               {copied ? "コピーしました" : "Obsidian用にコピー"}
             </button>
@@ -304,7 +304,7 @@ export default function QualityGateCard() {
                 className={`min-h-[36px] rounded-lg border px-3 text-xs transition-colors ${
                   filter === f.value
                     ? "border-transparent bg-accent-600 text-white"
-                    : "border-main-300 bg-white text-accent-600 hover:bg-main-100"
+                    : "border-main-300 bg-white text-accent-600 hover:bg-main-100 hover:text-ink"
                 }`}
               >
                 {f.label}

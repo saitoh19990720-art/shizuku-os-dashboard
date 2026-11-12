@@ -369,7 +369,7 @@ export default function DataBridgeCard() {
         </button>
         <button
           onClick={doDownload}
-          className="min-h-[44px] rounded-xl border border-main-300 px-4 text-sm text-accent-600 transition-colors hover:bg-main-100"
+          className="min-h-[44px] rounded-xl border border-main-300 px-4 text-sm text-accent-600 transition-colors hover:bg-main-100 hover:text-ink"
         >
           .json ダウンロード
         </button>
@@ -401,7 +401,7 @@ export default function DataBridgeCard() {
         <button
           onClick={doImport}
           disabled={!imp.trim()}
-          className="mt-2 min-h-[44px] w-full rounded-xl border border-main-300 text-sm text-accent-600 transition-colors hover:bg-main-100 disabled:opacity-40"
+          className="mt-2 min-h-[44px] w-full rounded-xl border border-main-300 text-sm text-accent-600 transition-colors hover:bg-main-100 hover:text-ink disabled:opacity-40"
         >
           読み込む（現在のデータを上書き）
         </button>

@@ -116,7 +116,7 @@ export default function PromptBuilderCard() {
           <button
             onClick={() => copyText(prompt, () => { setCopied(true); setTimeout(() => setCopied(false), 1600); })}
             disabled={!prompt}
-            className="min-h-[36px] rounded-lg border border-main-300 px-3 text-xs text-accent-600 transition-colors hover:bg-main-100 disabled:opacity-40"
+            className="min-h-[36px] rounded-lg border border-main-300 px-3 text-xs text-accent-600 transition-colors hover:bg-main-100 hover:text-ink disabled:opacity-40"
           >
             {copied ? "コピーしました" : "コピー"}
           </button>

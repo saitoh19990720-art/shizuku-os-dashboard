@@ -91,7 +91,7 @@ function Dashboard() {
       <header className="mb-1 px-1">
         <a
           href="#/"
-          className="mb-3 inline-flex min-h-[44px] items-center text-sm text-ink transition-colors hover:text-accent-600"
+          className="mb-3 inline-flex min-h-[44px] items-center text-sm text-ink underline-offset-2 hover:underline"
         >
           ← Shizuku OS について
         </a>
