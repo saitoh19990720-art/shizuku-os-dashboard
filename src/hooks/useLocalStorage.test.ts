@@ -1,8 +1,16 @@
 // 保存層（localStorage）のテスト。
 // ここは v0.18 の監査で「保存失敗を黙って捨てない」「インポート失敗時に元へ戻す」を
 // 入れた場所で、壊れると記録が消える。だから最初にテストで固定する。
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { makeId, safeSetItem, safeSetRawItem } from "./useLocalStorage";
+import { act, createElement } from "react";
+import { createRoot, type Root } from "react-dom/client";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  loadInitialState,
+  makeId,
+  safeSetItem,
+  safeSetRawItem,
+  useLocalStorage,
+} from "./useLocalStorage";
 import { migrateToProjectStorage, scopedKey } from "../lib/projectStorage";
 
 afterEach(() => {
@@ -65,6 +73,26 @@ describe("safeSetRawItem", () => {
   });
 });
 
+describe("loadInitialState", () => {
+  it("壊れたJSONは初期値を返し、loaded:false にして保存を見送らせる", () => {
+    localStorage.setItem("test.broken", "{not json");
+
+    const state = loadInitialState("test.broken", [] as string[]);
+
+    expect(state.value).toEqual([]);
+    expect(state.loaded).toBe(false);
+    // 読み出しだけでは壊れた原文を書き換えない
+    expect(localStorage.getItem("test.broken")).toBe("{not json");
+  });
+
+  it("未保存のキーは初期値を loaded:true で返す", () => {
+    const state = loadInitialState("test.missing", "初期");
+
+    expect(state.value).toBe("初期");
+    expect(state.loaded).toBe(true);
+  });
+});
+
 describe("makeId", () => {
   it("呼ぶたびに違うIDを返す", () => {
     const ids = new Set(Array.from({ length: 50 }, () => makeId()));
@@ -110,5 +138,49 @@ describe("移行後の保存先", () => {
     safeSetRawItem("shizuku.links", '[{"label":"元"}]');
 
     expect(localStorage.getItem(scopedKey("shizuku.links"))).toBe('[{"label":"元"}]');
+  });
+});
+
+// 実際にマウントして、effect が壊れた原文を書き潰さないことを確認する。
+describe("useLocalStorage（マウント後）", () => {
+  const KEY = "shizuku.test.mountedDamaged";
+  let root: Root;
+  let host: HTMLDivElement;
+  let seen: unknown;
+
+  function Probe() {
+    const [value] = useLocalStorage<string[]>(KEY, []);
+    seen = value;
+    return null;
+  }
+
+  beforeAll(() => {
+    (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+  });
+
+  beforeEach(() => {
+    host = document.createElement("div");
+    document.body.appendChild(host);
+    root = createRoot(host);
+    seen = undefined;
+  });
+
+  afterEach(() => {
+    act(() => root.unmount());
+    host.remove();
+  });
+
+  it("壊れたJSONの原文があっても、マウント後の effect はそれを初期値で上書きしない", () => {
+    localStorage.setItem(KEY, "[{broken");
+    const setItem = vi.spyOn(Storage.prototype, "setItem");
+
+    act(() => {
+      root.render(createElement(Probe));
+    });
+
+    // 画面には初期値が出るが、保存は見送られる
+    expect(seen).toEqual([]);
+    expect(setItem).not.toHaveBeenCalledWith(KEY, expect.anything());
+    expect(localStorage.getItem(KEY)).toBe("[{broken");
   });
 });
