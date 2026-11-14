@@ -77,7 +77,7 @@ export default function TaskCard() {
           // チェックボックスとタスク名を結びつける（読み上げで「何を完了にするか」が分かる）
           const titleId = `task-title-${task.id}`;
           return (
-            <li key={task.id} className="rounded-2xl bg-main-50 px-3 py-2.5">
+            <li key={task.id} className="item-enter rounded-2xl bg-main-50 px-3 py-2.5">
               <div className="flex items-center gap-3">
                 {/* 見た目は24pxのまま、押せる範囲だけ44pxに広げる（外側へ10pxずつ。負の余白で配置は変えない） */}
                 <label className="-m-2.5 flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center">
@@ -89,7 +89,7 @@ export default function TaskCard() {
                     className="h-6 w-6 shrink-0 accent-accent-500"
                   />
                 </label>
-                <span id={titleId} className={`grow text-sm ${task.done ? "text-neutral2-500 line-through" : "text-ink"}`}>
+                <span id={titleId} className={`grow text-sm transition-colors duration-200 ${task.done ? "text-neutral2-500 line-through" : "text-ink"}`}>
                   {task.title}
                   {task.demo && (
                     <span className="ml-2 inline-block rounded-full bg-main-200 px-2 py-0.5 text-[10px] font-semibold text-ink">

@@ -41,7 +41,7 @@ export default function Card({
     return () => window.clearTimeout(timer);
   }, [open, motionDuration]);
   return (
-    <section className="rounded-card border border-white/70 bg-white/80 p-5 shadow-soft backdrop-blur-sm">
+    <section className="card-surface card-enter rounded-card border border-white/70 bg-white/80 p-5 shadow-soft backdrop-blur-sm">
       <h2>
         <button
           type="button"

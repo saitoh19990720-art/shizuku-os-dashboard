@@ -199,7 +199,7 @@ export default function PromptBuilderCard() {
         ) : (
           <ul className="flex flex-col gap-2">
             {shown.map((s) => (
-              <li key={s.id} className="rounded-2xl bg-main-50 px-3 py-2.5 text-sm">
+              <li key={s.id} className="item-enter rounded-2xl bg-main-50 px-3 py-2.5 text-sm">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex min-w-0 items-center gap-2">
                     <button

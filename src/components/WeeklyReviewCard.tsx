@@ -120,7 +120,7 @@ export default function WeeklyReviewCard() {
         ) : (
           <ul className="flex flex-col gap-2">
             {reviews.map((r) => (
-              <li key={r.id} className="rounded-2xl bg-main-50 px-3 py-2.5 text-sm">
+              <li key={r.id} className="item-enter rounded-2xl bg-main-50 px-3 py-2.5 text-sm">
                 <div className="mb-1 flex items-center justify-between gap-2">
                   <span className="truncate font-medium text-ink">{r.week || "（週未記入）"}</span>
                   <div className="flex shrink-0 items-center gap-1">
