@@ -173,8 +173,8 @@ export function loadInitialState<T>(
       boundProject,
     };
   } catch {
-    // 壊れたデータが入っていても初期値で復帰する
-    return { value: initialValue, loaded: true, boundProject };
+    // 壊れたデータが入っていても初期値で復帰するが、中身は読めていないので保存を見送る。
+    return { value: initialValue, loaded: false, boundProject };
   }
 }
 
