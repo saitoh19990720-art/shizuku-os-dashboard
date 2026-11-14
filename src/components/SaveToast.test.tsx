@@ -72,4 +72,20 @@ describe("SaveToast", () => {
     });
     expect(host.textContent).toBe(before);
   });
+
+  it("保存失敗がある間は、別の成功後でも保存完了を表示しない", () => {
+    const key = "shizuku.test.toast.failure";
+    const original = Storage.prototype.setItem;
+    const spy = vi.spyOn(Storage.prototype, "setItem").mockImplementation(function (this: Storage, k, value) {
+      if (k === key) throw new DOMException("QuotaExceededError");
+      return original.call(this, k, value);
+    });
+    act(() => {
+      safeSetItem("shizuku.test.toast", 3);
+      safeSetItem(key, 1);
+    });
+    expect(host.textContent).not.toContain("保存しました");
+    spy.mockRestore();
+    act(() => { safeSetItem(key, 1); });
+  });
 });
