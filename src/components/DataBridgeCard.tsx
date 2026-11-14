@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Card from "./Card";
 import { safeSetItem, safeSetRawItem } from "../hooks/useLocalStorage";
-import { ensureMigrated, tryReadLogicalRaw } from "../lib/projectStorage";
+import { ensureMigrated, tryReadLogicalRaw, tryResolveWriteKey } from "../lib/projectStorage";
 
 // n8n Bridge / JSON Export：全データをJSONで出し入れ（バックアップ＋将来のn8n受け渡し口）。
 // 外部接続はしない・localStorage内のデータだけ・秘密情報は扱わない。
@@ -152,9 +152,9 @@ export function buildExport(): ExportResult {
       };
     }
     try {
-      data[k] = read.raw ? JSON.parse(read.raw) : null;
+      data[k] = read.raw !== null ? JSON.parse(read.raw) : null;
     } catch {
-      data[k] = null;
+      return { ok: false, error: `「${KEY_LABEL[k] ?? k}」の保存データが壊れているため、書き出しを中止しました。元のデータは残っています。` };
     }
   }
   return {
@@ -230,12 +230,12 @@ export function applyImport(data: Record<string, unknown>, present: string[]): I
   // 途中で失敗しても中途半端な状態を残さないよう、書き込む前に今の値を控えておく。
   // （未保存だったキーは null。戻すときはキーごと消す）
   // 控えが取れないと失敗時に元へ戻せないので、その場合は1件も書かずに中止する。
-  // 「読み取れなかった」を「未保存」と取り違えると、巻き戻しが復元ではなく削除になるため、
-  // tryReadLogicalRaw で両者を区別し、1件でも読めなければ書き込みフェーズへ進まない。
+  // 読み取りに失敗した場合は未保存と扱わず、書き込み前に中止する。
   const backup = new Map<string, string | null>();
+  const physicalKeys = new Map<string, string>();
   for (const k of present) {
-    const read = tryReadLogicalRaw(k);
-    if (!read.ok) {
+    const target = tryResolveWriteKey(k);
+    if (!target.ok) {
       return {
         ok: false,
         error:
@@ -243,7 +243,31 @@ export function applyImport(data: Record<string, unknown>, present: string[]): I
           "ブラウザのプライベートモードや保存のブロック設定を解除してから、もう一度お試しください。",
       };
     }
-    backup.set(k, read.raw);
+    try {
+      // 論理読み出しではなく、実際に上書きする場所の原文を控える。
+      backup.set(k, localStorage.getItem(target.key));
+      physicalKeys.set(k, target.key);
+    } catch {
+      return { ok: false, error: "現在の保存内容を読み取れないため、読み込みを中止しました。" };
+    }
+  }
+
+  // 壊れた原文は成功後も残す。別名の控えを検証できなければ一切上書きしない。
+  for (const k of present) {
+    const raw = backup.get(k);
+    if (raw == null) continue;
+    try { JSON.parse(raw); continue; } catch { /* 原文を保管する */ }
+    try {
+      const prefix = `shizuku.recovery.${Date.now()}.`;
+      let n = 0;
+      while (localStorage.getItem(prefix + n) !== null) n++;
+      const backupKey = prefix + n;
+      const envelope = JSON.stringify({ key: physicalKeys.get(k), raw });
+      localStorage.setItem(backupKey, envelope);
+      if (localStorage.getItem(backupKey) !== envelope) throw new Error("backup verification failed");
+    } catch {
+      return { ok: false, error: "壊れたデータの控えを保存できないため、読み込みを中止しました。元のデータは変更していません。" };
+    }
   }
 
   const written: string[] = [];
@@ -338,7 +362,7 @@ export default function DataBridgeCard() {
 
     if (
       !window.confirm(
-        "現在の保存データを、貼り付けた内容で【上書き】します。よろしいですか？（元に戻せません）",
+        "現在の保存データを、貼り付けた内容で【上書き】します。壊れたデータの原文はこのブラウザ内に控えを残します。正常なデータは上書き後に元へ戻せません。よろしいですか？",
       )
     ) {
       return;
