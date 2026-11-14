@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLastSavedAt } from "../hooks/useLocalStorage";
+import { useLastSavedAt, useStorageFailures } from "../hooks/useLocalStorage";
 
 // 自動保存の成功感：一瞬のトースト＋最終保存時刻。
 function formatTime(ms: number): string {
@@ -11,6 +11,7 @@ function formatTime(ms: number): string {
 
 export default function SaveToast() {
   const lastSavedAt = useLastSavedAt();
+  const failures = useStorageFailures();
   // 「保存しました」を出し終えた保存時刻。新しい保存が来た瞬間は一致しないので点灯し、
   // 1.6秒後にこの値を追いつかせて消灯する（effect 内で同期的に setState しない）。
   const [settledAt, setSettledAt] = useState<number | null>(null);
@@ -22,7 +23,7 @@ export default function SaveToast() {
     return () => window.clearTimeout(t);
   }, [lastSavedAt]);
 
-  if (lastSavedAt === null) return null;
+  if (lastSavedAt === null || failures.length > 0) return null;
 
   return (
     <div
