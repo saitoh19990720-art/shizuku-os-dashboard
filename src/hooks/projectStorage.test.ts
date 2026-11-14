@@ -162,13 +162,13 @@ describe("破損v1", () => {
 });
 
 describe("破損v2", () => {
-  it("移行後にv2が壊れたら、旧キーの内容を読む", () => {
+  it("移行後にv2が壊れたら、旧キーに戻さず壊れた原文を保持する", () => {
     localStorage.setItem(TASKS, TASKS_V1);
     migrateToProjectStorage();
 
     localStorage.setItem(scopedKey(TASKS), "{壊れたJSON");
 
-    expect(readLogicalRaw(TASKS)).toBe(TASKS_V1);
+    expect(readLogicalRaw(TASKS)).toBe("{壊れたJSON");
   });
 
   it("印が壊れている間は未移行として扱う（復旧を走らせるまでの状態）", () => {
@@ -178,6 +178,81 @@ describe("破損v2", () => {
     localStorage.setItem(MIGRATION_MARKER_KEY, "{壊れた印");
 
     expect(isMigrated()).toBe(false);
+  });
+});
+
+describe("壊れた保存値からの安全な復元", () => {
+  function damaged() {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    localStorage.setItem(scopedKey(TASKS), "{壊れたJSON");
+  }
+
+  it("破損した原文を読み、上書きを禁止して書き出しを中止する", () => {
+    damaged();
+    expect(loadInitialState(TASKS, []).loaded).toBe(false);
+    expect(buildExport().ok).toBe(false);
+    expect(localStorage.getItem(scopedKey(TASKS))).toBe("{壊れたJSON");
+    expect(localStorage.getItem(TASKS)).toBe(TASKS_V1);
+  });
+
+  it("正常なバックアップを復元し、壊れた原文を別に保持する", () => {
+    damaged();
+    const replacement = [{ id: "new", title: "復元" }];
+    expect(applyImport({ [TASKS]: replacement }, [TASKS]).ok).toBe(true);
+    expect(JSON.parse(localStorage.getItem(scopedKey(TASKS))!)).toEqual(replacement);
+    const key = Object.keys(localStorage).find((k) => k.startsWith("shizuku.recovery."));
+    expect(key).toBeDefined();
+    expect(JSON.parse(localStorage.getItem(key!)!)).toEqual({ key: scopedKey(TASKS), raw: "{壊れたJSON" });
+    expect(localStorage.getItem(TASKS)).toBe(TASKS_V1);
+  });
+
+  it("原文の控えが保存できなければ復元先を書き換えない", () => {
+    damaged();
+    const real = Storage.prototype.setItem;
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(function (this: Storage, key, value) {
+      if (key.startsWith("shizuku.recovery.")) throw new DOMException("QuotaExceededError");
+      return real.call(this, key, value);
+    });
+    expect(applyImport({ [TASKS]: [] }, [TASKS]).ok).toBe(false);
+    expect(localStorage.getItem(scopedKey(TASKS))).toBe("{壊れたJSON");
+  });
+
+  it("途中で保存に失敗したら、既に変更した保存先を壊れた原文まで戻す", () => {
+    damaged();
+    localStorage.setItem(scopedKey(LINKS), LINKS_V1);
+    const real = Storage.prototype.setItem;
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(function (this: Storage, key, value) {
+      if (key === scopedKey(LINKS)) throw new DOMException("QuotaExceededError");
+      return real.call(this, key, value);
+    });
+    const result = applyImport({ [TASKS]: [], [LINKS]: [] }, [TASKS, LINKS]);
+    expect(result.ok).toBe(false);
+    expect(localStorage.getItem(scopedKey(TASKS))).toBe("{壊れたJSON");
+    expect(localStorage.getItem(scopedKey(LINKS))).toBe(LINKS_V1);
+  });
+
+  it("巻き戻しにも失敗した場合は成功扱いせず、原文の控えを残す", () => {
+    damaged();
+    const real = Storage.prototype.setItem;
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(function (this: Storage, key, value) {
+      if (key === scopedKey(LINKS) || (key === scopedKey(TASKS) && value === "{壊れたJSON")) {
+        throw new DOMException("QuotaExceededError");
+      }
+      return real.call(this, key, value);
+    });
+    const result = applyImport({ [TASKS]: [], [LINKS]: [] }, [TASKS, LINKS]);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toContain("元の内容へ戻すことにも失敗");
+    const key = Object.keys(localStorage).find((k) => k.startsWith("shizuku.recovery."));
+    expect(JSON.parse(localStorage.getItem(key!)!).raw).toBe("{壊れたJSON");
+  });
+
+  it("空文字列も壊れたJSONとして書き出しを中止する", () => {
+    migrateToProjectStorage();
+    localStorage.setItem(scopedKey(TASKS), "");
+    expect(buildExport().ok).toBe(false);
+    expect(localStorage.getItem(scopedKey(TASKS))).toBe("");
   });
 });
 

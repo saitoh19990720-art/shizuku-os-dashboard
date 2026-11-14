@@ -8,7 +8,7 @@
 //   4. コピー後に v2 を読み直して照合する
 //   5. 照合できたときだけ「移行済みの印」を作る
 //   6. 書き込み失敗・中断・破損のときは v2 を採用せず旧キーへ戻る
-//   7. 印が無い／壊れている（malformed）／v2 が壊れているときは旧キーを読む
+//   7. 壊れた v2 は原文を保持し、旧キーで上書きしない
 //   8. 印が一時的に読めない（throw）ときは旧キーへ戻らず、読み書きを止める
 //
 // 対象は DataBridge の10キーだけ。
@@ -257,7 +257,7 @@ export function resolveWriteKey(key: string, projectId: string = getActiveProjec
  *   - 移行対象外のキー
  *   - 移行の印が無い
  *   - v2 が存在しない
- *   - v2 が壊れていて、旧キーは読める
+ * 壊れた v2 が存在する場合は旧キーに戻らず、その原文を返す。
  */
 export function readLogicalRaw(key: string, projectId?: string): string | null {
   const read = tryReadLogicalRaw(key, projectId);
@@ -315,7 +315,6 @@ function readLogicalRawOrFail(key: string, projectId?: string): LogicalRead {
     const v1raw = localStorage.getItem(key);
 
     if (v2raw === null) return { ok: true, raw: v1raw };
-    if (!isParseable(v2raw) && isParseable(v1raw)) return { ok: true, raw: v1raw };
     return { ok: true, raw: v2raw };
   } catch {
     return { ok: false };
@@ -404,7 +403,7 @@ export function migrateToProjectStorage(
   try {
     // 3. コピー（中身が無いキーは作らない）
     //    既に v2 があるキーは触らない。壊れていても上書きしない
-    //    （壊れた v2 は読み出し側が旧キーへ戻るので、消すより残すほうが安全）。
+    //    （壊れた v2 も原文を保持する）。
     //    JSONとして壊れている旧キーは v2 へ写さない。写すと壊れたまま新しい正本になってしまう。
     for (const key of MIGRATED_KEYS) {
       const target = scopedKey(key, projectId);
