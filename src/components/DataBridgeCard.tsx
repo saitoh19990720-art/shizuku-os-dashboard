@@ -316,8 +316,11 @@ export default function DataBridgeCard() {
   const [imp, setImp] = useState("");
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
+  const [errorAction, setErrorAction] = useState<"読み込み" | "書き出し">("読み込み");
 
   const doCopy = async () => {
+    setError("");
+    setErrorAction("書き出し");
     const result = buildExport();
     if (!result.ok) {
       setError(result.error);
@@ -335,6 +338,8 @@ export default function DataBridgeCard() {
   };
 
   const doDownload = () => {
+    setError("");
+    setErrorAction("書き出し");
     const result = buildExport();
     if (!result.ok) {
       setError(result.error);
@@ -351,6 +356,7 @@ export default function DataBridgeCard() {
 
   const doImport = () => {
     setError("");
+    setErrorAction("読み込み");
     ensureMigrated();
     if (!imp.trim()) return;
 
@@ -434,7 +440,7 @@ export default function DataBridgeCard() {
             role="alert"
             className="mt-2 rounded-xl border border-accent-400 bg-crystal-100 px-3 py-2.5 text-xs leading-relaxed text-ink"
           >
-            <span className="mb-0.5 block font-semibold text-ink">読み込みできませんでした</span>
+            <span className="mb-0.5 block font-semibold text-ink">{errorAction}できませんでした</span>
             {error}
           </p>
         )}
