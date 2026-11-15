@@ -444,9 +444,11 @@ export default function DataBridgeCard() {
             {error}
           </p>
         )}
-        <p className="mt-1 text-[11px] text-neutral2-500">
-          ※上書き前に確認が出ます。心配なら先に「.json ダウンロード」でバックアップを。
-        </p>
+        {!error && (
+          <p className="mt-1 text-[11px] text-neutral2-500">
+            ※上書き前に確認が出ます。バックアップは「.json ダウンロード」で作成できますが、保存データが壊れている場合は書き出せません。
+          </p>
+        )}
       </div>
     </Card>
   );
