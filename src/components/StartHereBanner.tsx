@@ -29,7 +29,7 @@ export default function StartHereBanner() {
   return (
     <section
       aria-labelledby="start-here-title"
-      className="rounded-card border border-accent-300/70 bg-crystal-100 p-4 shadow-soft"
+className="start-here card-enter rounded-card border border-accent-300/70 bg-crystal-100 p-4 shadow-soft"
     >
       <p className="mb-1 text-[11px] font-medium tracking-[0.18em] text-ink">はじめに</p>
       <h2 id="start-here-title" className="font-mincho text-base font-semibold text-ink">

@@ -56,7 +56,7 @@ export default function LinksCard() {
     <Card eyebrow="Links" title="制作中リンク" defaultOpen={false}>
       <ul className="flex flex-col gap-3">
         {links.map((link) => (
-          <li key={link.id} className="rounded-2xl bg-main-50 px-3 py-2.5">
+<li key={link.id} className="item-enter rounded-2xl bg-main-50 px-3 py-2.5">
             <div className="mb-1.5 flex items-center justify-between gap-2">
               <input
                 value={link.label}
