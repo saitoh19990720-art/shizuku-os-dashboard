@@ -325,7 +325,7 @@ export default function QualityGateCard() {
         ) : (
           <ul className="flex flex-col gap-2">
             {shown.map((r) => (
-              <li key={r.id} className="item-enter rounded-2xl bg-main-50 px-3 py-2.5 text-sm">
+              <li key={r.id} className="rounded-2xl bg-main-50 px-3 py-2.5 text-sm">
                 <div className="mb-1 flex items-start justify-between gap-2">
                   <span className="font-medium text-ink">{r.name}</span>
                   <div className="flex shrink-0 items-center gap-2">
