@@ -31,14 +31,14 @@ export default function SaveToast() {
       className="pointer-events-none fixed bottom-4 left-1/2 z-30 -translate-x-1/2"
     >
       <div
-        className={`rounded-full border border-main-200 bg-white/95 px-4 py-2 text-xs shadow-soft backdrop-blur-sm transition-opacity ${
-          flash ? "opacity-100" : "opacity-80"
+        className={`rounded-full border border-main-200 bg-white/95 px-4 py-2 text-xs shadow-soft backdrop-blur-sm transition-[opacity,transform] duration-300 ease-out ${
+          flash ? "-translate-y-0.5 opacity-100" : "opacity-80"
         }`}
       >
         {flash ? (
-          <span className="font-medium text-accent-600">保存しました</span>
+          <span key="flash" className="item-enter inline-block font-medium text-accent-600">保存しました</span>
         ) : (
-          <span className="text-neutral2-500">
+          <span key="settled" className="item-enter inline-block text-neutral2-500">
             最終保存 <span className="font-medium text-ink">{formatTime(lastSavedAt)}</span>
           </span>
         )}

@@ -45,7 +45,7 @@ export default function StartHereBanner() {
             >
               <span
                 aria-hidden
-                className={`inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold ${
+                className={`inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold transition-colors duration-200 ${
                   s.done ? "bg-accent-600 text-white" : "bg-white text-accent-600 ring-1 ring-accent-300"
                 }`}
               >
