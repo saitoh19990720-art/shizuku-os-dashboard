@@ -312,9 +312,8 @@ function readLogicalRawOrFail(key: string, projectId?: string): LogicalRead {
     // それ以外で旧キーを読むと、別プロジェクトの内容が混ざって保存されてしまう。
     if (target !== marker.projectId) return { ok: true, raw: v2raw };
 
-    const v1raw = localStorage.getItem(key);
-
-    if (v2raw === null) return { ok: true, raw: v1raw };
+    // 現在の保存先があれば旧キーは読まない。旧キーの読取失敗で現在の記録を隠さないため。
+    if (v2raw === null) return { ok: true, raw: localStorage.getItem(key) };
     return { ok: true, raw: v2raw };
   } catch {
     return { ok: false };

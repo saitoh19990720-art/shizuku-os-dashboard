@@ -162,6 +162,30 @@ describe("破損v1", () => {
 });
 
 describe("破損v2", () => {
+  it("現在の保存先が読めれば旧キーの読み取り失敗に影響されない", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    const current = '[{"id":"2","title":"現在の記録"}]';
+    localStorage.setItem(scopedKey(TASKS), current);
+    const real = Storage.prototype.getItem;
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(function (this: Storage, key) {
+      if (key === TASKS) throw new DOMException("SecurityError");
+      return real.call(this, key);
+    });
+    expect(tryReadLogicalRaw(TASKS)).toEqual({ ok: true, raw: current });
+    expect(loadInitialState(TASKS, []).loaded).toBe(true);
+  });
+
+  it("現在の保存先がなく旧キーも読めなければ、未保存扱いにしない", () => {
+    migrateToProjectStorage();
+    const real = Storage.prototype.getItem;
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(function (this: Storage, key) {
+      if (key === TASKS) throw new DOMException("SecurityError");
+      return real.call(this, key);
+    });
+    expect(tryReadLogicalRaw(TASKS)).toEqual({ ok: false });
+  });
+
   it("移行後にv2が壊れたら、旧キーに戻さず壊れた原文を保持する", () => {
     localStorage.setItem(TASKS, TASKS_V1);
     migrateToProjectStorage();
