@@ -78,7 +78,7 @@ a[href]:active {
   transform: translateY(1px);
 }
 
-/* 追加した項目・保存完了の文言：ふわっと現れる */
+/* SaveToast の保存状態が切り替わる時だけ、文言を短く表示する */
 @keyframes soft-enter {
   from {
     opacity: 0;
