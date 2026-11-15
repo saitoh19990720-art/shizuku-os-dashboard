@@ -234,6 +234,7 @@ describe("壊れた保存値からの安全な復元", () => {
 
   it("巻き戻しにも失敗した場合は成功扱いせず、原文の控えを残す", () => {
     damaged();
+    localStorage.setItem(scopedKey("shizuku.nightLogs"), "{壊れた夜ログ");
     const real = Storage.prototype.setItem;
     vi.spyOn(Storage.prototype, "setItem").mockImplementation(function (this: Storage, key, value) {
       if (key === scopedKey(LINKS) || (key === scopedKey(TASKS) && value === "{壊れたJSON")) {
@@ -243,7 +244,13 @@ describe("壊れた保存値からの安全な復元", () => {
     });
     const result = applyImport({ [TASKS]: [], [LINKS]: [] }, [TASKS, LINKS]);
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error).toContain("元の内容へ戻すことにも失敗");
+    if (!result.ok) {
+      expect(result.error).toContain("元の内容へ戻すことにも失敗");
+      expect(result.error).toContain("ページを閉じる前に");
+      expect(result.error).not.toContain(".json ダウンロード");
+    }
+    // 別の壊れたデータが残ると書き出せないため、ダウンロードを復旧手段として案内しない。
+    expect(buildExport().ok).toBe(false);
     const key = Object.keys(localStorage).find((k) => k.startsWith("shizuku.recovery."));
     expect(JSON.parse(localStorage.getItem(key!)!).raw).toBe("{壊れたJSON");
   });
