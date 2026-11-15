@@ -151,3 +151,14 @@ describe("採用判定の表示", () => {
     expect(saved.every((v) => v === "drop")).toBe(true);
   });
 });
+
+describe("Card の初回表示", () => {
+  it("開いた直後から内容が見え、登場用のアニメーションを付けない", () => {
+    const c = render(<Card title="すぐ使えるカード"><p>中身</p></Card>);
+    const section = c.querySelector("section") as HTMLElement;
+    expect(c.textContent).toContain("中身");
+    expect(section.classList.contains("card-enter")).toBe(false);
+    // PCでの浮き上がり（ホバー）用の目印は残す
+    expect(section.classList.contains("card-surface")).toBe(true);
+  });
+});
