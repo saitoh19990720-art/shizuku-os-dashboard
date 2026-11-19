@@ -11,7 +11,10 @@ import "./CaseStudy.css";
 
 // Case Studyだけで使う書体。index.htmlの共通フォント読込は変更しない。
 const FONT_HREF =
-  "https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Outfit:wght@600&display=swap";
+  "https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Outfit:wght@600&family=Shippori+Mincho:wght@700&display=swap";
+
+const FLOATING_WORKSPACE_HREF =
+  "https://www.figma.com/design/FCy5RRpXsRhXs44WcoPuZt?node-id=246-476";
 
 // 参照先4件（References のラベルとURLの対応）。GitHubは固定commitのまま、mainへ置き換えない。
 const REFS = [
@@ -50,6 +53,31 @@ function Section({ id, eyebrow, title, children }: { id: string; eyebrow: string
       </h2>
       {children}
     </section>
+  );
+}
+
+function FloatingWorkspaceVisual() {
+  return (
+    <div className="cs-floating" role="img" aria-label="水色とグレージュの背景に、NOWタスク、制作リンク、制作ログのカードを重ねて配置したビジュアル実験。">
+      <div className="cs-floating__canvas" aria-hidden="true">
+        <p className="cs-floating__eyebrow">SHIZUKU OS / SPATIAL STUDY</p>
+        <p className="cs-floating__title">Shizuku Floating Workspace</p>
+        <p className="cs-floating__description">いま取り組むこと、制作への入口、記録の余白を、静かな奥行きとして分ける実験。</p>
+        <div className="cs-floating__group cs-floating__group--log">
+          <p className="cs-floating__label">DEPTH 03 / LOG</p>
+          <div className="cs-floating__card"><p className="cs-floating__card-title">制作ログ</p><p>やったこと、学び、次に始めることを<br />一行ずつ。</p></div>
+        </div>
+        <div className="cs-floating__group cs-floating__group--links">
+          <p className="cs-floating__label">DEPTH 02 / LINKS</p>
+          <div className="cs-floating__card"><p className="cs-floating__card-title">制作リンク</p><p>Figma、GitHub、公開ページ。<br />制作の入口を近くに置く。</p></div>
+        </div>
+        <div className="cs-floating__group cs-floating__group--now">
+          <p className="cs-floating__label">DEPTH 01 / NOW</p>
+          <div className="cs-floating__card"><p className="cs-floating__card-title">NOW タスク</p><p>Floating Workspace の<br />構成を調整する。</p></div>
+        </div>
+        <p className="cs-floating__note">制作中のタスク、リンク、ログを、空間の中で整理するためのビジュアル実験。</p>
+      </div>
+    </div>
   );
 }
 
@@ -120,6 +148,16 @@ export default function CaseStudy() {
         <p className="cs-body">
           {"12カードのDashboardと、制作背景・設計判断・検証範囲を説明するケーススタディを公開しました。AIの案を人が判断し、次の行動を残すための構成を、動くWebアプリケーションとして示しています。利用者数、作業時間の削減率、商用成果は未測定です。"}
         </p>
+      </Section>
+
+      <Section id="visual-exploration" eyebrow="VISUAL EXPLORATION" title="空間表現の実験">
+        <div className="cs-exploration-copy cs-body">
+          <p>Shizuku OS Dashboardの情報を、奥行きのある空間として表現する実験です。NOWタスク、制作リンク、制作ログを3枚のカードに分け、重なりと影によって、それぞれの関係を視覚的に整理しました。</p>
+          <p>水色と白を基調に、薄いグレージュを重ねることで、Dashboardの静かな世界観を保ちながら、制作の流れを一望できる表現を探っています。カードはFigma上で編集でき、2Dの重なりによって奥行きを表現しています。</p>
+          <p>これは既存の操作画面とは別に制作した、今後の表現を探るためのコンセプトです。</p>
+        </div>
+        <FloatingWorkspaceVisual />
+        <a className="cs-floating__link" href={FLOATING_WORKSPACE_HREF} target="_blank" rel="noreferrer">ビジュアルをFigmaで拡大して見る ↗</a>
       </Section>
 
       <aside className="cs-archive" aria-label="制作時の資料">
