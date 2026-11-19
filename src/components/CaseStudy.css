@@ -216,6 +216,54 @@
   text-underline-offset: 4px;
 }
 
+.cs-floating__button {
+  width: fit-content;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid #6e95d8;
+  border-radius: 8px;
+  background: #eef4ff;
+  color: #1e2a38;
+  font-size: 14px;
+}
+
+.cs-floating__dialog {
+  width: min(calc(100% - 32px), 1320px);
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: 16px;
+  border: 1px solid #6e95d8;
+  border-radius: 12px;
+  background: #f8faff;
+  color: #1e2a38;
+}
+
+.cs-floating__dialog[open] {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cs-floating__dialog::backdrop {
+  background: rgb(30 42 56 / 55%);
+}
+
+.cs-floating__dialog-header {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cs-floating__scroll {
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.cs-floating__scroll > .cs-floating { width: 1280px; }
+
 .cs-figure__caption {
   display: flex;
   flex-direction: column;

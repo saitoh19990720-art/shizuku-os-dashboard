@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 import qualityGateEvidence from "../assets/case-study/v1-quality-gate-evidence.png";
 import liveQualityGate from "../assets/case-study/live-quality-gate-2026-11-03.jpg";
 import "./CaseStudy.css";
@@ -82,6 +82,8 @@ function FloatingWorkspaceVisual() {
 }
 
 export default function CaseStudy() {
+  const experimentDialog = useRef<HTMLDialogElement>(null);
+  const expandButton = useRef<HTMLButtonElement>(null);
   return (
     <main className="cs-page">
       <link rel="stylesheet" href={FONT_HREF} />
@@ -157,7 +159,32 @@ export default function CaseStudy() {
           <p>これは既存の操作画面とは別に制作した、今後の表現を探るためのコンセプトです。</p>
         </div>
         <FloatingWorkspaceVisual />
-        <a className="cs-floating__link" href={FLOATING_WORKSPACE_HREF} target="_blank" rel="noreferrer">ビジュアルをFigmaで拡大して見る ↗</a>
+        <button
+          ref={expandButton}
+          className="cs-floating__button"
+          type="button"
+          aria-haspopup="dialog"
+          onClick={() => experimentDialog.current?.showModal()}
+        >
+          実験図を拡大する
+        </button>
+        <a className="cs-floating__link" href={FLOATING_WORKSPACE_HREF} target="_blank" rel="noreferrer">Figmaで開く（ログインが必要） ↗</a>
+        <dialog
+          ref={experimentDialog}
+          className="cs-floating__dialog"
+          aria-labelledby="cs-floating-dialog-title"
+          onClose={() => expandButton.current?.focus({ preventScroll: true })}
+        >
+          <div className="cs-floating__dialog-header">
+            <h3 id="cs-floating-dialog-title">実験図の拡大表示</h3>
+            <form method="dialog">
+              <button className="cs-floating__button" type="submit" autoFocus>閉じる</button>
+            </form>
+          </div>
+          <div className="cs-floating__scroll" tabIndex={0} role="region" aria-label="実験図（スクロールできます）">
+            <FloatingWorkspaceVisual />
+          </div>
+        </dialog>
       </Section>
 
       <aside className="cs-archive" aria-label="制作時の資料">
