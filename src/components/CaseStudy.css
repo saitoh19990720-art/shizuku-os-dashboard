@@ -215,9 +215,6 @@
   text-decoration: underline;
   text-underline-offset: 4px;
 }
-@media (min-width: 1232px) {
-  .cs-floating__link { display: none; }
-}
 
 .cs-figure__caption {
   display: flex;

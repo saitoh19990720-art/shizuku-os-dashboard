@@ -190,7 +190,7 @@ export default function CaseStudy() {
           ))}
         </ul>
         <p className="cs-small cs-pre">
-          {"本文は2026年11月7日の採用原稿を反映。過去の監査記録と、今回確認した範囲を分けて記載しています。"}
+          {"OverviewからOutcomeまでの6節は、2026年11月7日の採用原稿を反映しています。「空間表現の実験」は、その後に追加したコンセプトです。過去の監査記録と各確認時点の検証範囲を分けて記載しています。"}
         </p>
         <p>
           <a className="cs-ref cs-ref--link cs-pre" href={PORTFOLIO_NOTE_HREF} target="_blank" rel="noreferrer">
