@@ -137,6 +137,133 @@
   margin: 0 auto;
 }
 
+/* Figma 255:107 / 255:134 / 255:162: 編集可能な実験画面を比例表示する */
+.cs-exploration-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 1lh;
+}
+
+.cs-floating {
+  width: 100%;
+  container-type: inline-size;
+}
+.cs-floating__canvas {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 8 / 5;
+  overflow: hidden;
+  border-radius: 2.5cqw;
+  background: radial-gradient(ellipse at 39% 49%, #def7ff 0%, #f2f7fa 56%, #f5f0e8 100%);
+  color: #1f2e3d;
+  font-family: "Noto Sans JP", sans-serif;
+}
+.cs-floating__eyebrow, .cs-floating__title, .cs-floating__description, .cs-floating__note,
+.cs-floating__group { position: absolute; }
+.cs-floating__eyebrow {
+  left: 5.94%; top: 8.5%;
+  font-size: .9375cqw; line-height: 1.5625cqw; letter-spacing: .15625cqw;
+  font-weight: 500; color: #296185;
+}
+.cs-floating__title {
+  left: 5.94%; top: 11.75%;
+  font-family: "Shippori Mincho", serif; font-weight: 600;
+  font-size: 2.8125cqw; line-height: 3.75cqw;
+}
+.cs-floating__description {
+  left: 5.94%; top: 18.875%;
+  font-size: 1.171875cqw; line-height: 2.03125cqw; color: #3d5263;
+}
+.cs-floating__note {
+  left: 5.94%; top: 90.5%;
+  font-size: .9375cqw; line-height: 1.5625cqw; color: #4f6b80;
+}
+.cs-floating__group { width: 30.46875%; }
+.cs-floating__group--now { left: 5.9375%; top: 46.5%; z-index: 3; }
+.cs-floating__group--links { left: 34.765625%; top: 40.5%; z-index: 2; }
+.cs-floating__group--log { left: 63.59375%; top: 34.5%; z-index: 1; }
+.cs-floating__label {
+  margin: 0 0 .9375cqw .3125cqw;
+  font-size: .859375cqw; line-height: 1.25cqw; letter-spacing: .1171875cqw;
+  font-weight: 500; color: #2e6b91;
+}
+.cs-floating__card {
+  height: 16.25cqw;
+  padding: 1.875cqw;
+  border: max(1px, .078125cqw) solid #6e95d8;
+  border-radius: 1.875cqw;
+  background: #eef4ff;
+  box-shadow: 0 1.40625cqw 2.5cqw rgba(48, 89, 128, .16);
+  color: #1e2633;
+  font-size: 1.25cqw;
+  line-height: 1.875cqw;
+}
+.cs-floating__card-title {
+  margin-bottom: 1.25cqw;
+  font-family: "Shippori Mincho", serif; font-weight: 700;
+  font-size: 1.875cqw; line-height: 2.734375cqw;
+}
+.cs-floating__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  width: fit-content;
+  max-width: 100%;
+  font-size: 14px;
+  line-height: 24px;
+  color: #2f5f8a;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.cs-floating__button {
+  width: fit-content;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid #6e95d8;
+  border-radius: 8px;
+  background: #eef4ff;
+  color: #1e2a38;
+  font-size: 14px;
+}
+
+.cs-floating__dialog {
+  width: min(calc(100% - 32px), 1320px);
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: 16px;
+  border: 1px solid #6e95d8;
+  border-radius: 12px;
+  background: #f8faff;
+  color: #1e2a38;
+}
+
+.cs-floating__dialog[open] {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cs-floating__dialog::backdrop {
+  background: rgb(30 42 56 / 55%);
+}
+
+.cs-floating__dialog-header {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cs-floating__scroll {
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.cs-floating__scroll > .cs-floating { width: 1280px; }
+
 .cs-figure__caption {
   display: flex;
   flex-direction: column;

@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 import qualityGateEvidence from "../assets/case-study/v1-quality-gate-evidence.png";
 import liveQualityGate from "../assets/case-study/live-quality-gate-2026-11-03.jpg";
 import "./CaseStudy.css";
@@ -11,7 +11,10 @@ import "./CaseStudy.css";
 
 // Case Studyだけで使う書体。index.htmlの共通フォント読込は変更しない。
 const FONT_HREF =
-  "https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Outfit:wght@600&display=swap";
+  "https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Outfit:wght@600&family=Shippori+Mincho:wght@700&display=swap";
+
+const FLOATING_WORKSPACE_HREF =
+  "https://www.figma.com/design/FCy5RRpXsRhXs44WcoPuZt?node-id=246-476";
 
 // 参照先4件（References のラベルとURLの対応）。GitHubは固定commitのまま、mainへ置き換えない。
 const REFS = [
@@ -53,7 +56,34 @@ function Section({ id, eyebrow, title, children }: { id: string; eyebrow: string
   );
 }
 
+function FloatingWorkspaceVisual() {
+  return (
+    <div className="cs-floating" role="img" aria-label="水色とグレージュの背景に、NOWタスク、制作リンク、制作ログのカードを重ねて配置したビジュアル実験。">
+      <div className="cs-floating__canvas" aria-hidden="true">
+        <p className="cs-floating__eyebrow">SHIZUKU OS / SPATIAL STUDY</p>
+        <p className="cs-floating__title">Shizuku Floating Workspace</p>
+        <p className="cs-floating__description">いま取り組むこと、制作への入口、記録の余白を、静かな奥行きとして分ける実験。</p>
+        <div className="cs-floating__group cs-floating__group--log">
+          <p className="cs-floating__label">DEPTH 03 / LOG</p>
+          <div className="cs-floating__card"><p className="cs-floating__card-title">制作ログ</p><p>やったこと、学び、次に始めることを<br />一行ずつ。</p></div>
+        </div>
+        <div className="cs-floating__group cs-floating__group--links">
+          <p className="cs-floating__label">DEPTH 02 / LINKS</p>
+          <div className="cs-floating__card"><p className="cs-floating__card-title">制作リンク</p><p>Figma、GitHub、公開ページ。<br />制作の入口を近くに置く。</p></div>
+        </div>
+        <div className="cs-floating__group cs-floating__group--now">
+          <p className="cs-floating__label">DEPTH 01 / NOW</p>
+          <div className="cs-floating__card"><p className="cs-floating__card-title">NOW タスク</p><p>Floating Workspace の<br />構成を調整する。</p></div>
+        </div>
+        <p className="cs-floating__note">制作中のタスク、リンク、ログを、空間の中で整理するためのビジュアル実験。</p>
+      </div>
+    </div>
+  );
+}
+
 export default function CaseStudy() {
+  const experimentDialog = useRef<HTMLDialogElement>(null);
+  const expandButton = useRef<HTMLButtonElement>(null);
   return (
     <main className="cs-page">
       <link rel="stylesheet" href={FONT_HREF} />
@@ -122,6 +152,41 @@ export default function CaseStudy() {
         </p>
       </Section>
 
+      <Section id="visual-exploration" eyebrow="VISUAL EXPLORATION" title="空間表現の実験">
+        <div className="cs-exploration-copy cs-body">
+          <p>Shizuku OS Dashboardの情報を、奥行きのある空間として表現する実験です。NOWタスク、制作リンク、制作ログを3枚のカードに分け、重なりと影によって、それぞれの関係を視覚的に整理しました。</p>
+          <p>水色と白を基調に、薄いグレージュを重ねることで、Dashboardの静かな世界観を保ちながら、制作の流れを一望できる表現を探っています。カードはFigma上で編集でき、2Dの重なりによって奥行きを表現しています。</p>
+          <p>これは既存の操作画面とは別に制作した、今後の表現を探るためのコンセプトです。</p>
+        </div>
+        <FloatingWorkspaceVisual />
+        <button
+          ref={expandButton}
+          className="cs-floating__button"
+          type="button"
+          aria-haspopup="dialog"
+          onClick={() => experimentDialog.current?.showModal()}
+        >
+          実験図を拡大する
+        </button>
+        <a className="cs-floating__link" href={FLOATING_WORKSPACE_HREF} target="_blank" rel="noreferrer">Figmaで開く（ログインが必要） ↗</a>
+        <dialog
+          ref={experimentDialog}
+          className="cs-floating__dialog"
+          aria-labelledby="cs-floating-dialog-title"
+          onClose={() => expandButton.current?.focus({ preventScroll: true })}
+        >
+          <div className="cs-floating__dialog-header">
+            <h3 id="cs-floating-dialog-title">実験図の拡大表示</h3>
+            <form method="dialog">
+              <button className="cs-floating__button" type="submit" autoFocus>閉じる</button>
+            </form>
+          </div>
+          <div className="cs-floating__scroll" tabIndex={0} role="region" aria-label="実験図（スクロールできます）">
+            <FloatingWorkspaceVisual />
+          </div>
+        </dialog>
+      </Section>
+
       <aside className="cs-archive" aria-label="制作時の資料">
         <p className="cs-evidence">制作時の資料</p>
         <div className="cs-archive__row">
@@ -152,7 +217,7 @@ export default function CaseStudy() {
           ))}
         </ul>
         <p className="cs-small cs-pre">
-          {"本文は2026年11月7日の採用原稿を反映。過去の監査記録と、今回確認した範囲を分けて記載しています。"}
+          {"OverviewからOutcomeまでの6節は、2026年11月7日の採用原稿を反映しています。「空間表現の実験」は、その後に追加したコンセプトです。過去の監査記録と各確認時点の検証範囲を分けて記載しています。"}
         </p>
         <p>
           <a className="cs-ref cs-ref--link cs-pre" href={PORTFOLIO_NOTE_HREF} target="_blank" rel="noreferrer">

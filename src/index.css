@@ -23,6 +23,10 @@
   color-scheme: light;
 }
 
+html {
+  scroll-padding-top: 76px;
+}
+
 body {
   margin: 0;
   /* 淡い水色グラデの地（透明感・静かな完成度） */
