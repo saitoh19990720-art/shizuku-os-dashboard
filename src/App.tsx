@@ -47,6 +47,7 @@ const NAV_TARGET_ORDER: readonly SectionId[] = ["today", "gate", "log", "more"];
 
 // 固定ナビの下端より上に来た最後のセクションを「いま見ている場所」とする。
 const NAV_OFFSET = 96;
+const SCROLL_KEYS = ["Home", "End", "PageUp", "PageDown", "ArrowUp", "ArrowDown", " "];
 function useActiveSection(): [SectionId, (id: SectionId) => void] {
   const [active, setActive] = useState<SectionId>("today");
   const endNavigation = useRef<{ id: SectionId; arrived: boolean } | null>(null);
@@ -72,13 +73,34 @@ function useActiveSection(): [SectionId, (id: SectionId) => void] {
     const onScroll = () => {
       if (!frame) frame = window.requestAnimationFrame(update);
     };
+    const cancelPendingNavigation = () => {
+      if (endNavigation.current && !endNavigation.current.arrived) endNavigation.current = null;
+    };
+    const onWheel = (event: WheelEvent) => {
+      if (event.deltaY !== 0 && !event.ctrlKey) cancelPendingNavigation();
+    };
+    const onScrollKey = (event: KeyboardEvent) => {
+      if (event.defaultPrevented || !SCROLL_KEYS.includes(event.key)) return;
+      const target = event.target;
+      if (target instanceof Element) {
+        if (target.closest("input, textarea, select") || (target instanceof HTMLElement && target.isContentEditable)) return;
+        if (event.key === " " && target.closest("button, [role='button']")) return;
+      }
+      cancelPendingNavigation();
+    };
     update();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
+    window.addEventListener("wheel", onWheel, { passive: true });
+    window.addEventListener("touchmove", cancelPendingNavigation, { passive: true });
+    window.addEventListener("keydown", onScrollKey);
     return () => {
       if (frame) window.cancelAnimationFrame(frame);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("touchmove", cancelPendingNavigation);
+      window.removeEventListener("keydown", onScrollKey);
     };
   }, []);
   return [active, (id) => {
