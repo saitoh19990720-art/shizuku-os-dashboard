@@ -32,7 +32,7 @@ afterEach(() => {
 });
 
 function toggleButton(container: HTMLElement) {
-  return container.querySelector("h2 > button") as HTMLButtonElement;
+  return container.querySelector("button[aria-expanded]") as HTMLButtonElement;
 }
 
 describe("Card の開閉状態", () => {

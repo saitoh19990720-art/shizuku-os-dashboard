@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import Landing from "./components/Landing";
 import CaseStudy from "./components/CaseStudy";
 import StartHereBanner from "./components/StartHereBanner";
@@ -36,13 +36,14 @@ function useHashRoute() {
 }
 
 const NAV = [
-  { id: "today", label: "今日", accessibleLabel: "今日：制作候補へ移動" },
+  { id: "today", label: "今日", accessibleLabel: "今日：次にやる一つと制作候補へ移動" },
   { id: "log", label: "夜ログ", accessibleLabel: "夜ログ：夜の振り返りへ移動" },
   { id: "gate", label: "採用判定", accessibleLabel: "採用判定：この案を採用する？へ移動" },
-  { id: "more", label: "道具", accessibleLabel: "道具：制作中リンクなど補助カードへ移動" },
+  { id: "more", label: "道具", accessibleLabel: "道具：制作中リンクとデータ入出力へ移動" },
 ] as const;
 
 type SectionId = (typeof NAV)[number]["id"];
+const NAV_TARGET_ORDER: readonly SectionId[] = ["today", "gate", "log", "more"];
 
 // 固定ナビの下端より上に来た最後のセクションを「いま見ている場所」とする。
 // ページ末尾まで来たら、最後のセクション（道具）を選ぶ。
@@ -56,13 +57,13 @@ function useActiveSection(): [SectionId, (id: SectionId) => void] {
       const atBottom =
         window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
       if (atBottom && window.scrollY > 0) {
-        setActive(NAV[NAV.length - 1].id);
+        setActive("more");
         return;
       }
-      let current: SectionId = NAV[0].id;
-      for (const item of NAV) {
-        const el = document.getElementById(item.id);
-        if (el && el.getBoundingClientRect().top <= NAV_OFFSET) current = item.id;
+      let current: SectionId = "today";
+      for (const id of NAV_TARGET_ORDER) {
+        const el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top <= NAV_OFFSET) current = id;
       }
       setActive(current);
     };
@@ -79,6 +80,32 @@ function useActiveSection(): [SectionId, (id: SectionId) => void] {
     };
   }, []);
   return [active, setActive];
+}
+
+function DashboardSection({
+  id,
+  title,
+  description,
+  children,
+}: {
+  id: string;
+  title: string;
+  description: string;
+  children: ReactNode;
+}) {
+  return (
+    <section
+      id={id}
+      aria-labelledby={`${id}-heading`}
+      className="flex flex-col gap-2 rounded-card border border-main-200/90 bg-white/60 p-2"
+    >
+      <header className="px-2 py-1">
+        <h2 id={`${id}-heading`} className="text-base font-semibold text-ink">{title}</h2>
+        <p className="text-xs text-neutral2-500">{description}</p>
+      </header>
+      {children}
+    </section>
+  );
 }
 
 // Shizuku OS Dashboard 本体。
@@ -139,29 +166,40 @@ function Dashboard() {
       <StorageAlert />
       <StartHereBanner />
 
-      <div id="today" className="flex scroll-mt-20 flex-col gap-4">
-        <TaskCard />
-        <ConditionCard />
-        <NextActionCard />
-      </div>
-
-      <div id="log" className="flex scroll-mt-20 flex-col gap-4">
-        <NightLogCard />
-        <RetireCard />
-      </div>
-
-      <div id="gate" className="scroll-mt-20">
-        <QualityGateCard />
-      </div>
-
-      <div id="more" className="flex scroll-mt-20 flex-col gap-4">
-        <LinksCard />
-        <RoleRouterCard />
-        <PromptBuilderCard />
+      <DashboardSection id="north-star" title="North Star" description="制作の方向性">
         <WeeklyReviewCard />
         <BrandPanelCard />
-        <DataBridgeCard />
-      </div>
+      </DashboardSection>
+
+      <DashboardSection id="today" title="Current" description="今日の状況と次の行動">
+        <NextActionCard />
+        <TaskCard />
+        <ConditionCard />
+      </DashboardSection>
+
+      <DashboardSection id="bottleneck" title="Bottleneck" description="進行を止めていること">
+        <p className="rounded-xl border border-dashed border-main-200 px-3 py-2 text-sm text-neutral2-500">
+          既存カードなし
+        </p>
+      </DashboardSection>
+
+      <DashboardSection id="gate" title="Decisions" description="採用の判断">
+        <QualityGateCard />
+      </DashboardSection>
+
+      <DashboardSection id="ai-office" title="AI Office" description="AIへの依頼と使い分け">
+        <RoleRouterCard />
+        <PromptBuilderCard />
+      </DashboardSection>
+
+      <DashboardSection id="log" title="Resume" description="記録と再開">
+        <NightLogCard />
+        <RetireCard />
+        <div id="more" className="flex flex-col gap-2">
+          <LinksCard />
+          <DataBridgeCard />
+        </div>
+      </DashboardSection>
 
       <footer className="mt-2 px-1 text-center text-xs text-neutral2-500">
         このブラウザ内に保存されます。端末間の同期はありません。

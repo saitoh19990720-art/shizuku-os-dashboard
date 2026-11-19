@@ -18,7 +18,7 @@ describe("データ入出力のバックアップ案内", () => {
     const root = createRoot(host);
     try {
       act(() => root.render(<DataBridgeCard />));
-      act(() => host.querySelector<HTMLButtonElement>("h2 > button")!.click());
+      act(() => host.querySelector<HTMLButtonElement>("button[aria-expanded]")!.click());
       expect(host.textContent).toContain("保存データが壊れている場合は書き出せません");
       const download = Array.from(host.querySelectorAll("button")).find((button) => button.textContent?.includes(".json ダウンロード"));
       expect(download).toBeDefined();

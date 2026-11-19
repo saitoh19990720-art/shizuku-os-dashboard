@@ -42,7 +42,7 @@ export default function Card({
   }, [open, motionDuration]);
   return (
     <section className="card-surface rounded-card border border-white/70 bg-white/80 p-5 shadow-soft backdrop-blur-sm">
-      <h2>
+      <h3>
         <button
           type="button"
           onClick={() => {
@@ -68,7 +68,7 @@ export default function Card({
             ▾
           </span>
         </button>
-      </h2>
+      </h3>
       <div
         id={panelId}
         className={`card-panel ${open ? "card-panel-open" : ""}`}
