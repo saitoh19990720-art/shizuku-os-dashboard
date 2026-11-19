@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import Landing from "./components/Landing";
 import CaseStudy from "./components/CaseStudy";
 import StartHereBanner from "./components/StartHereBanner";
@@ -46,20 +46,22 @@ type SectionId = (typeof NAV)[number]["id"];
 const NAV_TARGET_ORDER: readonly SectionId[] = ["today", "gate", "log", "more"];
 
 // 固定ナビの下端より上に来た最後のセクションを「いま見ている場所」とする。
-// ページ末尾まで来たら、最後のセクション（道具）を選ぶ。
 const NAV_OFFSET = 96;
 function useActiveSection(): [SectionId, (id: SectionId) => void] {
   const [active, setActive] = useState<SectionId>("today");
+  const endNavigation = useRef<{ id: SectionId; arrived: boolean } | null>(null);
   useEffect(() => {
     let frame = 0;
     const update = () => {
       frame = 0;
-      const atBottom =
-        window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
-      if (atBottom && window.scrollY > 0) {
-        setActive("more");
+      const remaining = document.documentElement.scrollHeight - window.innerHeight - window.scrollY;
+      const navigation = endNavigation.current;
+      if (remaining <= 2 && window.scrollY > 0) {
+        if (navigation) navigation.arrived = true;
+        setActive(navigation?.id ?? "more");
         return;
       }
+      if (navigation?.arrived && remaining > 8) endNavigation.current = null;
       let current: SectionId = "today";
       for (const id of NAV_TARGET_ORDER) {
         const el = document.getElementById(id);
@@ -79,7 +81,17 @@ function useActiveSection(): [SectionId, (id: SectionId) => void] {
       window.removeEventListener("resize", onScroll);
     };
   }, []);
-  return [active, setActive];
+  return [active, (id) => {
+    const root = document.documentElement;
+    const target = document.getElementById(id);
+    const maxScroll = root.scrollHeight - window.innerHeight;
+    const padding = parseFloat(getComputedStyle(root).scrollPaddingTop) || 0;
+    // 複数の移動先が同じ末尾位置に着く場合は、押した項目を保持する。
+    const reachesEnd = target && target.getBoundingClientRect().top + window.scrollY - padding >= maxScroll - 2;
+    endNavigation.current = reachesEnd ? { id, arrived: window.scrollY >= maxScroll - 2 } : null;
+    setActive(id);
+    scrollToSection(id);
+  }];
 }
 
 function DashboardSection({
@@ -112,7 +124,7 @@ function DashboardSection({
 // 主カード（制作候補／夜の振り返り）は開、採用判定と二次カードは初回畳み。
 // 上部に初回案内 ＋ sticky ナビ。
 function Dashboard() {
-  const [active, setActive] = useActiveSection();
+  const [active, navigateToSection] = useActiveSection();
   return (
     <main className="mx-auto flex w-full max-w-[400px] flex-col gap-4 px-4 pb-16 pt-8">
       <header className="mb-1 px-1">
@@ -143,10 +155,7 @@ function Dashboard() {
               <li key={item.id} className="min-w-0 flex-1">
                 <button
                   type="button"
-                  onClick={() => {
-                    setActive(item.id);
-                    scrollToSection(item.id);
-                  }}
+                  onClick={() => navigateToSection(item.id)}
                   aria-label={item.accessibleLabel}
                   aria-current={selected ? "location" : undefined}
                   className={`flex min-h-[44px] w-full items-center justify-center rounded-xl border px-1 text-xs transition-colors ${
@@ -196,7 +205,9 @@ function Dashboard() {
         <NightLogCard />
         <RetireCard />
         <div id="more" className="flex flex-col gap-2">
-          <LinksCard />
+          <div className="[&_input.grow]:min-w-0">
+            <LinksCard />
+          </div>
           <DataBridgeCard />
         </div>
       </DashboardSection>
