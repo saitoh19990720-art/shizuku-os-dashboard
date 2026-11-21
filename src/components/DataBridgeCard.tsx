@@ -294,7 +294,7 @@ export function applyImport(data: Record<string, unknown>, present: string[]): I
         error:
           "保存に失敗し、さらに元の内容へ戻すことにも失敗しました。次のデータが新しい内容のまま残っている可能性があります：" +
           restoreFailed.join(" / ") +
-          "。画面は更新していません。まず「.json ダウンロード」で今の状態を控えてから、ブラウザを開き直してください。",
+          "。画面は更新していません。ページを閉じる前に、残したい入力内容をコピーして控えてください。保存データは消さず、正常なバックアップがあれば保管してください。",
       };
     }
 
@@ -444,9 +444,11 @@ export default function DataBridgeCard() {
             {error}
           </p>
         )}
-        <p className="mt-1 text-[11px] text-neutral2-500">
-          ※上書き前に確認が出ます。心配なら先に「.json ダウンロード」でバックアップを。
-        </p>
+        {!error && (
+          <p className="mt-1 text-[11px] text-neutral2-500">
+            ※上書き前に確認が出ます。バックアップは「.json ダウンロード」で作成できますが、保存データが壊れている場合は書き出せません。
+          </p>
+        )}
       </div>
     </Card>
   );

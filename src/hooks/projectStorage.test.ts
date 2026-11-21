@@ -162,6 +162,30 @@ describe("破損v1", () => {
 });
 
 describe("破損v2", () => {
+  it("現在の保存先が読めれば旧キーの読み取り失敗に影響されない", () => {
+    localStorage.setItem(TASKS, TASKS_V1);
+    migrateToProjectStorage();
+    const current = '[{"id":"2","title":"現在の記録"}]';
+    localStorage.setItem(scopedKey(TASKS), current);
+    const real = Storage.prototype.getItem;
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(function (this: Storage, key) {
+      if (key === TASKS) throw new DOMException("SecurityError");
+      return real.call(this, key);
+    });
+    expect(tryReadLogicalRaw(TASKS)).toEqual({ ok: true, raw: current });
+    expect(loadInitialState(TASKS, []).loaded).toBe(true);
+  });
+
+  it("現在の保存先がなく旧キーも読めなければ、未保存扱いにしない", () => {
+    migrateToProjectStorage();
+    const real = Storage.prototype.getItem;
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(function (this: Storage, key) {
+      if (key === TASKS) throw new DOMException("SecurityError");
+      return real.call(this, key);
+    });
+    expect(tryReadLogicalRaw(TASKS)).toEqual({ ok: false });
+  });
+
   it("移行後にv2が壊れたら、旧キーに戻さず壊れた原文を保持する", () => {
     localStorage.setItem(TASKS, TASKS_V1);
     migrateToProjectStorage();
@@ -234,6 +258,7 @@ describe("壊れた保存値からの安全な復元", () => {
 
   it("巻き戻しにも失敗した場合は成功扱いせず、原文の控えを残す", () => {
     damaged();
+    localStorage.setItem(scopedKey("shizuku.nightLogs"), "{壊れた夜ログ");
     const real = Storage.prototype.setItem;
     vi.spyOn(Storage.prototype, "setItem").mockImplementation(function (this: Storage, key, value) {
       if (key === scopedKey(LINKS) || (key === scopedKey(TASKS) && value === "{壊れたJSON")) {
@@ -243,7 +268,13 @@ describe("壊れた保存値からの安全な復元", () => {
     });
     const result = applyImport({ [TASKS]: [], [LINKS]: [] }, [TASKS, LINKS]);
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error).toContain("元の内容へ戻すことにも失敗");
+    if (!result.ok) {
+      expect(result.error).toContain("元の内容へ戻すことにも失敗");
+      expect(result.error).toContain("ページを閉じる前に");
+      expect(result.error).not.toContain(".json ダウンロード");
+    }
+    // 別の壊れたデータが残ると書き出せないため、ダウンロードを復旧手段として案内しない。
+    expect(buildExport().ok).toBe(false);
     const key = Object.keys(localStorage).find((k) => k.startsWith("shizuku.recovery."));
     expect(JSON.parse(localStorage.getItem(key!)!).raw).toBe("{壊れたJSON");
   });
